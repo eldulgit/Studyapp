@@ -1,0 +1,362 @@
+package com.example.studyapp.ui.settings.schedule
+
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import java.util.Calendar
+import java.util.Locale
+
+@Composable
+fun ScheduleSettingScreen(
+    onBackClick: () -> Unit = {}
+) {
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    var selectedCategory by remember { mutableStateOf(ScheduleCategory.GOAL) }
+    var title by remember { mutableStateOf("") }
+
+    var startDate by remember { mutableStateOf("") }
+    var endDate by remember { mutableStateOf("") }
+    var pageCount by remember { mutableStateOf("") }
+
+    val dayOptions = listOf("월", "화", "수", "목", "금", "토", "일")
+    var selectedDay by remember { mutableStateOf("월") }
+    var isDayDropdownExpanded by remember { mutableStateOf(false) }
+    var startTime by remember { mutableStateOf("09:00") }
+    var endTime by remember { mutableStateOf("10:00") }
+
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var editingItemId by remember { mutableStateOf<Long?>(null) }
+
+    var fixedScheduleList by remember {
+        mutableStateOf(
+            listOf(
+                FixedScheduleItem(
+                    id = 1L,
+                    category = ScheduleCategory.GOAL,
+                    title = "나루토 읽기",
+                    startDate = "2026.03.03",
+                    endDate = "2026.07.24",
+                    pageCount = 32
+                ),
+                FixedScheduleItem(
+                    id = 2L,
+                    category = ScheduleCategory.SCHEDULE,
+                    title = "AI 프로그래밍",
+                    dayOfWeek = "월",
+                    startTime = "10:00",
+                    endTime = "12:00"
+                )
+            )
+        )
+    }
+
+    val context = LocalContext.current
+
+    fun showDatePicker(onDateSelected: (String) -> Unit) {
+        val calendar = Calendar.getInstance()
+
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val date = String.format(
+                    Locale.getDefault(),
+                    "%04d.%02d.%02d",
+                    year,
+                    month + 1,
+                    dayOfMonth
+                )
+                onDateSelected(date)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    fun showTimePicker(
+        initialHour: Int,
+        initialMinute: Int,
+        onTimeSelected: (String) -> Unit
+    ) {
+        TimePickerDialog(
+            context,
+            { _, hourOfDay, minute ->
+                onTimeSelected(
+                    String.format(
+                        Locale.getDefault(),
+                        "%02d:%02d",
+                        hourOfDay,
+                        minute
+                    )
+                )
+            },
+            initialHour,
+            initialMinute,
+            true
+        ).show()
+    }
+
+    fun parseTimeToMinutes(time: String): Int {
+        val parts = time.split(":")
+        val hour = parts[0].toInt()
+        val minute = parts[1].toInt()
+        return hour * 60 + minute
+    }
+
+    fun hasScheduleConflict(
+        items: List<FixedScheduleItem>,
+        editingId: Long?,
+        dayOfWeek: String,
+        startTime: String,
+        endTime: String
+    ): Boolean {
+        val newStart = parseTimeToMinutes(startTime)
+        val newEnd = parseTimeToMinutes(endTime)
+
+        return items.any { item ->
+            if (item.category != ScheduleCategory.SCHEDULE) return@any false
+            if (item.dayOfWeek != dayOfWeek) return@any false
+            if (editingId != null && item.id == editingId) return@any false
+
+            val existingStart = item.startTime?.let { parseTimeToMinutes(it) } ?: return@any false
+            val existingEnd = item.endTime?.let { parseTimeToMinutes(it) } ?: return@any false
+
+            newStart < existingEnd && newEnd > existingStart
+        }
+    }
+
+    val goalItems = fixedScheduleList.filter { it.category == ScheduleCategory.GOAL }
+    val scheduleItems = fixedScheduleList.filter { it.category == ScheduleCategory.SCHEDULE }
+
+    Scaffold(
+        topBar = {
+            ScheduleTopBar(
+                title = "스케줄 설정",
+                style = MaterialTheme.typography.titleMedium,
+                onBackClick = onBackClick
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    editingItemId = null
+                    selectedCategory = ScheduleCategory.GOAL
+                    title = ""
+                    startDate = ""
+                    endDate = ""
+                    pageCount = ""
+                    selectedDay = "월"
+                    startTime = "09:00"
+                    endTime = "10:00"
+                    isDayDropdownExpanded = false
+                    errorMessage = null
+                    showAddDialog = true
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "항목 추가"
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .navigationBarsPadding()
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    androidx.compose.foundation.layout.Column {
+                        androidx.compose.material3.Text(
+                            text = "스케줄",
+                            style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                        )
+
+                        androidx.compose.foundation.layout.Spacer(
+                            modifier = androidx.compose.ui.Modifier.height(8.dp)
+                        )
+
+                        ScheduleTimetable(
+                            items = scheduleItems,
+                            onItemClick = { item ->
+                                editingItemId = item.id
+                                selectedCategory = ScheduleCategory.SCHEDULE
+                                title = item.title
+                                startDate = item.startDate.orEmpty()
+                                endDate = item.endDate.orEmpty()
+                                pageCount = item.pageCount?.toString() ?: ""
+                                selectedDay = item.dayOfWeek ?: "월"
+                                startTime = item.startTime ?: "09:00"
+                                endTime = item.endTime ?: "10:00"
+                                isDayDropdownExpanded = false
+                                errorMessage = null
+                                showAddDialog = true
+                            }
+                        )
+                    }
+                }
+                item {
+                    ScheduleSection(
+                        title = "목표",
+                        items = goalItems,
+                        subtitleBuilder = {
+                            "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"
+                        },
+                        onEditClick = { item ->
+                            editingItemId = item.id
+                            selectedCategory = item.category
+                            title = item.title
+                            startDate = item.startDate.orEmpty()
+                            endDate = item.endDate.orEmpty()
+                            pageCount = item.pageCount?.toString() ?: ""
+                            selectedDay = item.dayOfWeek ?: "월"
+                            startTime = item.startTime ?: "09:00"
+                            endTime = item.endTime ?: "10:00"
+                            errorMessage = null
+                            showAddDialog = true
+                        }
+                    )
+                }
+            }
+
+            if (showAddDialog) {
+                ScheduleAddDialog(
+                    selectedCategory = selectedCategory,
+                    onCategoryChange = { selectedCategory = it },
+                    title = title,
+                    onTitleChange = { title = it },
+                    startDate = startDate,
+                    endDate = endDate,
+                    onStartDateClick = {
+                        showDatePicker { startDate = it }
+                    },
+                    onEndDateClick = {
+                        showDatePicker { endDate = it }
+                    },
+                    pageCount = pageCount,
+                    onPageCountChange = { pageCount = it },
+                    dayOptions = dayOptions,
+                    selectedDay = selectedDay,
+                    onSelectedDayChange = { selectedDay = it },
+                    isDayDropdownExpanded = isDayDropdownExpanded,
+                    onDayDropdownExpandedChange = { isDayDropdownExpanded = it },
+                    startTime = startTime,
+                    endTime = endTime,
+                    onStartTimeClick = {
+                        showTimePicker(9, 0) { startTime = it }
+                    },
+                    onEndTimeClick = {
+                        showTimePicker(10, 0) { endTime = it }
+                    },
+                    errorMessage = errorMessage,
+                    onDismiss = {
+                        showAddDialog = false
+                        errorMessage = null
+                    },
+                    onConfirm = {
+                        when {
+                            title.isBlank() -> {
+                                errorMessage = "제목을 입력해주세요."
+                            }
+
+                            selectedCategory == ScheduleCategory.GOAL && startDate.isBlank() -> {
+                                errorMessage = "시작 날짜를 입력해주세요."
+                            }
+
+                            selectedCategory == ScheduleCategory.GOAL && endDate.isBlank() -> {
+                                errorMessage = "마감 날짜를 입력해주세요."
+                            }
+
+                            selectedCategory == ScheduleCategory.GOAL && pageCount.isBlank() -> {
+                                errorMessage = "페이지 수를 입력해주세요."
+                            }
+
+                            selectedCategory == ScheduleCategory.GOAL && startDate > endDate -> {
+                                errorMessage = "마감 날짜는 시작 날짜보다 빠를 수 없습니다."
+                            }
+
+                            selectedCategory == ScheduleCategory.SCHEDULE && startTime >= endTime -> {
+                                errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
+                            }
+
+                            selectedCategory == ScheduleCategory.SCHEDULE &&
+                                    hasScheduleConflict(
+                                        items = fixedScheduleList,
+                                        editingId = editingItemId,
+                                        dayOfWeek = selectedDay,
+                                        startTime = startTime,
+                                        endTime = endTime
+                                    ) -> {
+                                errorMessage = "같은 요일에 시간이 겹치는 스케줄이 있습니다."
+                            }
+
+                            else -> {
+                                val newItem = if (selectedCategory == ScheduleCategory.GOAL) {
+                                    FixedScheduleItem(
+                                        id = editingItemId ?: System.currentTimeMillis(),
+                                        category = ScheduleCategory.GOAL,
+                                        title = title.trim(),
+                                        startDate = startDate,
+                                        endDate = endDate,
+                                        pageCount = pageCount.toIntOrNull()
+                                    )
+                                } else {
+                                    FixedScheduleItem(
+                                        id = editingItemId ?: System.currentTimeMillis(),
+                                        category = ScheduleCategory.SCHEDULE,
+                                        title = title.trim(),
+                                        dayOfWeek = selectedDay,
+                                        startTime = startTime,
+                                        endTime = endTime
+                                    )
+                                }
+
+                                fixedScheduleList = if (editingItemId == null) {
+                                    fixedScheduleList + newItem
+                                } else {
+                                    fixedScheduleList.map { oldItem ->
+                                        if (oldItem.id == editingItemId) newItem else oldItem
+                                    }
+                                }
+
+                                showAddDialog = false
+                                editingItemId = null
+                                errorMessage = null
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+}

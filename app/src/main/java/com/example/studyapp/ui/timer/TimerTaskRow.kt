@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun TimerTaskRow(
     subject: String,
@@ -27,9 +26,9 @@ fun TimerTaskRow(
     containerWidth: Dp,
     isRunning: Boolean,
     onToggle: () -> Unit,
-    onMemoClick: () -> Unit
+    onEditClick: () -> Unit
 ) {
-    val slotWidth = containerWidth / 4   // ⭐ 4칸 균등 분할
+    val slotWidth = containerWidth / 4
     val touchSize = 36.dp
 
     Row(
@@ -38,8 +37,6 @@ fun TimerTaskRow(
             .height(48.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        // ▶
         Box(
             modifier = Modifier.width(slotWidth),
             contentAlignment = Alignment.Center
@@ -58,7 +55,6 @@ fun TimerTaskRow(
             }
         }
 
-        // 📘 과목
         Box(
             modifier = Modifier.width(slotWidth),
             contentAlignment = Alignment.Center
@@ -66,7 +62,6 @@ fun TimerTaskRow(
             Text(subject, fontSize = 16.sp)
         }
 
-        // ⏱ 시간
         Box(
             modifier = Modifier.width(slotWidth),
             contentAlignment = Alignment.Center
@@ -74,7 +69,6 @@ fun TimerTaskRow(
             Text(time, fontSize = 14.sp)
         }
 
-        // ✏ 메모
         Box(
             modifier = Modifier.width(slotWidth),
             contentAlignment = Alignment.Center
@@ -82,7 +76,7 @@ fun TimerTaskRow(
             Box(
                 modifier = Modifier
                     .size(touchSize)
-                    .clickable { onMemoClick() },
+                    .clickable { onEditClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

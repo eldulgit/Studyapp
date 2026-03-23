@@ -1,8 +1,12 @@
 package com.example.studyapp.ui.navigation
 
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 
 @Composable
@@ -11,15 +15,18 @@ fun BottomNavigationBar(
 ) {
     val items = listOf(
         BottomNavItem.Calendar,
-        BottomNavItem.Todo,
         BottomNavItem.Timer,
+        BottomNavItem.Stats,
         BottomNavItem.Setting
     )
+
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
 
     NavigationBar {
         items.forEach { item ->
             NavigationBarItem(
-                selected = false, // 아직 상태 처리 안 함
+                selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route)
                 },

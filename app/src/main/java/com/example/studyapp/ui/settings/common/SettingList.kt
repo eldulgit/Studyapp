@@ -9,8 +9,11 @@ import androidx.navigation.NavController
 @Composable
 fun SettingsList(navController: NavController) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        SettingItem("목표 설정") {
-            navController.navigate("setting_goal")
+        SettingItem("과목 설정") {
+            navController.navigate("setting_subject")
+        }
+        SettingItem("스케줄 설정") {
+            navController.navigate("setting_schedule")
         }
         SettingItem("알림 설정") {
             navController.navigate("setting_notification")
@@ -18,7 +21,7 @@ fun SettingsList(navController: NavController) {
         SettingItem("테마 설정") {
             navController.navigate("setting_theme")
         }
-        SettingItem("AI 프로필 설정") {
+        SettingItem("코멘트 설정") {
             navController.navigate("setting_ai")
         }
         SettingItem("계정 설정") {

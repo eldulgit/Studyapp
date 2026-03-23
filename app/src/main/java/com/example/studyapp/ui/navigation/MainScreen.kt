@@ -14,15 +14,14 @@ import com.example.studyapp.ui.calendar.CalendarScreen
 import com.example.studyapp.ui.settings.account.AccountSettingScreen
 import com.example.studyapp.ui.settings.ai.AiProfileSettingScreen
 import com.example.studyapp.ui.settings.common.SettingScreen
-import com.example.studyapp.ui.settings.goal.GoalSettingScreen
-import com.example.studyapp.ui.settings.goal.GoalViewModel
 import com.example.studyapp.ui.settings.notification.NotificationSettingScreen
+import com.example.studyapp.ui.settings.schedule.ScheduleSettingScreen
+import com.example.studyapp.ui.settings.subject.SubjectSettingScreen
+import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.settings.theme.ThemeSettingScreen
 import com.example.studyapp.ui.stats.StatsScreen
 import com.example.studyapp.ui.timer.TimerScreen
 import com.example.studyapp.ui.timer.TimerViewModel
-import com.example.studyapp.ui.timetable.TimeTableScreen
-import com.example.studyapp.ui.todo.TodoScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -30,7 +29,7 @@ fun MainScreen() {
 
     val navController = rememberNavController()
 
-    val goalViewModel: GoalViewModel = viewModel()
+    val subjectViewModel: SubjectViewModel = viewModel()
     val timerViewModel: TimerViewModel = viewModel()
 
     Scaffold(
@@ -41,43 +40,41 @@ fun MainScreen() {
 
         NavHost(
             navController = navController,
-            startDestination = BottomNavItem.Todo.route,
+            startDestination = BottomNavItem.Calendar.route,
             modifier = Modifier.padding(padding)
         ) {
 
             composable(BottomNavItem.Calendar.route) {
-                CalendarScreen(navController, goalViewModel)
+                CalendarScreen(navController, subjectViewModel)
             }
 
-            composable("stats") {
+            composable(BottomNavItem.Stats.route) {
                 StatsScreen(
-                    navController = navController,
-                    goalViewModel = goalViewModel,
+                    subjectViewModel = subjectViewModel,
                     studiedMinutes = timerViewModel.studiedMinutes
                 )
-            }
-
-            composable(BottomNavItem.Todo.route) {
-                TodoScreen()
             }
 
             composable(BottomNavItem.Timer.route) {
                 TimerScreen(
                     navController = navController,
-                    timerViewModel = timerViewModel
+                    timerViewModel = timerViewModel,
+                    subjectViewModel = subjectViewModel
                 )
-            }
-
-            composable("Time Table") {
-                TimeTableScreen()
             }
 
             composable(BottomNavItem.Setting.route) {
                 SettingScreen(navController)
             }
 
-            composable("setting_goal") {
-                GoalSettingScreen(navController, goalViewModel)
+            composable("setting_subject") {
+                SubjectSettingScreen(navController, subjectViewModel)
+            }
+
+            composable("setting_schedule") {
+                ScheduleSettingScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
 
             composable("setting_notification") {
