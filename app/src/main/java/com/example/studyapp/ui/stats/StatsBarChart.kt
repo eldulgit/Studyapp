@@ -17,14 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.studyapp.sample.generateDummyValues
 
 @Composable
 fun StatsBarChart(period: StatsPeriod) {
 
     val labels = generateLabels(period)
-    val values = generateDummyValues()
-
+    val values = List(labels.size) { 0 }
     Column(
         modifier = Modifier
             .fillMaxWidth()

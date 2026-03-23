@@ -16,7 +16,6 @@ import java.time.YearMonth
 fun CalendarGrid(
     yearMonth: YearMonth,
     selectedDate: LocalDate?,
-    goalMinutes: Int,
     onDateSelected: (LocalDate) -> Unit,
     getDayColor: (LocalDate?) -> Color
 ) {

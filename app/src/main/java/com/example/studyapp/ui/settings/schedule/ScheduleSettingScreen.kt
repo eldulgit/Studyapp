@@ -32,46 +32,21 @@ fun ScheduleSettingScreen(
     onBackClick: () -> Unit = {}
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
-
     var selectedCategory by remember { mutableStateOf(ScheduleCategory.GOAL) }
     var title by remember { mutableStateOf("") }
-
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
     var pageCount by remember { mutableStateOf("") }
-
     val dayOptions = listOf("월", "화", "수", "목", "금", "토", "일")
     var selectedDay by remember { mutableStateOf("월") }
     var isDayDropdownExpanded by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf("09:00") }
     var endTime by remember { mutableStateOf("10:00") }
-
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var editingItemId by remember { mutableStateOf<Long?>(null) }
-
     var fixedScheduleList by remember {
-        mutableStateOf(
-            listOf(
-                FixedScheduleItem(
-                    id = 1L,
-                    category = ScheduleCategory.GOAL,
-                    title = "나루토 읽기",
-                    startDate = "2026.03.03",
-                    endDate = "2026.07.24",
-                    pageCount = 32
-                ),
-                FixedScheduleItem(
-                    id = 2L,
-                    category = ScheduleCategory.SCHEDULE,
-                    title = "AI 프로그래밍",
-                    dayOfWeek = "월",
-                    startTime = "10:00",
-                    endTime = "12:00"
-                )
-            )
-        )
+        mutableStateOf<List<FixedScheduleItem>>(emptyList())
     }
-
     val context = LocalContext.current
 
     fun showDatePicker(onDateSelected: (String) -> Unit) {

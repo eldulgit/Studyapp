@@ -31,8 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.studyapp.data.repository.StudyRepository
-import com.example.studyapp.data.repository.StudyRepository.getStudyMinutesForDate
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import java.time.LocalDate
 import java.time.YearMonth
@@ -60,46 +58,10 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
             }
         }
     }
-    val dayTotalMinutes = selectedDate?.let{
-        getStudyMinutesForDate(it)
-    } ?: 0
-    val monthTotalMinutes = StudyRepository.getMonthTotal(currentMonth)
     val strongColor = MaterialTheme.colorScheme.primary
     val mediumColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
     val lightColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-
-    //더미데이터
-    val today = LocalDate.now()
-
-    val dummyDaySchedules = listOf(
-        DayScheduleBlock(
-            date = today,
-            startHour = 17,
-            startMinute = 0,
-            endHour = 18,
-            endMinute = 20,
-            subject = "수학",
-            color = strongColor
-        ),
-        DayScheduleBlock(
-            date = today,
-            startHour = 18,
-            startMinute = 30,
-            endHour = 19,
-            endMinute = 20,
-            subject = "영어",
-            color = mediumColor
-        ),
-        DayScheduleBlock(
-            date = today.plusDays(1),
-            startHour = 20,
-            startMinute = 0,
-            endHour = 21,
-            endMinute = 0,
-            subject = "국어",
-            color = lightColor
-        )
-    )
+    val daySchedules = emptyList<DayScheduleBlock>()
 
 
     fun getColorForStudyMinutes(
@@ -120,8 +82,6 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
             else -> Color.Transparent
         }
     }
-
-
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -183,21 +143,8 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
                 CalendarGrid(
                     yearMonth = currentMonth,
                     selectedDate = selectedDate,
-                    goalMinutes = goalMinutes,
                     onDateSelected = { selectedDate = it },
-                    getDayColor = { date ->
-                        val minutes = date?.let {
-                            StudyRepository.getStudyMinutesForDate(it)
-                        } ?: 0
-
-                        getColorForStudyMinutes(
-                            minutes,
-                            goalMinutes,
-                            strongColor,
-                            mediumColor,
-                            lightColor
-                        )
-                    }
+                    getDayColor = { Color.Transparent }
                 )
             }
         }
@@ -206,7 +153,7 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
 
         DayScheduleTimeline(
             selectedDate = selectedDate,
-            schedules = dummyDaySchedules
+            schedules = daySchedules
         )
     }
 }

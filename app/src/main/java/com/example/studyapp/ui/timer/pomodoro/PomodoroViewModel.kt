@@ -14,13 +14,9 @@ class PomodoroViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         PomodoroUiState(
-            tasks = listOf(
-                PomodoroTask(id = 1L, subjectName = "국어", allocatedMinutes = 30),
-                PomodoroTask(id = 2L, subjectName = "영어", allocatedMinutes = 20),
-                PomodoroTask(id = 3L, subjectName = "수학", allocatedMinutes = 10)
-            ),
+            tasks = emptyList(),
             isRunning = false,
-            currentTaskId = 1L
+            currentTaskId = null
         )
     )
     val uiState: StateFlow<PomodoroUiState> = _uiState.asStateFlow()

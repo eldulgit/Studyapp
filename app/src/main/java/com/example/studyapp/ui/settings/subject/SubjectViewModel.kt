@@ -8,14 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 
 class SubjectViewModel(application: Application) : AndroidViewModel(application) {
 
-
-    var subjects by mutableStateOf(
-        listOf(
-            "국어" to 1,
-            "영어" to 2,
-            "수학" to 3
-        )
-    )
+    var subjects by mutableStateOf<List<Pair<String, Int>>>(emptyList())
         private set
     fun addSubject(name: String, priority: Int) {
         if (subjects.none { it.first == name }) {
