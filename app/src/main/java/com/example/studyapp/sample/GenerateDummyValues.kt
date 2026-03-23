@@ -1,4 +1,4 @@
-package com.example.studyapp.ui.stats
+package com.example.studyapp.sample
 
 fun generateDummyValues(): List<Int> {
     return listOf(
