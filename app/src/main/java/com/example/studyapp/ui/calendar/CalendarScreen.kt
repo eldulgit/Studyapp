@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,7 +39,6 @@ import java.time.YearMonth
 @Composable
 fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewModel) {
 
-    val goalMinutes = 120
     var currentMonth by remember {
         mutableStateOf(YearMonth.now())
     }
@@ -49,6 +47,8 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
             LocalDate.now().takeIf { YearMonth.from(it) == currentMonth }
         )
     }
+    val daySchedules = emptyList<DayScheduleBlock>()
+
     LaunchedEffect(currentMonth) {
         if (selectedDate == null || YearMonth.from(selectedDate) != currentMonth) {
             selectedDate = if (currentMonth == YearMonth.now()) {
@@ -58,30 +58,7 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
             }
         }
     }
-    val strongColor = MaterialTheme.colorScheme.primary
-    val mediumColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-    val lightColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-    val daySchedules = emptyList<DayScheduleBlock>()
 
-
-    fun getColorForStudyMinutes(
-        minutes: Int,
-        goalMinutes: Int,
-        strong: Color,
-        medium: Color,
-        light: Color
-    ): Color {
-        if (goalMinutes <= 0) return Color.Transparent
-
-        val percent = minutes.toFloat() / goalMinutes * 100f
-
-        return when {
-            percent >= 80 -> strong
-            percent >= 40 -> medium
-            percent > 0 -> light
-            else -> Color.Transparent
-        }
-    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -117,7 +94,11 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
                     )
                 }
                 Text(
-                    text = "${currentMonth.year}Y ${String.format("%02d", currentMonth.monthValue)}M",
+                    text = "${currentMonth.year}Y ${
+                        String.format(
+                            "%02d", currentMonth.monthValue
+                        )
+                    }M",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -139,14 +120,14 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            key(goalMinutes) {
-                CalendarGrid(
-                    yearMonth = currentMonth,
-                    selectedDate = selectedDate,
-                    onDateSelected = { selectedDate = it },
-                    getDayColor = { Color.Transparent }
-                )
-            }
+
+            CalendarGrid(
+                yearMonth = currentMonth,
+                selectedDate = selectedDate,
+                onDateSelected = { selectedDate = it },
+                getDayColor = { Color.Transparent }
+            )
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
