@@ -116,7 +116,9 @@ fun TimerScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn(
-                modifier = Modifier.width(timerWidth),
+                modifier = Modifier
+                    .width(timerWidth)
+                    .weight(1f),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(

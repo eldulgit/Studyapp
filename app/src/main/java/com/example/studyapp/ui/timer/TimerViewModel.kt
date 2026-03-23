@@ -27,10 +27,6 @@ class TimerViewModel : ViewModel() {
     // 중복되지 않는 고유 id 생성용
     private var nextId by mutableLongStateOf(1L)
 
-    fun addMinutes(minutes: Int) {
-        studiedMinutes += minutes
-    }
-
     fun reset() {
         timerJob?.cancel()
         timerJob = null

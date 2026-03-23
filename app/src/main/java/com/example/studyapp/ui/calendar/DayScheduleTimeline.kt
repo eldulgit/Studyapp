@@ -26,6 +26,7 @@ import java.time.LocalDate
 
 @Composable
 fun DayScheduleTimeline(
+    modifier: Modifier,
     selectedDate: LocalDate?,
     schedules: List<DayScheduleBlock>
 ) {

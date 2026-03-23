@@ -152,6 +152,7 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
         Spacer(modifier = Modifier.height(16.dp))
 
         DayScheduleTimeline(
+            modifier = Modifier.weight(1f),
             selectedDate = selectedDate,
             schedules = daySchedules
         )
