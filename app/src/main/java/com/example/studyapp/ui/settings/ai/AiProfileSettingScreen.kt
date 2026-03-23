@@ -15,18 +15,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.studyapp.ui.settings.SettingsViewModel
 
 @Composable
-fun AiProfileSettingScreen(navController: NavController) {
-    var selectedOption by remember { mutableStateOf("오늘의 명언") }
+fun AiProfileSettingScreen(
+    navController: NavController,
+    settingsViewModel: SettingsViewModel
+) {
+    val selectedOption = settingsViewModel.commentOption
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -71,7 +71,7 @@ fun AiProfileSettingScreen(navController: NavController) {
             ) {
                 RadioButton(
                     selected = selectedOption == "오늘의 명언",
-                    onClick = { selectedOption = "오늘의 명언" }
+                    onClick = { settingsViewModel.updateCommentOption("오늘의 명언") }
                 )
                 Text(
                     text = "오늘의 명언",
@@ -87,7 +87,7 @@ fun AiProfileSettingScreen(navController: NavController) {
             ) {
                 RadioButton(
                     selected = selectedOption == "AI 코멘트",
-                    onClick = { selectedOption = "AI 코멘트" }
+                    onClick = { settingsViewModel.updateCommentOption("AI 코멘트") }
                 )
                 Text(
                     text = "AI 코멘트",

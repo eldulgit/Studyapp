@@ -14,6 +14,7 @@ import com.example.studyapp.ui.calendar.CalendarScreen
 import com.example.studyapp.ui.settings.account.AccountSettingScreen
 import com.example.studyapp.ui.settings.ai.AiProfileSettingScreen
 import com.example.studyapp.ui.settings.common.SettingScreen
+import com.example.studyapp.ui.settings.SettingsViewModel
 import com.example.studyapp.ui.settings.notification.NotificationSettingScreen
 import com.example.studyapp.ui.settings.schedule.ScheduleSettingScreen
 import com.example.studyapp.ui.settings.subject.SubjectSettingScreen
@@ -31,6 +32,7 @@ fun MainScreen() {
 
     val subjectViewModel: SubjectViewModel = viewModel()
     val timerViewModel: TimerViewModel = viewModel()
+    val settingsViewModel: SettingsViewModel = viewModel()
 
     Scaffold(
         bottomBar = {
@@ -50,7 +52,6 @@ fun MainScreen() {
 
             composable(BottomNavItem.Stats.route) {
                 StatsScreen(
-                    subjectViewModel = subjectViewModel,
                     studiedMinutes = timerViewModel.studiedMinutes
                 )
             }
@@ -78,15 +79,15 @@ fun MainScreen() {
             }
 
             composable("setting_notification") {
-                NotificationSettingScreen(navController)
+                NotificationSettingScreen(navController, settingsViewModel)
             }
 
             composable("setting_theme") {
-                ThemeSettingScreen(navController)
+                ThemeSettingScreen(navController, settingsViewModel)
             }
 
             composable("setting_ai") {
-                AiProfileSettingScreen(navController)
+                AiProfileSettingScreen(navController, settingsViewModel)
             }
 
             composable("setting_account") {

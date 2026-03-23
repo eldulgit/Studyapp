@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -126,13 +125,6 @@ fun ScheduleSettingScreen(
     val scheduleItems = fixedScheduleList.filter { it.category == ScheduleCategory.SCHEDULE }
 
     Scaffold(
-        topBar = {
-            ScheduleTopBar(
-                title = "스케줄 설정",
-                style = MaterialTheme.typography.titleMedium,
-                onBackClick = onBackClick
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {

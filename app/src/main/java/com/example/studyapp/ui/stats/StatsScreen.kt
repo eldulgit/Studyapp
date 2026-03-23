@@ -16,7 +16,6 @@ import com.example.studyapp.ui.settings.subject.SubjectViewModel
 
 @Composable
 fun StatsScreen(
-    subjectViewModel: SubjectViewModel,
     studiedMinutes: Int
 ) {
 

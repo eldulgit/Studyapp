@@ -5,6 +5,4 @@ data class SubjectTimer(
     val name: String,
     val allocatedSeconds: Int,
     val remainingSeconds: Int,
-    val memo: String = "",
-    val page: String = ""
 )

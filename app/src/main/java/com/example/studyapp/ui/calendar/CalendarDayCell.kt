@@ -32,10 +32,8 @@ import java.time.LocalDate
 fun CalendarDayCell(
     date: LocalDate?,
     isSelected: Boolean,
-    backgroundColor: Color,
     onClick: () -> Unit,
 ) {
-    val hasBackground = backgroundColor != Color.Transparent
     val isToday = date == LocalDate.now()
 
     val borderWidth by animateDpAsState(
@@ -49,10 +47,6 @@ fun CalendarDayCell(
         modifier = Modifier
             .aspectRatio(1f)
             .clip(CircleShape)
-            .background(
-                color = backgroundColor,
-                shape = CircleShape
-            )
             .border(
                 width = borderWidth,
                 color = if (isSelected)
@@ -87,10 +81,7 @@ fun CalendarDayCell(
 
                 Text(
                     text = it.dayOfMonth.toString(),
-                    color = if (hasBackground)
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

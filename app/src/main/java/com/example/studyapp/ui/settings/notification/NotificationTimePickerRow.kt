@@ -23,16 +23,16 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationTimePickerRow() {
-
+fun NotificationTimePickerRow(
+    selectedHour: String,
+    selectedMinute: String,
+    onTimeChanged: (hour: String, minute: String) -> Unit
+) {
     val hours = (4..23).map { it.toString().padStart(2, '0') }
     val minutes = listOf("00", "10", "20", "30", "40", "50")
 
     var hourExpanded by remember { mutableStateOf(false) }
     var minuteExpanded by remember { mutableStateOf(false) }
-
-    var selectedHour by remember { mutableStateOf("08") }
-    var selectedMinute by remember { mutableStateOf("00") }
 
     Row(
         modifier = Modifier
@@ -41,12 +41,10 @@ fun NotificationTimePickerRow() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-
         Text("알람 시간 설정")
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
-            // ⏰ Hour
             ExposedDropdownMenuBox(
                 expanded = hourExpanded,
                 onExpandedChange = { hourExpanded = !hourExpanded }
@@ -73,7 +71,7 @@ fun NotificationTimePickerRow() {
                         DropdownMenuItem(
                             text = { Text(hour) },
                             onClick = {
-                                selectedHour = hour
+                                onTimeChanged(hour, selectedMinute)
                                 hourExpanded = false
                             }
                         )
@@ -83,7 +81,6 @@ fun NotificationTimePickerRow() {
 
             Text(" : ", modifier = Modifier.padding(horizontal = 12.dp))
 
-            // ⏱ Minute
             ExposedDropdownMenuBox(
                 expanded = minuteExpanded,
                 onExpandedChange = { minuteExpanded = !minuteExpanded }
@@ -110,7 +107,7 @@ fun NotificationTimePickerRow() {
                         DropdownMenuItem(
                             text = { Text(min) },
                             onClick = {
-                                selectedMinute = min
+                                onTimeChanged(selectedHour, min)
                                 minuteExpanded = false
                             }
                         )

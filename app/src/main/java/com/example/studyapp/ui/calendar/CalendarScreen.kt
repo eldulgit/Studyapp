@@ -59,7 +59,6 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
         }
     }
 
-
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -94,11 +93,7 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
                     )
                 }
                 Text(
-                    text = "${currentMonth.year}Y ${
-                        String.format(
-                            "%02d", currentMonth.monthValue
-                        )
-                    }M",
+                    text = "${currentMonth.year}Y ${String.format("%02d", currentMonth.monthValue)}M",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -120,14 +115,11 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             CalendarGrid(
                 yearMonth = currentMonth,
                 selectedDate = selectedDate,
-                onDateSelected = { selectedDate = it },
-                getDayColor = { Color.Transparent }
+                onDateSelected = { selectedDate = it }
             )
-
         }
 
         Spacer(modifier = Modifier.height(16.dp))

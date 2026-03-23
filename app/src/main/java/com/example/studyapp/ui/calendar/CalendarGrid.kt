@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -16,8 +15,7 @@ import java.time.YearMonth
 fun CalendarGrid(
     yearMonth: YearMonth,
     selectedDate: LocalDate?,
-    onDateSelected: (LocalDate) -> Unit,
-    getDayColor: (LocalDate?) -> Color
+    onDateSelected: (LocalDate) -> Unit
 ) {
     val firstDayOfMonth = yearMonth.atDay(1)
     val lastDayOfMonth = yearMonth.atEndOfMonth()
@@ -40,7 +38,6 @@ fun CalendarGrid(
             CalendarDayCell(
                 date = date,
                 isSelected = date != null && date == selectedDate,
-                backgroundColor = getDayColor(date),
                 onClick = {
                     date?.let { onDateSelected(it) }
                 }

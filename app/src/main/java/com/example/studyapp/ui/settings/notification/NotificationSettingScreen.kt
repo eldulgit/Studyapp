@@ -15,20 +15,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.studyapp.ui.settings.SettingsViewModel
 
 @Composable
-fun NotificationSettingScreen(navController: NavController) {
-
-    var notificationEnabled by remember { mutableStateOf(true) }
-    var goalAlertEnabled by remember { mutableStateOf(false) }
+fun NotificationSettingScreen(
+    navController: NavController,
+    settingsViewModel: SettingsViewModel
+) {
+    val notificationEnabled = settingsViewModel.notificationEnabled
+    val goalAlertEnabled = settingsViewModel.goalAlertEnabled
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -60,13 +59,19 @@ fun NotificationSettingScreen(navController: NavController) {
                 Text("공부 알림 받기")
                 Switch(
                     checked = notificationEnabled,
-                    onCheckedChange = { notificationEnabled = it }
+                    onCheckedChange = { settingsViewModel.updateNotificationEnabled(it) }
                 )
             }
 
             Spacer(modifier = Modifier.padding(12.dp))
 
-            NotificationTimePickerRow()
+            NotificationTimePickerRow(
+                selectedHour = settingsViewModel.notificationHour,
+                selectedMinute = settingsViewModel.notificationMinute,
+                onTimeChanged = { hour, minute ->
+                    settingsViewModel.updateNotificationTime(hour, minute)
+                }
+            )
 
             Spacer(modifier = Modifier.padding(12.dp))
 
@@ -78,7 +83,7 @@ fun NotificationSettingScreen(navController: NavController) {
                 Text("목표 미달 시 알림")
                 Switch(
                     checked = goalAlertEnabled,
-                    onCheckedChange = { goalAlertEnabled = it }
+                    onCheckedChange = { settingsViewModel.updateGoalAlertEnabled(it) }
                 )
             }
         }
