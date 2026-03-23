@@ -174,7 +174,7 @@ fun ScheduleAddDialog(
                                 onPageCountChange(input)
                             }
                         },
-                        label = { Text("페이지 수") },
+                        label = { Text("페이지/인강 수") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
