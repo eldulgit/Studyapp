@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -32,6 +33,7 @@ import java.time.LocalDate
 fun CalendarDayCell(
     date: LocalDate?,
     isSelected: Boolean,
+    isHoliday: Boolean,
     onClick: () -> Unit,
 ) {
     val isToday = date == LocalDate.now()
@@ -42,6 +44,14 @@ fun CalendarDayCell(
     )
 
     val interactionSource = remember { MutableInteractionSource() }
+
+    val textColor = when {
+        date == null -> Color.Transparent
+        isHoliday -> Color.Red
+        date.dayOfWeek == DayOfWeek.SUNDAY -> Color.Red
+        date.dayOfWeek == DayOfWeek.SATURDAY -> Color.Blue
+        else -> MaterialTheme.colorScheme.onSurface
+    }
 
     Box(
         modifier = Modifier
@@ -81,7 +91,7 @@ fun CalendarDayCell(
 
                 Text(
                     text = it.dayOfMonth.toString(),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
             }
         }

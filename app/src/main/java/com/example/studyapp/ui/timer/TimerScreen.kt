@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.timer.pomodoro.CircularTimer
 import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
@@ -40,12 +39,11 @@ import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
 
 @Composable
 fun TimerScreen(
-    navController: NavController,
-    timerViewModel: TimerViewModel,
-    subjectViewModel: SubjectViewModel
+    subjectViewModel: SubjectViewModel,
+    timerViewModel: TimerViewModel
 ) {
     val availableSubjects = subjectViewModel.subjects
-    val subjects = timerViewModel.subjects
+    val timerSubjects = timerViewModel.subjects
 
     var showSubjectDialog by remember { mutableStateOf(false) }
     var checkedSubjects by remember { mutableStateOf(setOf<String>()) }
@@ -55,9 +53,8 @@ fun TimerScreen(
 
     val timerWidth = 270.dp
 
-    val currentEditTarget = subjects.firstOrNull { it.id == editTargetId }
-
-    val runningTask = subjects.firstOrNull { it.id == timerViewModel.runningTaskId }
+    val currentEditTarget = timerSubjects.firstOrNull { it.id == editTargetId }
+    val runningTask = timerSubjects.firstOrNull { it.id == timerViewModel.runningTaskId }
 
     val segments = if (runningTask == null) {
         emptyList()
@@ -69,6 +66,11 @@ fun TimerScreen(
             label = runningTask.name
         )
     }
+
+    val runningTaskColor = availableSubjects
+        .firstOrNull { it.name == runningTask?.name }
+        ?.let { Color(it.colorArgb) }
+        ?: Color(0xFF4CAF50)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -109,7 +111,7 @@ fun TimerScreen(
                 CircularTimer(
                     modifier = Modifier.fillMaxSize(),
                     segments = segments,
-                    colorForIndex = { Color(0xFF4CAF50) }
+                    colorForIndex = { runningTaskColor }
                 )
             }
 
@@ -122,7 +124,7 @@ fun TimerScreen(
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(
-                    items = subjects,
+                    items = timerSubjects,
                     key = { it.id }
                 ) { item ->
                     val isRunning = timerViewModel.runningTaskId == item.id

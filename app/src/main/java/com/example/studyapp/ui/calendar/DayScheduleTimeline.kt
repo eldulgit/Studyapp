@@ -1,5 +1,7 @@
 package com.example.studyapp.ui.calendar
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -12,18 +14,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DayScheduleTimeline(
     modifier: Modifier = Modifier,
@@ -45,14 +49,51 @@ fun DayScheduleTimeline(
     val timeLabelWidth = 56.dp
     val verticalScroll = rememberScrollState()
 
+    val lineWidth = 0.5.dp
+    val lineColor = Color(0xFFBDBDBD).copy(alpha = 0.6f)
+
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
-        Text(
-            text = "Scheduler",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Scheduler",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            displayedSchedules
+                .distinctBy { it.subject }
+                .sortedBy { it.subject }
+                .forEach { schedule ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(18.dp)
+                                .height(2.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(schedule.color)
+                        )
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = schedule.subject,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -76,7 +117,7 @@ fun DayScheduleTimeline(
                             modifier = Modifier
                                 .width(timeLabelWidth)
                                 .height(rowHeight)
-                                .border(1.dp, Color(0xFF8E8E8E)),
+                                .border(lineWidth, lineColor),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -100,24 +141,11 @@ fun DayScheduleTimeline(
                                 modifier = Modifier
                                     .width(minuteCellWidth)
                                     .height(rowHeight)
-                                    .border(1.dp, Color(0xFF8E8E8E))
+                                    .border(lineWidth, lineColor)
                                     .background(matched?.color ?: Color.Transparent),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (matched != null) {
-                                    val isStartSlot =
-                                        slotStartMinute == (matched.startHour * 60 + matched.startMinute)
-
-                                    if (isStartSlot) {
-                                        Text(
-                                            text = matched.subject,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
+                                // 기존 Text(matched.subject) 제거
                             }
                         }
                     }

@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import java.time.LocalDate
@@ -15,7 +16,8 @@ import java.time.YearMonth
 fun CalendarGrid(
     yearMonth: YearMonth,
     selectedDate: LocalDate?,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    holidays: Set<LocalDate> = emptySet()
 ) {
     val firstDayOfMonth = yearMonth.atDay(1)
     val lastDayOfMonth = yearMonth.atEndOfMonth()
@@ -38,6 +40,7 @@ fun CalendarGrid(
             CalendarDayCell(
                 date = date,
                 isSelected = date != null && date == selectedDate,
+                isHoliday = date != null && date in holidays,
                 onClick = {
                     date?.let { onDateSelected(it) }
                 }

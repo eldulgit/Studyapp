@@ -34,7 +34,6 @@ import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import java.time.LocalDate
 import java.time.YearMonth
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewModel) {
@@ -42,13 +41,43 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
     var currentMonth by remember {
         mutableStateOf(YearMonth.now())
     }
+
     var selectedDate by remember {
         mutableStateOf(
             LocalDate.now().takeIf { YearMonth.from(it) == currentMonth }
         )
     }
-    val daySchedules = emptyList<DayScheduleBlock>()
+    //val daySchedules = emptyList<DayScheduleBlock>()
 
+    val daySchedules = listOf(
+        DayScheduleBlock(
+            date = selectedDate ?: LocalDate.now(),
+            subject = "국어",
+            startHour = 17,
+            startMinute = 0,
+            endHour = 18,
+            endMinute = 0,
+            color = Color(0xFFE57373)
+        ),
+        DayScheduleBlock(
+            date = selectedDate ?: LocalDate.now(),
+            subject = "수학",
+            startHour = 18,
+            startMinute = 0,
+            endHour = 19,
+            endMinute = 30,
+            color = Color(0xFF64B5F6)
+        ),
+        DayScheduleBlock(
+            date = selectedDate ?: LocalDate.now(),
+            subject = "영어",
+            startHour = 20,
+            startMinute = 0,
+            endHour = 21,
+            endMinute = 0,
+            color = Color(0xFF81C784)
+        )
+    )
     LaunchedEffect(currentMonth) {
         if (selectedDate == null || YearMonth.from(selectedDate) != currentMonth) {
             selectedDate = if (currentMonth == YearMonth.now()) {
@@ -70,7 +99,7 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
                 .fillMaxWidth()
                 .border(
                     width = 1.5.dp,
-                    color = Color.Black,
+                    color = Color.Gray,
                     shape = RoundedCornerShape(4.dp)
                 )
                 .padding(12.dp)
@@ -92,11 +121,13 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
                         contentDescription = "Previous Month"
                     )
                 }
+
                 Text(
-                    text = "${currentMonth.year}Y ${String.format("%02d", currentMonth.monthValue)}M",
+                    text = "${currentMonth.year}년 ${String.format("%02d", currentMonth.monthValue)}월",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
+
                 IconButton(
                     onClick = {
                         currentMonth = currentMonth.plusMonths(1)
@@ -118,7 +149,7 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
             CalendarGrid(
                 yearMonth = currentMonth,
                 selectedDate = selectedDate,
-                onDateSelected = { selectedDate = it }
+                onDateSelected = { selectedDate = it },
             )
         }
 

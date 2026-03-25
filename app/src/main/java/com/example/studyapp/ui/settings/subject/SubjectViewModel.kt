@@ -1,37 +1,65 @@
 package com.example.studyapp.ui.settings.subject
 
-import android.app.Application
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
+import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.ViewModel
 
-class SubjectViewModel(application: Application) : AndroidViewModel(application) {
+class SubjectViewModel : ViewModel() {
 
-    var subjects by mutableStateOf<List<Pair<String, Int>>>(emptyList())
-        private set
-    fun addSubject(name: String, priority: Int) {
-        if (subjects.none { it.first == name }) {
-            subjects = subjects + (name to priority)
-        }
+    val subjects = mutableStateListOf<SubjectItem>()
+
+    fun addSubject(name: String, priority: Int, colorArgb: Int): Boolean {
+        val trimmedName = name.trim()
+
+        if (trimmedName.isBlank()) return false
+
+        val isDuplicateName = subjects.any { it.name == trimmedName }
+        if (isDuplicateName) return false
+
+        val isDuplicateColor = subjects.any { it.colorArgb == colorArgb }
+        if (isDuplicateColor) return false
+
+        subjects.add(
+            SubjectItem(
+                name = trimmedName,
+                priority = priority,
+                colorArgb = colorArgb
+            )
+        )
+        return true
     }
 
     fun removeSubject(name: String) {
-        subjects = subjects.filterNot { it.first == name }
+        subjects.removeAll { it.name == name }
     }
 
-    fun updateSubject(oldName: String, newName: String, newPriority: Int) {
-        if (oldName != newName && subjects.any { it.first == newName }) {
-            return
-        }
+    fun updateSubject(
+        oldName: String,
+        newName: String,
+        newPriority: Int,
+        newColorArgb: Int
+    ): Boolean {
+        val trimmedName = newName.trim()
 
-        subjects = subjects.map { subject ->
-            if (subject.first == oldName) {
-                newName to newPriority
-            } else {
-                subject
-            }
+        if (trimmedName.isBlank()) return false
+
+        val isDuplicateName = subjects.any {
+            it.name == trimmedName && it.name != oldName
         }
+        if (isDuplicateName) return false
+
+        val isDuplicateColor = subjects.any {
+            it.colorArgb == newColorArgb && it.name != oldName
+        }
+        if (isDuplicateColor) return false
+
+        val index = subjects.indexOfFirst { it.name == oldName }
+        if (index == -1) return false
+
+        subjects[index] = SubjectItem(
+            name = trimmedName,
+            priority = newPriority,
+            colorArgb = newColorArgb
+        )
+        return true
     }
-
 }

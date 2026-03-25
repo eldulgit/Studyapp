@@ -53,6 +53,15 @@ fun AccountSettingScreen(navController: NavController){
 
             Spacer(modifier = Modifier.padding(8.dp))
 
+            Button(
+                onClick = { /* 나중에 로그인 연결 */ },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("kakao로 로그인")
+            }
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
             OutlinedButton(
                 onClick = { /* 나중에 로그아웃 연결 */ },
                 modifier = Modifier.fillMaxWidth()

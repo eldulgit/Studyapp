@@ -20,6 +20,7 @@ fun SubjectInput(
             .padding(16.dp),
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) }
+        label = { Text(label) },
+        placeholder = { Text("과목을 입력해주세요") }
     )
 }
