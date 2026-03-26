@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.studyapp.ui.stats.StudySessionRecord
+import com.example.studyapp.ui.stats.StudySessionRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -19,24 +21,30 @@ class TimerViewModel : ViewModel() {
     var studiedMinutes by mutableStateOf(0)
         private set
 
-    // 현재 선택된 과목 id (일시정지 상태여도 유지)
     var selectedTaskId by mutableStateOf<Long?>(null)
         private set
 
-    // 실제 실행 중인 과목 id
     var runningTaskId by mutableStateOf<Long?>(null)
         private set
 
     private var timerJob: Job? = null
 
     private var nextId by mutableLongStateOf(1L)
+    private var nextRecordId by mutableLongStateOf(1L)
+
+    private var totalStudiedSeconds = 0
+    private var currentSessionStartMillis: Long? = null
+    private var currentSessionStudiedSeconds = 0
 
     fun reset() {
+        finishCurrentSessionAndSave()
+
         timerJob?.cancel()
         timerJob = null
         runningTaskId = null
         selectedTaskId = null
         studiedMinutes = 0
+        totalStudiedSeconds = 0
 
         subjects = subjects.map { subject ->
             subject.copy(remainingSeconds = subject.allocatedSeconds)
@@ -83,7 +91,6 @@ class TimerViewModel : ViewModel() {
         val target = subjects.firstOrNull { it.id == subjectId } ?: return
         if (target.allocatedSeconds <= 0) return
 
-        // 같은 과목을 누른 경우
         if (selectedTaskId == subjectId) {
             if (runningTaskId == subjectId) {
                 pause()
@@ -95,8 +102,14 @@ class TimerViewModel : ViewModel() {
             return
         }
 
-        // 다른 과목 선택
         if (target.remainingSeconds <= 0) return
+
+        if (runningTaskId != null) {
+            finishCurrentSessionAndSave()
+            timerJob?.cancel()
+            timerJob = null
+            runningTaskId = null
+        }
 
         selectedTaskId = subjectId
         startTask(subjectId)
@@ -104,8 +117,11 @@ class TimerViewModel : ViewModel() {
 
     private fun startTask(subjectId: Long) {
         timerJob?.cancel()
+
         selectedTaskId = subjectId
         runningTaskId = subjectId
+        currentSessionStartMillis = System.currentTimeMillis()
+        currentSessionStudiedSeconds = 0
 
         timerJob = viewModelScope.launch {
             while (isActive) {
@@ -129,8 +145,13 @@ class TimerViewModel : ViewModel() {
                     }
                 }
 
+                currentSessionStudiedSeconds += 1
+                totalStudiedSeconds += 1
+                studiedMinutes = totalStudiedSeconds / 60
+
                 val updated = subjects.firstOrNull { it.id == currentId }
                 if (updated == null || updated.remainingSeconds <= 0) {
+                    finishCurrentSessionAndSave()
                     runningTaskId = null
                     break
                 }
@@ -144,11 +165,40 @@ class TimerViewModel : ViewModel() {
         timerJob?.cancel()
         timerJob = null
 
-        // 선택은 유지하고, 실행만 멈춤
+        finishCurrentSessionAndSave()
         runningTaskId = null
     }
 
+    private fun finishCurrentSessionAndSave() {
+        val runningId = runningTaskId ?: selectedTaskId
+        val startMillis = currentSessionStartMillis
+        val studiedSeconds = currentSessionStudiedSeconds
+
+        if (runningId == null || startMillis == null || studiedSeconds <= 0) {
+            currentSessionStartMillis = null
+            currentSessionStudiedSeconds = 0
+            return
+        }
+
+        val subjectName = subjects.firstOrNull { it.id == runningId }?.name ?: "알 수 없는 과목"
+        val endMillis = startMillis + (studiedSeconds * 1000L)
+
+        StudySessionRepository.addRecord(
+            StudySessionRecord(
+                id = nextRecordId++,
+                subjectName = subjectName,
+                startTimeMillis = startMillis,
+                endTimeMillis = endMillis,
+                studiedSeconds = studiedSeconds
+            )
+        )
+
+        currentSessionStartMillis = null
+        currentSessionStudiedSeconds = 0
+    }
+
     override fun onCleared() {
+        finishCurrentSessionAndSave()
         timerJob?.cancel()
         super.onCleared()
     }

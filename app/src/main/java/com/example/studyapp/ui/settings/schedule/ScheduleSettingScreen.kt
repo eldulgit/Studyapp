@@ -1,7 +1,6 @@
 package com.example.studyapp.ui.settings.schedule
 
 import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +56,12 @@ fun ScheduleSettingScreen(
     var fixedScheduleList by remember {
         mutableStateOf<List<FixedScheduleItem>>(emptyList())
     }
+
+    // CustomTimePicker 제어용 상태
+    var showTimePickerDialog by remember { mutableStateOf(false) }
+    var isSelectingStartTime by remember { mutableStateOf(true) }
+    var pendingStartTime by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
 
     fun showDatePicker(onDateSelected: (String) -> Unit) {
@@ -80,34 +85,19 @@ fun ScheduleSettingScreen(
         ).show()
     }
 
-    fun showTimePicker(
-        initialHour: Int,
-        initialMinute: Int,
-        onTimeSelected: (String) -> Unit
-    ) {
-        TimePickerDialog(
-            context,
-            { _, hourOfDay, minute ->
-                onTimeSelected(
-                    String.format(
-                        Locale.getDefault(),
-                        "%02d:%02d",
-                        hourOfDay,
-                        minute
-                    )
-                )
-            },
-            initialHour,
-            initialMinute,
-            true
-        ).show()
-    }
-
     fun parseTimeToMinutes(time: String): Int {
         val parts = time.split(":")
-        val hour = parts[0].toInt()
-        val minute = parts[1].toInt()
+        val hour = parts.getOrNull(0)?.toIntOrNull() ?: 0
+        val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
         return hour * 60 + minute
+    }
+
+    fun parseHour(time: String): Int {
+        return time.split(":").getOrNull(0)?.toIntOrNull() ?: 0
+    }
+
+    fun parseMinute(time: String): Int {
+        return time.split(":").getOrNull(1)?.toIntOrNull() ?: 0
     }
 
     fun hasScheduleConflict(
@@ -150,6 +140,11 @@ fun ScheduleSettingScreen(
                     endTime = "10:00"
                     isDayDropdownExpanded = false
                     errorMessage = null
+
+                    showTimePickerDialog = false
+                    isSelectingStartTime = true
+                    pendingStartTime = null
+
                     showAddDialog = true
                 }
             ) {
@@ -224,6 +219,11 @@ fun ScheduleSettingScreen(
                                     endTime = item.endTime ?: "10:00"
                                     isDayDropdownExpanded = false
                                     errorMessage = null
+
+                                    showTimePickerDialog = false
+                                    isSelectingStartTime = true
+                                    pendingStartTime = null
+
                                     showAddDialog = true
                                 }
                             )
@@ -247,7 +247,13 @@ fun ScheduleSettingScreen(
                                 selectedDay = item.dayOfWeek ?: "월"
                                 startTime = item.startTime ?: "09:00"
                                 endTime = item.endTime ?: "10:00"
+                                isDayDropdownExpanded = false
                                 errorMessage = null
+
+                                showTimePickerDialog = false
+                                isSelectingStartTime = true
+                                pendingStartTime = null
+
                                 showAddDialog = true
                             }
                         )
@@ -278,16 +284,25 @@ fun ScheduleSettingScreen(
                         startTime = startTime,
                         endTime = endTime,
                         onStartTimeClick = {
-                            showTimePicker(9, 0) { startTime = it }
+                            errorMessage = null
+                            isSelectingStartTime = true
+                            pendingStartTime = null
+                            showTimePickerDialog = true
                         },
                         onEndTimeClick = {
-                            showTimePicker(10, 0) { endTime = it }
+                            errorMessage = null
+                            isSelectingStartTime = false
+                            pendingStartTime = null
+                            showTimePickerDialog = true
                         },
                         errorMessage = errorMessage,
                         onDismiss = {
                             showAddDialog = false
                             editingItemId = null
                             errorMessage = null
+                            showTimePickerDialog = false
+                            isSelectingStartTime = true
+                            pendingStartTime = null
                         },
                         onConfirm = {
                             when {
@@ -311,7 +326,8 @@ fun ScheduleSettingScreen(
                                     errorMessage = "마감 날짜는 시작 날짜보다 빠를 수 없습니다."
                                 }
 
-                                selectedCategory == ScheduleCategory.SCHEDULE && startTime >= endTime -> {
+                                selectedCategory == ScheduleCategory.SCHEDULE &&
+                                        parseTimeToMinutes(startTime) >= parseTimeToMinutes(endTime) -> {
                                     errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
                                 }
 
@@ -358,6 +374,9 @@ fun ScheduleSettingScreen(
                                     showAddDialog = false
                                     editingItemId = null
                                     errorMessage = null
+                                    showTimePickerDialog = false
+                                    isSelectingStartTime = true
+                                    pendingStartTime = null
                                 }
                             }
                         },
@@ -367,9 +386,60 @@ fun ScheduleSettingScreen(
                                 showAddDialog = false
                                 editingItemId = null
                                 errorMessage = null
+                                showTimePickerDialog = false
+                                isSelectingStartTime = true
+                                pendingStartTime = null
                             }
                         } else {
                             null
+                        }
+                    )
+                }
+
+                if (showTimePickerDialog) {
+                    val initialTime = if (isSelectingStartTime) {
+                        startTime
+                    } else {
+                        pendingStartTime ?: endTime
+                    }
+
+                    CustomTimePicker(
+                        title = if (isSelectingStartTime) "시작시간" else "종료시간",
+                        initialHour = parseHour(initialTime),
+                        initialMinute = parseMinute(initialTime),
+                        onDismiss = {
+                            showTimePickerDialog = false
+                            pendingStartTime = null
+                            isSelectingStartTime = true
+                        },
+                        onConfirm = { selectedHour, selectedMinute ->
+                            val selectedTime = String.format(
+                                Locale.getDefault(),
+                                "%02d:%02d",
+                                selectedHour,
+                                selectedMinute
+                            )
+
+                            if (isSelectingStartTime) {
+                                startTime = selectedTime
+                                endTime = selectedTime
+                                pendingStartTime = selectedTime
+                                errorMessage = null
+                                isSelectingStartTime = false
+                            } else {
+                                val baseStartTime = pendingStartTime ?: startTime
+
+                                if (parseTimeToMinutes(selectedTime) <= parseTimeToMinutes(baseStartTime)) {
+                                    errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
+                                } else {
+                                    startTime = baseStartTime
+                                    endTime = selectedTime
+                                    errorMessage = null
+                                    showTimePickerDialog = false
+                                    pendingStartTime = null
+                                    isSelectingStartTime = true
+                                }
+                            }
                         }
                     )
                 }

@@ -1,5 +1,7 @@
 package com.example.studyapp.ui.stats
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatsBarChart(period: StatsPeriod) {
 

@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-
 @Composable
 fun BottomNavigationBar(
     navController: NavController
@@ -28,7 +27,14 @@ fun BottomNavigationBar(
             NavigationBarItem(
                 selected = currentRoute == item.route,
                 onClick = {
-                    navController.navigate(item.route)
+                    if (currentRoute != item.route) {
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+                    }
                 },
                 icon = {
                     Icon(
@@ -37,7 +43,7 @@ fun BottomNavigationBar(
                     )
                 },
                 label = {
-                    Text(item.label)
+                    Text(text = item.label)
                 }
             )
         }

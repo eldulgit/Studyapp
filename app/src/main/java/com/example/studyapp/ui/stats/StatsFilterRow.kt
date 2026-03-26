@@ -1,9 +1,12 @@
 package com.example.studyapp.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,21 +24,30 @@ fun StatsFilterRow(
         StatsPeriod.MONTHLY to "Monthly"
     )
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        filters.forEach { (period, label) ->
+        Text(
+            text = "기간별 공부시간",
+            modifier = Modifier.padding(bottom = 12.dp),
+            style = MaterialTheme.typography.titleMedium
+        )
 
-            val isSelected = selected == period
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            filters.forEach { (period, label) ->
+                val isSelected = selected == period
 
-            OutlinedButton(
-                onClick = { onSelect(period) },
-                shape = CircleShape,
-                modifier = Modifier.weight(1f),
-                enabled = !isSelected
-            ) {
-                Text(label)
+                OutlinedButton(
+                    onClick = { onSelect(period) },
+                    shape = CircleShape,
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSelected
+                ) {
+                    Text(label)
+                }
             }
         }
     }

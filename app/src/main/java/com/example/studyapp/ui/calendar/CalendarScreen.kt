@@ -47,37 +47,8 @@ fun CalendarScreen(navController: NavController, subjectViewModel: SubjectViewMo
             LocalDate.now().takeIf { YearMonth.from(it) == currentMonth }
         )
     }
-    //val daySchedules = emptyList<DayScheduleBlock>()
+    val daySchedules = emptyList<DayScheduleBlock>()
 
-    val daySchedules = listOf(
-        DayScheduleBlock(
-            date = selectedDate ?: LocalDate.now(),
-            subject = "국어",
-            startHour = 17,
-            startMinute = 0,
-            endHour = 18,
-            endMinute = 0,
-            color = Color(0xFFE57373)
-        ),
-        DayScheduleBlock(
-            date = selectedDate ?: LocalDate.now(),
-            subject = "수학",
-            startHour = 18,
-            startMinute = 0,
-            endHour = 19,
-            endMinute = 30,
-            color = Color(0xFF64B5F6)
-        ),
-        DayScheduleBlock(
-            date = selectedDate ?: LocalDate.now(),
-            subject = "영어",
-            startHour = 20,
-            startMinute = 0,
-            endHour = 21,
-            endMinute = 0,
-            color = Color(0xFF81C784)
-        )
-    )
     LaunchedEffect(currentMonth) {
         if (selectedDate == null || YearMonth.from(selectedDate) != currentMonth) {
             selectedDate = if (currentMonth == YearMonth.now()) {
