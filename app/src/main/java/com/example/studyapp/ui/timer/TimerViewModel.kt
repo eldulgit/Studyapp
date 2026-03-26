@@ -19,18 +19,23 @@ class TimerViewModel : ViewModel() {
     var studiedMinutes by mutableStateOf(0)
         private set
 
+    // 현재 선택된 과목 id (일시정지 상태여도 유지)
+    var selectedTaskId by mutableStateOf<Long?>(null)
+        private set
+
+    // 실제 실행 중인 과목 id
     var runningTaskId by mutableStateOf<Long?>(null)
         private set
 
     private var timerJob: Job? = null
 
-    // 중복되지 않는 고유 id 생성용
     private var nextId by mutableLongStateOf(1L)
 
     fun reset() {
         timerJob?.cancel()
         timerJob = null
         runningTaskId = null
+        selectedTaskId = null
         studiedMinutes = 0
 
         subjects = subjects.map { subject ->
@@ -68,27 +73,39 @@ class TimerViewModel : ViewModel() {
             }
         }
 
-        if (runningTaskId == subjectId && totalSeconds <= 0) {
+        if (selectedTaskId == subjectId && totalSeconds <= 0) {
             pause()
+            selectedTaskId = null
         }
     }
 
     fun toggleTask(subjectId: Long) {
-        if (runningTaskId == subjectId) {
-            pause()
+        val target = subjects.firstOrNull { it.id == subjectId } ?: return
+        if (target.allocatedSeconds <= 0) return
+
+        // 같은 과목을 누른 경우
+        if (selectedTaskId == subjectId) {
+            if (runningTaskId == subjectId) {
+                pause()
+            } else {
+                if (target.remainingSeconds > 0) {
+                    startTask(subjectId)
+                }
+            }
             return
         }
 
-        val target = subjects.firstOrNull { it.id == subjectId } ?: return
-        if (target.allocatedSeconds <= 0) return
+        // 다른 과목 선택
         if (target.remainingSeconds <= 0) return
 
-        runningTaskId = subjectId
-        startTimer()
+        selectedTaskId = subjectId
+        startTask(subjectId)
     }
 
-    private fun startTimer() {
+    private fun startTask(subjectId: Long) {
         timerJob?.cancel()
+        selectedTaskId = subjectId
+        runningTaskId = subjectId
 
         timerJob = viewModelScope.launch {
             while (isActive) {
@@ -115,17 +132,19 @@ class TimerViewModel : ViewModel() {
                 val updated = subjects.firstOrNull { it.id == currentId }
                 if (updated == null || updated.remainingSeconds <= 0) {
                     runningTaskId = null
-                    timerJob?.cancel()
-                    timerJob = null
                     break
                 }
             }
+
+            timerJob = null
         }
     }
 
     fun pause() {
         timerJob?.cancel()
         timerJob = null
+
+        // 선택은 유지하고, 실행만 멈춤
         runningTaskId = null
     }
 

@@ -11,6 +11,7 @@ data class PomodoroTask(
     val id: Long,
     val subjectName: String,
     val allocatedMinutes: Int,
+    val colorArgb: Int,
     val remainingSeconds: Int = allocatedMinutes * 60
 )
 

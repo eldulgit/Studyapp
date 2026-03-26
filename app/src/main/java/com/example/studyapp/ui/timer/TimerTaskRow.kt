@@ -1,11 +1,14 @@
 package com.example.studyapp.ui.timer
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Pause
@@ -15,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +27,7 @@ import androidx.compose.ui.unit.sp
 fun TimerTaskRow(
     subject: String,
     time: String,
+    subjectColorArgb: Int,   // 추가
     containerWidth: Dp,
     isRunning: Boolean,
     onToggle: () -> Unit,
@@ -59,7 +64,27 @@ fun TimerTaskRow(
             modifier = Modifier.width(slotWidth),
             contentAlignment = Alignment.Center
         ) {
-            Text(subject, fontSize = 16.sp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+
+                Text(
+                    text = subject,
+                    fontSize = 16.sp
+                )
+
+                Box(modifier = Modifier.width(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(
+                            color = Color(subjectColorArgb),
+                            shape = CircleShape
+                        )
+                )
+            }
         }
 
         Box(

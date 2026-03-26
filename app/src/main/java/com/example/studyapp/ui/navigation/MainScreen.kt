@@ -72,9 +72,7 @@ fun MainScreen() {
             }
 
             composable("setting_schedule") {
-                ScheduleSettingScreen(
-                    onBackClick = { navController.popBackStack() }
-                )
+                ScheduleSettingScreen(navController)
             }
 
             composable("setting_notification") {

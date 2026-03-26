@@ -23,11 +23,12 @@ class PomodoroViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun addTask(subjectName: String, minutes: Int) {
+    fun addTask(subjectName: String, minutes: Int, colorArgb: Int) {
         val newTask = PomodoroTask(
             id = System.currentTimeMillis(),
             subjectName = subjectName,
-            allocatedMinutes = minutes
+            allocatedMinutes = minutes,
+            colorArgb = colorArgb
         )
 
         val state = _uiState.value

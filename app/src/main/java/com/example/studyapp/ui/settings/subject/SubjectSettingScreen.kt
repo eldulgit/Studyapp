@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -36,14 +39,22 @@ fun SubjectSettingScreen(
     var priority by remember { mutableIntStateOf(1) }
 
     val subjectColors = listOf(
-        Color(0xFFFFC1CC),
-        Color(0xFFFFD6A5),
-        Color(0xFFFFF1A8),
-        Color(0xFFCDEAC0),
-        Color(0xFFA8E6E1),
-        Color(0xFFBDE0FE),
-        Color(0xFFD9C2F0),
-        Color(0xFFE5D4C0)
+
+        Color(0xFFFDE2E4),  // 연핑크
+        Color(0xFFF8C8DC), // 핑크
+        Color(0xFFFFC1CC), // 빨강
+        Color(0xFFFFD6A5), // 주황
+        Color(0xFFFFE5B4), // 연주황
+        Color(0xFFFFECB3), // 노랑
+        Color(0xFFE2F0CB), // 연두
+        Color(0xFFCDEAC0), // 초록
+        Color(0xFFD6F5E3), // 연민트
+        Color(0xFFA8E6E1), // 민트
+        Color(0xFFBDE0FE), // 하늘
+        Color(0xFFD0E6FF), // 연파랑
+        Color(0xFFBFCBFF), // 파랑
+        Color(0xFFD9C2F0), // 보라
+        Color(0xFFEADCF8) // 연보라
     )
 
     var selectedColorArgb by remember {
@@ -52,8 +63,10 @@ fun SubjectSettingScreen(
 
     var editingSubjectName by remember { mutableStateOf<String?>(null) }
 
+    val subjectListScrollState = rememberScrollState()
+
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxSize()
     ) {
         Row(
             modifier = Modifier
@@ -68,7 +81,7 @@ fun SubjectSettingScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
+                    contentDescription = "뒤로가기"
                 )
             }
 
@@ -148,26 +161,34 @@ fun SubjectSettingScreen(
             )
         }
 
-        subjectViewModel.subjects.forEach { subject ->
-            SubjectItemRow(
-                subject = subject,
-                onEdit = {
-                    subjectName = subject.name
-                    priority = subject.priority
-                    selectedColorArgb = subject.colorArgb
-                    editingSubjectName = subject.name
-                },
-                onDelete = {
-                    subjectViewModel.removeSubject(subject.name)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(subjectListScrollState)
+                .padding(bottom = 24.dp)
+        ) {
+            subjectViewModel.subjects.forEach { subject ->
+                SubjectItemRow(
+                    subject = subject,
+                    onEdit = {
+                        subjectName = subject.name
+                        priority = subject.priority
+                        selectedColorArgb = subject.colorArgb
+                        editingSubjectName = subject.name
+                    },
+                    onDelete = {
+                        subjectViewModel.removeSubject(subject.name)
 
-                    if (editingSubjectName == subject.name) {
-                        subjectName = ""
-                        priority = 1
-                        selectedColorArgb = subjectColors.first().toArgb()
-                        editingSubjectName = null
+                        if (editingSubjectName == subject.name) {
+                            subjectName = ""
+                            priority = 1
+                            selectedColorArgb = subjectColors.first().toArgb()
+                            editingSubjectName = null
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
