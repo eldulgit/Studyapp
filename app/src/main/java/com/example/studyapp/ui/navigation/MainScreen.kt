@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.studyapp.ui.calendar.CalendarScreen
+import com.example.studyapp.ui.camera.CameraScreen
 import com.example.studyapp.ui.settings.SettingsViewModel
 import com.example.studyapp.ui.settings.account.AccountSettingScreen
 import com.example.studyapp.ui.settings.ai.AiProfileSettingScreen
@@ -80,8 +81,13 @@ fun MainScreen() {
             composable(BottomNavItem.Timer.route) {
                 TimerScreen(
                     timerViewModel = timerViewModel,
-                    subjectViewModel = subjectViewModel
+                    subjectViewModel = subjectViewModel,
+                    navController = navController
                 )
+            }
+
+            composable("camera") {
+                CameraScreen()
             }
 
             composable(BottomNavItem.Setting.route) {

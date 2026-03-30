@@ -65,6 +65,17 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.androidx.material3)
 
+    // CameraX
+    val cameraxVersion = "1.3.1"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+    implementation("androidx.camera:camera-extensions:$cameraxVersion")
+
+    // ML Kit Text Recognition
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+
     // 테스트
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
