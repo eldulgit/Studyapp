@@ -14,7 +14,7 @@ object CameraXManager {
         context: Context,
         lifecycleOwner: LifecycleOwner,
         vararg useCases: UseCase,
-        cameraSelector: CameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA, // 전면 카메라 기본
+        cameraSelector: CameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA, // 전면 카메라 기본으로 설정.
         onConfigured: (ProcessCameraProvider) -> Unit = {}
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
