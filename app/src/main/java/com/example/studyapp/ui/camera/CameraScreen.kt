@@ -51,14 +51,14 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
     // 카메라 제공자 관리를 위한 상태
     var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
 
-    // 화면을 벗어날 때 카메라 해제 로직
+    // 화면을 벗어날 때 카메라 해제
     DisposableEffect(lifecycleOwner) {
         onDispose {
             cameraProvider?.unbindAll()
         }
     }
 
-    // 집중도 상태 변화에 따른 타이머 제어 로직
+    // 집중도 상태 변화에 따른 타이머 제어
     LaunchedEffect(focusStatus) {
         when (focusStatus) {
             FocusStatus.DROWSY, FocusStatus.ABSENT -> {
@@ -150,7 +150,7 @@ fun FocusOverlay(status: FocusStatus, modifier: Modifier = Modifier) {
         }
     }
 }
-
+//카메라 권한
 @Composable
 fun PermissionDeniedMessage() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
