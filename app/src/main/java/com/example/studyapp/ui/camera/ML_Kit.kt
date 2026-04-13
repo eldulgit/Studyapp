@@ -14,8 +14,6 @@ enum class FocusStatus(val message: String) {
     DROWSY("졸고 계신 것 같아요! 깨어나세요!"),
     ABSENT("자리를 비우셨나요? 공부를 시작해 주세요."),
     UNKNOWN("얼굴을 찾는 중...")
-    /*사용자의 상태를 4가지(FOCUSING, DROWSY, ABSENT, UNKNOWN)로 나누고,
-    각 상태에 맞는 안내 메시지를 저장해 두는 열거형(Enum) 클래스*/
 }
 
 class MLKitFocusAnalyzer(
@@ -28,18 +26,15 @@ class MLKitFocusAnalyzer(
         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
         .build()
     //ML Kit의 얼굴 인식 옵션을 설정.
-    //PERFORMANCE_MODE_FAST: 정확도보다는 빠른 속도(실시간 처리)를 우선시.
-    //CLASSIFICATION_MODE_ALL: 얼굴의 윤곽뿐만 아니라 '눈을 떴는지, 감았는지'
-    //같은 추가 표정 분류 정보까지 분석하도록 활성화.
+    //정확도보다는 빠른 속도(실시간 처리)를 우선시.
+    //얼굴의 윤곽뿐만 아니라 '눈을 떴는지, 감았는지'
 
     private val detector = FaceDetection.getClient(options)
-    //위에서 설정한 옵션을 바탕으로 실제 얼굴 인식기(detector) 객체를 생성.
 
     // 졸음 판정을 위한 시간 체크 변수
     private var eyesClosedStartTime: Long = 0L
     private val DROWSY_THRESHOLD_MS = 5000L // 5초
-    //eyesClosedStartTime에 기록하고, 눈을 감은 상태가 5초 이상
-    //지속되면 졸음으로 판단한다.
+    //eyesClosedStartTime에 기록하고, 눈을 감은 상태가 5초 이상 지속되면 졸음으로 판단한다.
 
     @SuppressLint("UnsafeOptInUsageError")
     override fun analyze(imageProxy: ImageProxy) {
