@@ -73,8 +73,8 @@ dependencies {
     implementation("androidx.camera:camera-view:$cameraxVersion")
     implementation("androidx.camera:camera-extensions:$cameraxVersion")
 
-    // ML Kit Text Recognition
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    // ML Kit Face Detection
+    implementation("com.google.mlkit:face-detection:16.1.6")
 
     // 테스트
     testImplementation(libs.junit)

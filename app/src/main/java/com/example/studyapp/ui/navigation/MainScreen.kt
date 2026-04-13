@@ -60,7 +60,9 @@ fun MainScreen() {
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController)
+            if (currentRoute != "camera") {
+                BottomNavigationBar(navController)
+            }
         }
     ) { padding ->
         NavHost(
@@ -87,7 +89,7 @@ fun MainScreen() {
             }
 
             composable("camera") {
-                CameraScreen()
+                CameraScreen(timerViewModel = timerViewModel)
             }
 
             composable(BottomNavItem.Setting.route) {
