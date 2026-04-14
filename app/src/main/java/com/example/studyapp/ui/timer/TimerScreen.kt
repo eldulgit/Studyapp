@@ -16,10 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.studyapp.ui.camera.CameraButton
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.timer.pomodoro.CircularTimer
 import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
@@ -41,7 +41,8 @@ import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
 @Composable
 fun TimerScreen(
     subjectViewModel: SubjectViewModel,
-    timerViewModel: TimerViewModel
+    timerViewModel: TimerViewModel,
+    navController: NavController
 ) {
     val availableSubjects = subjectViewModel.subjects
     val timerSubjects = timerViewModel.subjects
@@ -55,7 +56,6 @@ fun TimerScreen(
     val timerWidth = 270.dp
 
     val currentEditTarget = timerSubjects.firstOrNull { it.id == editTargetId }
-
     val selectedTask = timerSubjects.firstOrNull { it.id == timerViewModel.selectedTaskId }
 
     val segments = if (selectedTask == null) {
@@ -74,41 +74,26 @@ fun TimerScreen(
         ?.let { Color(it.colorArgb) }
         ?: Color(0xFF4CAF50)
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showSubjectDialog = true }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "과목 추가"
-                )
-            }
-        }
-    ) { padding ->
+    // Scaffold 제거 후 Box/Column으로 구성
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 상단 우측 카메라 버튼 영역
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Camera"
-                    )
-                }
+                CameraButton(navController = navController)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // 타이머 영역
             Box(modifier = Modifier.size(270.dp)) {
                 CircularTimer(
                     modifier = Modifier.fillMaxSize(),
@@ -119,6 +104,7 @@ fun TimerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // 작업 리스트 영역
             LazyColumn(
                 modifier = Modifier
                     .width(timerWidth)
@@ -130,11 +116,9 @@ fun TimerScreen(
                     key = { it.id }
                 ) { item ->
                     val isRunning = timerViewModel.runningTaskId == item.id
-
                     val subjectColorArgb = availableSubjects
                         .firstOrNull { it.name == item.name }
-                        ?.colorArgb
-                        ?: Color.Gray.toArgb()
+                        ?.colorArgb ?: Color.Gray.toArgb()
 
                     TimerTaskRow(
                         subject = item.name,
@@ -142,9 +126,7 @@ fun TimerScreen(
                         subjectColorArgb = subjectColorArgb,
                         containerWidth = timerWidth,
                         isRunning = isRunning,
-                        onToggle = {
-                            timerViewModel.toggleTask(item.id)
-                        },
+                        onToggle = { timerViewModel.toggleTask(item.id) },
                         onEditClick = {
                             editTargetId = item.id
                             showTimeEditDialog = true
@@ -152,6 +134,16 @@ fun TimerScreen(
                     )
                 }
             }
+        }
+
+        // 과목 추가 버튼 (FloatingActionButton 스타일로 Box 안에 배치)
+        FloatingActionButton(
+            onClick = { showSubjectDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 32.dp, end = 16.dp)
+        ) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = "과목 추가")
         }
     }
 
