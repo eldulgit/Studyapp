@@ -6,8 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.studyapp.ui.stats.StudySessionRecord
 import com.example.studyapp.ui.stats.StudySessionRepository
+import com.example.studyapp.data.repository.AuthRepository
+import com.example.studyapp.data.repository.SubjectRepository
+import com.example.studyapp.data.repository.UserRepository
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -17,6 +22,10 @@ class TimerViewModel : ViewModel() {
 
     var subjects by mutableStateOf(listOf<SubjectTimer>())
         private set
+
+    init {
+        loadSubjectsFromFirestore()
+    }
 
     var studiedMinutes by mutableStateOf(0)
         private set
@@ -36,6 +45,11 @@ class TimerViewModel : ViewModel() {
     private var currentSessionStartMillis: Long? = null
     private var currentSessionStudiedSeconds = 0
 
+    private val subjectRepository = SubjectRepository()
+    private val authRepository = AuthRepository()
+    private val userRepository = UserRepository()
+    private val studySessionRepository = StudySessionRepository()
+
     fun reset() {
         finishCurrentSessionAndSave()
 
@@ -48,6 +62,28 @@ class TimerViewModel : ViewModel() {
 
         subjects = subjects.map { subject ->
             subject.copy(remainingSeconds = subject.allocatedSeconds)
+        }
+    }
+
+    fun loadSubjectsFromFirestore() {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val firestoreSubjects = subjectRepository.getSubjects(uid)
+
+                subjects = firestoreSubjects.map { subject ->
+                    SubjectTimer(
+                        id = subject.id.hashCode().toLong(),
+                        name = subject.name,
+                        allocatedSeconds = 0,
+                        remainingSeconds = 0
+                    )
+                }
+
+                nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "타이머 과목 불러오기 실패", e)
+            }
         }
     }
 
@@ -115,6 +151,17 @@ class TimerViewModel : ViewModel() {
         startTask(subjectId)
     }
 
+    private suspend fun getOrCreateUid(): String {
+        val uid = authRepository.signInAnonymouslyIfNeeded()
+        userRepository.ensureUserDocument(uid, isGuest = true)
+        return uid
+    }
+
+    private fun makeSessionDate(timeMillis: Long): String {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return formatter.format(Date(timeMillis))
+    }
+
     private fun startTask(subjectId: Long) {
         timerJob?.cancel()
 
@@ -169,32 +216,37 @@ class TimerViewModel : ViewModel() {
         runningTaskId = null
     }
 
-    private fun finishCurrentSessionAndSave() {
-        val runningId = runningTaskId ?: selectedTaskId
-        val startMillis = currentSessionStartMillis
+    fun finishCurrentSessionAndSave() {
+        val currentId = runningTaskId ?: return
+        val currentSubject = subjects.firstOrNull { it.id == currentId } ?: return
+        val subjectName = currentSubject.name
+
+        val startTime = currentSessionStartMillis ?: return
+        val endTime = System.currentTimeMillis()
         val studiedSeconds = currentSessionStudiedSeconds
+        if (studiedSeconds <= 0) return
 
-        if (runningId == null || startMillis == null || studiedSeconds <= 0) {
-            currentSessionStartMillis = null
-            currentSessionStudiedSeconds = 0
-            return
+        val sessionDate = makeSessionDate(startTime)
+
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+
+                studySessionRepository.addRecord(
+                    userId = uid,
+                    subjectName = subjectName,
+                    startTimeMillis = startTime,
+                    endTimeMillis = endTime,
+                    studiedSeconds = studiedSeconds,
+                    sessionDate = sessionDate
+                )
+
+                currentSessionStartMillis = null
+                currentSessionStudiedSeconds = 0
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "공부 기록 저장 실패", e)
+            }
         }
-
-        val subjectName = subjects.firstOrNull { it.id == runningId }?.name ?: "알 수 없는 과목"
-        val endMillis = startMillis + (studiedSeconds * 1000L)
-
-        StudySessionRepository.addRecord(
-            StudySessionRecord(
-                id = nextRecordId++,
-                subjectName = subjectName,
-                startTimeMillis = startMillis,
-                endTimeMillis = endMillis,
-                studiedSeconds = studiedSeconds
-            )
-        )
-
-        currentSessionStartMillis = null
-        currentSessionStudiedSeconds = 0
     }
 
     override fun onCleared() {

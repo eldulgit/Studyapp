@@ -17,6 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.studyapp.ui.stats.StatsViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -40,7 +43,13 @@ fun StatsScreen(
         period = selectedPeriod
     )
 
-    val records by StudySessionRepository.records.collectAsState()
+    val statsViewModel: StatsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
+    LaunchedEffect(Unit) {
+        statsViewModel.loadRecordsFromFirestore()
+    }
+
+    val records = statsViewModel.records
 
     val scheduledHours = remember {
         listOf(9, 14, 16, 20)
