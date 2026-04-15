@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,33 +36,37 @@ fun SubjectSettingScreen(
     navController: NavController,
     subjectViewModel: SubjectViewModel
 ) {
+    LaunchedEffect(Unit) {
+        subjectViewModel.loadSubjectsFromFirestore()
+    }
+
     var subjectName by remember { mutableStateOf("") }
     var priority by remember { mutableIntStateOf(1) }
 
     val subjectColors = listOf(
-
-        Color(0xFFFDE2E4),  // 연핑크
-        Color(0xFFF8C8DC), // 핑크
-        Color(0xFFFFC1CC), // 빨강
-        Color(0xFFFFD6A5), // 주황
-        Color(0xFFFFE5B4), // 연주황
-        Color(0xFFFFECB3), // 노랑
-        Color(0xFFE2F0CB), // 연두
-        Color(0xFFCDEAC0), // 초록
-        Color(0xFFD6F5E3), // 연민트
-        Color(0xFFA8E6E1), // 민트
-        Color(0xFFBDE0FE), // 하늘
-        Color(0xFFD0E6FF), // 연파랑
-        Color(0xFFBFCBFF), // 파랑
-        Color(0xFFD9C2F0), // 보라
-        Color(0xFFEADCF8) // 연보라
+        Color(0xFFFDE2E4),
+        Color(0xFFF8C8DC),
+        Color(0xFFFFC1CC),
+        Color(0xFFFFD6A5),
+        Color(0xFFFFE5B4),
+        Color(0xFFFFECB3),
+        Color(0xFFE2F0CB),
+        Color(0xFFCDEAC0),
+        Color(0xFFD6F5E3),
+        Color(0xFFA8E6E1),
+        Color(0xFFBDE0FE),
+        Color(0xFFD0E6FF),
+        Color(0xFFBFCBFF),
+        Color(0xFFD9C2F0),
+        Color(0xFFEADCF8)
     )
 
     var selectedColorArgb by remember {
         mutableIntStateOf(subjectColors.first().toArgb())
     }
 
-    var editingSubjectName by remember { mutableStateOf<String?>(null) }
+    // 이름 대신 id를 들고 감
+    var editingSubjectId by remember { mutableStateOf<String?>(null) }
 
     val subjectListScrollState = rememberScrollState()
 
@@ -133,32 +138,60 @@ fun SubjectSettingScreen(
                 .padding(16.dp)
                 .fillMaxWidth(),
             onClick = {
-                val success = if (editingSubjectName == null) {
-                    subjectViewModel.addSubject(
-                        name = subjectName,
+                val trimmedName = subjectName.trim()
+                if (trimmedName.isBlank()) return@Button
+
+                val success = if (editingSubjectId == null) {
+                    val result = subjectViewModel.addSubject(
+                        name = trimmedName,
                         priority = priority,
                         colorArgb = selectedColorArgb
                     )
+
+                    if (result) {
+                        subjectViewModel.addSubjectToFirestore(
+                            name = trimmedName,
+                            priority = priority,
+                            colorArgb = selectedColorArgb
+                        )
+                    }
+
+                    result
                 } else {
-                    subjectViewModel.updateSubject(
-                        oldName = editingSubjectName!!,
-                        newName = subjectName,
+                    val oldSubject = subjectViewModel.subjects.find { it.id == editingSubjectId }
+                        ?: return@Button
+
+                    val result = subjectViewModel.updateSubject(
+                        oldName = oldSubject.name,
+                        newName = trimmedName,
                         newPriority = priority,
                         newColorArgb = selectedColorArgb
                     )
+
+                    if (result && oldSubject.id.isNotBlank()) {
+                        subjectViewModel.updateSubjectInFirestore(
+                            id = oldSubject.id,
+                            newName = trimmedName,
+                            newPriority = priority,
+                            newColorArgb = selectedColorArgb
+                        )
+                    }
+
+                    result
                 }
 
                 if (success) {
                     subjectName = ""
                     priority = 1
                     selectedColorArgb = subjectColors.first().toArgb()
-                    editingSubjectName = null
+                    editingSubjectId = null
+
+                    // 🔥 중요: Firestore 기준으로 다시 동기화
+                    //subjectViewModel.loadSubjectsFromFirestore()
                 }
             }
         ) {
-            Text(
-                text = if (editingSubjectName == null) "저장" else "수정 완료"
-            )
+            Text(text = if (editingSubjectId == null) "저장" else "수정 완료")
         }
 
         Column(
@@ -175,16 +208,17 @@ fun SubjectSettingScreen(
                         subjectName = subject.name
                         priority = subject.priority
                         selectedColorArgb = subject.colorArgb
-                        editingSubjectName = subject.name
+                        editingSubjectId = subject.id
                     },
                     onDelete = {
-                        subjectViewModel.removeSubject(subject.name)
+                        subjectViewModel.removeSubject(subject.id)
+                        subjectViewModel.removeSubjectFromFirestore(subject.id)
 
-                        if (editingSubjectName == subject.name) {
+                        if (editingSubjectId == subject.id) {
                             subjectName = ""
                             priority = 1
                             selectedColorArgb = subjectColors.first().toArgb()
-                            editingSubjectName = null
+                            editingSubjectId = null
                         }
                     }
                 )

@@ -2,10 +2,60 @@ package com.example.studyapp.ui.settings.subject
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import com.example.studyapp.data.repository.SubjectRepository
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import com.example.studyapp.data.repository.AuthRepository
+import com.example.studyapp.data.repository.UserRepository
 
 class SubjectViewModel : ViewModel() {
+    private val authRepository = AuthRepository()
+    private val userRepository = UserRepository()
 
+    private suspend fun getOrCreateUid(): String {
+        val uid = authRepository.signInAnonymouslyIfNeeded()
+        userRepository.ensureUserDocument(uid, isGuest = true)
+        return uid
+    }
+    private val repository = SubjectRepository()
     val subjects = mutableStateListOf<SubjectItem>()
+
+    fun removeSubjectFromFirestore(id: String) {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                repository.deleteSubject(uid, id)
+                loadSubjectsFromFirestore()
+            } catch (e: Exception) {
+                android.util.Log.e("SubjectFirestore", "삭제 실패", e)
+            }
+        }
+    }
+
+    fun loadSubjectsFromFirestore() {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val result = repository.getSubjects(uid)
+
+                subjects.clear()
+
+                subjects.addAll(
+                    result.map {
+                        SubjectItem(
+                            id = it.id,
+                            name = it.name,
+                            priority = it.priority,
+                            colorArgb = it.colorArgb
+                        )
+                    }
+                )
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun addSubject(name: String, priority: Int, colorArgb: Int): Boolean {
         val trimmedName = name.trim()
@@ -20,6 +70,7 @@ class SubjectViewModel : ViewModel() {
 
         subjects.add(
             SubjectItem(
+                id="",
                 name = trimmedName,
                 priority = priority,
                 colorArgb = colorArgb
@@ -28,8 +79,70 @@ class SubjectViewModel : ViewModel() {
         return true
     }
 
-    fun removeSubject(name: String) {
-        subjects.removeAll { it.name == name }
+    fun removeSubject(id: String) {
+        subjects.removeAll { it.id == id }
+    }
+
+    fun addSubjectToFirestore(
+        name: String,
+        priority: Int,
+        colorArgb: Int
+    ) {
+        val trimmedName = name.trim()
+
+        if (trimmedName.isBlank()) {
+            //android.util.Log.e("SubjectFirestore", "저장 중단: 과목명이 비어 있음")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+
+                repository.addSubject(
+                    userId = uid,
+                    name = trimmedName,
+                    priority = priority,
+                    colorArgb = colorArgb
+                )
+                android.util.Log.e("SubjectFirestore", "저장 성공: $trimmedName")
+                loadSubjectsFromFirestore()
+            } catch (e: Exception) {
+                android.util.Log.e("SubjectFirestore", "저장 실패", e)
+            }
+        }
+    }
+
+    fun updateSubjectInFirestore(
+        id: String,
+        newName: String,
+        newPriority: Int,
+        newColorArgb: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                if (id.isBlank()) {
+                    android.util.Log.e("SubjectFirestore", "수정 중단: id가 비어 있음")
+                    return@launch
+                }
+
+                val uid = getOrCreateUid()
+
+                repository.updateSubject(
+                    userId = uid,
+                    id = id,
+                    newName = newName,
+                    newPriority = newPriority,
+                    newColorArgb = newColorArgb
+                )
+
+                android.util.Log.e("SubjectFirestore", "ViewModel 수정 성공")
+                loadSubjectsFromFirestore()
+
+            } catch (e: Exception) {
+                android.util.Log.e("SubjectFirestore", "ViewModel 수정 실패", e)
+            }
+        }
     }
 
     fun updateSubject(
@@ -55,7 +168,10 @@ class SubjectViewModel : ViewModel() {
         val index = subjects.indexOfFirst { it.name == oldName }
         if (index == -1) return false
 
+        val oldItem = subjects[index]
+
         subjects[index] = SubjectItem(
+            id = oldItem.id,   // 🔥 기존 id 유지
             name = trimmedName,
             priority = newPriority,
             colorArgb = newColorArgb

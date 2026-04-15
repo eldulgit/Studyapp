@@ -36,27 +36,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.studyapp.ui.settings.profile.UserViewModel
 import com.example.studyapp.util.ImageUtil.createImageUri
-
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun SettingHeader() {
 
     val context = LocalContext.current
-    val nameViewModel: NameViewModel =
+    val userViewModel: UserViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
 
-    var profileImageUri by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        userViewModel.loadUserProfile()
+    }
+
     var showPicker by remember { mutableStateOf(false) }
 
     var showNameDialog by remember { mutableStateOf(false) }
-    var tempName by remember { mutableStateOf(nameViewModel.userName) }
+    var tempName by remember { mutableStateOf("") }
 
     val galleryLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.GetContent()
         ) { uri ->
-            uri?.let { profileImageUri = it.toString() }
+            uri?.let { userViewModel.uploadProfileImage(it) }
             showPicker = false
         }
 
@@ -68,7 +73,7 @@ fun SettingHeader() {
         ) { success ->
             if (success) {
                 cameraImageUri?.let {
-                    profileImageUri = it.toString()
+                    userViewModel.uploadProfileImage(it)
                 }
             }
             showPicker = false
@@ -88,10 +93,11 @@ fun SettingHeader() {
             contentAlignment = Alignment.Center
         ) {
 
-            if (profileImageUri != null) {
+            if (userViewModel.profileImageUrl.isNotBlank()) {
                 Image(
-                    painter = rememberAsyncImagePainter(profileImageUri),
+                    painter = rememberAsyncImagePainter(userViewModel.profileImageUrl),
                     contentDescription = null,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(110.dp)
                         .clip(CircleShape)
@@ -154,7 +160,7 @@ fun SettingHeader() {
 
             // 이름은 항상 중앙 고정
             Text(
-                text = nameViewModel.userName,
+                text = userViewModel.userName,
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -168,7 +174,7 @@ fun SettingHeader() {
                     .offset(x = (-120).dp)   // 이미지 중심 기준 위치 보정
                     .size(20.dp)
                     .clickable {
-                        tempName = nameViewModel.userName
+                        tempName = userViewModel.userName
                         showNameDialog = true
                     }
             )
@@ -190,7 +196,8 @@ fun SettingHeader() {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            nameViewModel.updateName(tempName)
+                            userViewModel.onUserNameChanged(tempName)
+                            userViewModel.saveUserName()
                             showNameDialog = false
                         }
                     ) {

@@ -1,5 +1,6 @@
 package com.example.studyapp.ui.settings.schedule
 
+import androidx.compose.runtime.LaunchedEffect
 import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,16 @@ import java.util.Locale
 fun ScheduleSettingScreen(
     navController: NavController
 ) {
+    val scheduleViewModel: ScheduleViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+    val goalViewModel: GoalViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        scheduleViewModel.loadSchedulesFromFirestore()
+        goalViewModel.loadGoalsFromFirestore()
+    }
+
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(ScheduleCategory.GOAL) }
     var title by remember { mutableStateOf("") }
@@ -53,9 +64,6 @@ fun ScheduleSettingScreen(
     var endTime by remember { mutableStateOf("10:00") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var editingItemId by remember { mutableStateOf<Long?>(null) }
-    var fixedScheduleList by remember {
-        mutableStateOf<List<FixedScheduleItem>>(emptyList())
-    }
 
     // CustomTimePicker 제어용 상태
     var showTimePickerDialog by remember { mutableStateOf(false) }
@@ -122,8 +130,27 @@ fun ScheduleSettingScreen(
         }
     }
 
-    val goalItems = fixedScheduleList.filter { it.category == ScheduleCategory.GOAL }
-    val scheduleItems = fixedScheduleList.filter { it.category == ScheduleCategory.SCHEDULE }
+    val goalItems = goalViewModel.goals.map { goal ->
+        FixedScheduleItem(
+            id = goal.id.hashCode().toLong(),
+            category = ScheduleCategory.GOAL,
+            title = goal.title,
+            startDate = goal.startDate,
+            endDate = goal.endDate,
+            pageCount = goal.pageCount
+        )
+    }
+
+    val scheduleItems = scheduleViewModel.schedules.map {
+        FixedScheduleItem(
+            id = it.id.hashCode().toLong(),
+            category = ScheduleCategory.SCHEDULE,
+            title = it.title,
+            dayOfWeek = it.dayOfWeek,
+            startTime = it.startTime,
+            endTime = it.endTime
+        )
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -333,7 +360,7 @@ fun ScheduleSettingScreen(
 
                                 selectedCategory == ScheduleCategory.SCHEDULE &&
                                         hasScheduleConflict(
-                                            items = fixedScheduleList,
+                                            items = scheduleItems,
                                             editingId = editingItemId,
                                             dayOfWeek = selectedDay,
                                             startTime = startTime,
@@ -343,31 +370,53 @@ fun ScheduleSettingScreen(
                                 }
 
                                 else -> {
-                                    val newItem = if (selectedCategory == ScheduleCategory.GOAL) {
-                                        FixedScheduleItem(
-                                            id = editingItemId ?: System.currentTimeMillis(),
-                                            category = ScheduleCategory.GOAL,
-                                            title = title.trim(),
-                                            startDate = startDate,
-                                            endDate = endDate,
-                                            pageCount = pageCount.toIntOrNull()
-                                        )
-                                    } else {
-                                        FixedScheduleItem(
-                                            id = editingItemId ?: System.currentTimeMillis(),
-                                            category = ScheduleCategory.SCHEDULE,
-                                            title = title.trim(),
-                                            dayOfWeek = selectedDay,
-                                            startTime = startTime,
-                                            endTime = endTime
-                                        )
-                                    }
+                                    if (selectedCategory == ScheduleCategory.GOAL) {
+                                        val parsedPageCount = pageCount.toIntOrNull() ?: 0
 
-                                    fixedScheduleList = if (editingItemId == null) {
-                                        fixedScheduleList + newItem
+                                        if (editingItemId == null) {
+                                            goalViewModel.addGoal(
+                                                title = title.trim(),
+                                                startDate = startDate,
+                                                endDate = endDate,
+                                                pageCount = parsedPageCount
+                                            )
+                                        } else {
+                                            val firestoreId = goalViewModel.goals
+                                                .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                                ?.id
+
+                                            if (firestoreId != null) {
+                                                goalViewModel.updateGoal(
+                                                    id = firestoreId,
+                                                    title = title.trim(),
+                                                    startDate = startDate,
+                                                    endDate = endDate,
+                                                    pageCount = parsedPageCount
+                                                )
+                                            }
+                                        }
                                     } else {
-                                        fixedScheduleList.map { oldItem ->
-                                            if (oldItem.id == editingItemId) newItem else oldItem
+                                        if (editingItemId == null) {
+                                            scheduleViewModel.addSchedule(
+                                                title = title.trim(),
+                                                dayOfWeek = selectedDay,
+                                                startTime = startTime,
+                                                endTime = endTime
+                                            )
+                                        } else {
+                                            val firestoreId = scheduleViewModel.schedules
+                                                .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                                ?.id
+
+                                            if (firestoreId != null) {
+                                                scheduleViewModel.updateSchedule(
+                                                    id = firestoreId,
+                                                    title = title.trim(),
+                                                    dayOfWeek = selectedDay,
+                                                    startTime = startTime,
+                                                    endTime = endTime
+                                                )
+                                            }
                                         }
                                     }
 
@@ -382,7 +431,24 @@ fun ScheduleSettingScreen(
                         },
                         onDelete = if (editingItemId != null) {
                             {
-                                fixedScheduleList = fixedScheduleList.filter { it.id != editingItemId }
+                                if (selectedCategory == ScheduleCategory.GOAL) {
+                                    val firestoreId = goalViewModel.goals
+                                        .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                        ?.id
+
+                                    if (firestoreId != null) {
+                                        goalViewModel.deleteGoal(firestoreId)
+                                    }
+                                } else {
+                                    val firestoreId = scheduleViewModel.schedules
+                                        .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                        ?.id
+
+                                    if (firestoreId != null) {
+                                        scheduleViewModel.deleteSchedule(firestoreId)
+                                    }
+                                }
+
                                 showAddDialog = false
                                 editingItemId = null
                                 errorMessage = null
