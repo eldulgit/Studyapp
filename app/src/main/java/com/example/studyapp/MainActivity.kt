@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
 import com.example.studyapp.data.repository.AuthRepository
 import com.example.studyapp.data.repository.UserRepository
+import com.example.studyapp.ui.StudyApp
 import com.example.studyapp.ui.navigation.MainScreen
 import kotlinx.coroutines.launch
 
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MainScreen()
+            StudyApp()
         }
     }
 }
