@@ -21,12 +21,21 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.window.Dialog
+import com.example.studyapp.ui.timer.CameraPreviewScreen
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,7 +55,32 @@ fun TimerScreen(
 ) {
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
-        timerViewModel.loadSubjectsFromFirestore()
+    }
+
+    val context = LocalContext.current
+
+    var showCameraPreview by remember { mutableStateOf(false) }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            showCameraPreview = true
+        }
+    }
+
+    fun openCamera() {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                showCameraPreview = true
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
     }
 
     val availableSubjects = subjectViewModel.subjects
@@ -105,7 +139,7 @@ fun TimerScreen(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { }) {
+                IconButton(onClick = { openCamera() }) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Camera"
@@ -157,6 +191,17 @@ fun TimerScreen(
                         }
                     )
                 }
+            }
+        }
+    }
+    if (showCameraPreview) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { showCameraPreview = false }
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                CameraPreviewScreen()
             }
         }
     }

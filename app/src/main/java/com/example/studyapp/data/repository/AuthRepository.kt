@@ -1,6 +1,15 @@
 package com.example.studyapp.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import android.app.Activity
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.NoCredentialException
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -15,6 +24,50 @@ class AuthRepository {
 
     fun isLoggedIn(): Boolean {
         return auth.currentUser != null
+    }
+
+    suspend fun signInWithGoogle(activity: Activity): String {
+        val credentialManager = CredentialManager.create(activity)
+
+        val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(
+            serverClientId = "646379260727-3ltc0ke5s97s45272chr9cdmhb62uqdp.apps.googleusercontent.com"
+        ).build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(signInWithGoogleOption)
+            .build()
+
+        val result = try {
+            credentialManager.getCredential(
+                context = activity,
+                request = request
+            )
+        } catch (e: NoCredentialException) {
+            throw IllegalStateException(
+                "기기에서 사용할 수 있는 Google 계정을 찾지 못했습니다. 에뮬레이터/기기에 Google 계정이 로그인되어 있는지 확인해주세요.",
+                e
+            )
+        }
+
+        val googleIdTokenCredential = try {
+            GoogleIdTokenCredential.createFrom(result.credential.data)
+        } catch (e: GoogleIdTokenParsingException) {
+            throw IllegalStateException("Google ID 토큰 파싱 실패", e)
+        }
+
+        val firebaseCredential =
+            GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+
+        val currentUser = auth.currentUser
+
+        val authResult = if (currentUser != null && currentUser.isAnonymous) {
+            currentUser.linkWithCredential(firebaseCredential).await()
+        } else {
+            auth.signInWithCredential(firebaseCredential).await()
+        }
+
+        return authResult.user?.uid
+            ?: throw IllegalStateException("Google 로그인 성공 후 uid가 없습니다.")
     }
 
     suspend fun signInAnonymouslyIfNeeded(): String {
