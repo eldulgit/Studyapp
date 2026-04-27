@@ -1,5 +1,7 @@
 package com.example.studyapp.ui.settings.schedule
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleAddDialog(
     selectedCategory: ScheduleCategory,
@@ -62,6 +66,26 @@ fun ScheduleAddDialog(
     onDelete: (() -> Unit)? = null,   // 추가
     errorMessage: String?,
 ) {
+    val dateValidationError =
+        if (
+            selectedCategory == ScheduleCategory.GOAL &&
+            startDate.isNotBlank() &&
+            endDate.isNotBlank()
+        ) {
+            val start = runCatching { LocalDate.parse(startDate) }.getOrNull()
+            val end = runCatching { LocalDate.parse(endDate) }.getOrNull()
+
+            if (start != null && end != null && !end.isAfter(start)) {
+                "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+
+    val displayErrorMessage = dateValidationError ?: errorMessage
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -86,7 +110,7 @@ fun ScheduleAddDialog(
                 ) {
                     Text(
                         text = "카테고리",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
 
                     if (onDelete != null) {
@@ -132,7 +156,7 @@ fun ScheduleAddDialog(
 
                 Text(
                     text = "설정",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -276,10 +300,10 @@ fun ScheduleAddDialog(
                     }
                 }
 
-                if (errorMessage != null) {
+                if (displayErrorMessage != null) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = errorMessage,
+                        text = displayErrorMessage,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -296,7 +320,14 @@ fun ScheduleAddDialog(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    TextButton(onClick = onConfirm) {
+                    TextButton(
+                        onClick = {
+                            if (dateValidationError == null) {
+                                onConfirm()
+                            }
+                        },
+                        enabled = dateValidationError == null
+                    ) {
                         Text("확인")
                     }
                 }

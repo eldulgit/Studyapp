@@ -1,5 +1,6 @@
 package com.example.studyapp.ui.settings.schedule
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -21,16 +22,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val ITEM_HEIGHT = 56.dp
 private const val VISIBLE_COUNT = 3
 private const val REPEAT_COUNT = 200
+private const val CENTER_OFFSET = VISIBLE_COUNT / 2
 
 @Composable
 fun CustomTimePicker(
@@ -38,7 +45,8 @@ fun CustomTimePicker(
     initialHour: Int,
     initialMinute: Int,
     onDismiss: () -> Unit,
-    onConfirm: (Int, Int) -> Unit
+    onConfirm: (Int, Int) -> Unit,
+    blinkOnConfirm: Boolean = false
 ) {
     val hourValues = remember { (0..23).map { it.toString().padStart(2, '0') } }
     val minuteValues = remember { (0..55 step 5).map { it.toString().padStart(2, '0') } }
@@ -52,10 +60,13 @@ fun CustomTimePicker(
         val block = (REPEAT_COUNT / 2) * minuteValues.size
         block - (block % minuteValues.size)
     }
-    val initialHourIndex = remember(initialHour) { hourMiddleBase + initialHour.coerceIn(0, 23) }
     val normalizedMinute = (initialMinute / 5) * 5
+    val initialHourIndex = remember(initialHour) {
+        hourMiddleBase + initialHour.coerceIn(0, 23) - CENTER_OFFSET
+    }
+
     val initialMinuteIndex = remember(initialMinute) {
-        minuteMiddleBase + normalizedMinute.coerceIn(0, 55) / 5
+        minuteMiddleBase + normalizedMinute.coerceIn(0, 55) / 5 - CENTER_OFFSET
     }
 
     val hourListState = rememberLazyListState(
@@ -69,6 +80,13 @@ fun CustomTimePicker(
     val minuteFlingBehavior = rememberSnapFlingBehavior(lazyListState = minuteListState)
 
     val coroutineScope = rememberCoroutineScope()
+
+    var isBlinking by remember { mutableStateOf(false) }
+
+    val dialogAlpha by animateFloatAsState(
+        targetValue = if (isBlinking) 0.35f else 1f,
+        label = "timePickerBlinkAlpha"
+    )
 
     LaunchedEffect(hourListState.isScrollInProgress) {
         if (!hourListState.isScrollInProgress) {
@@ -101,7 +119,10 @@ fun CustomTimePicker(
             modifier = Modifier
                 .width(320.dp)
                 .padding(horizontal = 20.dp)
-        ) {
+                .graphicsLayer {
+                    alpha = dialogAlpha
+                }
+        ){
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
             ) {
@@ -245,9 +266,23 @@ fun CustomTimePicker(
 
                     TextButton(
                         onClick = {
-                            val selectedHour = hourListState.firstVisibleItemIndex % hourValues.size
-                            val selectedMinute = minuteListState.firstVisibleItemIndex % minuteValues.size
-                            onConfirm(selectedHour, selectedMinute)
+                            val selectedHourIndex =
+                                (hourListState.firstVisibleItemIndex + CENTER_OFFSET) % hourValues.size
+
+                            val selectedMinuteIndex =
+                                (minuteListState.firstVisibleItemIndex + CENTER_OFFSET) % minuteValues.size
+
+                            val selectedHour = hourValues[selectedHourIndex].toInt()
+                            val selectedMinute = minuteValues[selectedMinuteIndex].toInt()
+
+                            coroutineScope.launch {
+                                if (blinkOnConfirm) {
+                                    isBlinking = true
+                                    delay(120)
+                                }
+
+                                onConfirm(selectedHour, selectedMinute)
+                            }
                         }
                     ) {
                         Text("확인")

@@ -1,7 +1,8 @@
 package com.example.studyapp.ui.settings.schedule
 
-import androidx.compose.runtime.LaunchedEffect
 import android.app.DatePickerDialog
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,9 +26,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import java.util.Calendar
 import java.util.Locale
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleSettingScreen(
     navController: NavController
@@ -46,7 +52,7 @@ fun ScheduleSettingScreen(
     val goalViewModel: GoalViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
 
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         scheduleViewModel.loadSchedulesFromFirestore()
         goalViewModel.loadGoalsFromFirestore()
     }
@@ -57,7 +63,9 @@ fun ScheduleSettingScreen(
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
     var pageCount by remember { mutableStateOf("") }
+
     val dayOptions = listOf("월", "화", "수", "목", "금", "토", "일")
+
     var selectedDay by remember { mutableStateOf("월") }
     var isDayDropdownExpanded by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf("09:00") }
@@ -65,27 +73,41 @@ fun ScheduleSettingScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var editingItemId by remember { mutableStateOf<Long?>(null) }
 
-    // CustomTimePicker 제어용 상태
     var showTimePickerDialog by remember { mutableStateOf(false) }
     var isSelectingStartTime by remember { mutableStateOf(true) }
     var pendingStartTime by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    fun showDatePicker(onDateSelected: (String) -> Unit) {
+    fun showDatePicker(
+        initialDate: String,
+        onDateSelected: (String) -> Unit
+    ) {
         val calendar = Calendar.getInstance()
+
+        if (initialDate.isNotBlank()) {
+            val parts = initialDate.split("-")
+            if (parts.size == 3) {
+                val year = parts[0].toIntOrNull()
+                val month = parts[1].toIntOrNull()
+                val day = parts[2].toIntOrNull()
+
+                if (year != null && month != null && day != null) {
+                    calendar.set(year, month - 1, day)
+                }
+            }
+        }
 
         DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
-                val date = String.format(
-                    Locale.getDefault(),
-                    "%04d.%02d.%02d",
+                val selectedDate = "%04d-%02d-%02d".format(
                     year,
                     month + 1,
                     dayOfMonth
                 )
-                onDateSelected(date)
+                onDateSelected(selectedDate)
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -101,11 +123,19 @@ fun ScheduleSettingScreen(
     }
 
     fun parseHour(time: String): Int {
-        return time.split(":").getOrNull(0)?.toIntOrNull() ?: 0
+        return time
+            .split(":")
+            .getOrNull(0)
+            ?.toIntOrNull()
+            ?: 9
     }
 
     fun parseMinute(time: String): Int {
-        return time.split(":").getOrNull(1)?.toIntOrNull() ?: 0
+        return time
+            .split(":")
+            .getOrNull(1)
+            ?.toIntOrNull()
+            ?: 0
     }
 
     fun hasScheduleConflict(
@@ -296,10 +326,32 @@ fun ScheduleSettingScreen(
                         startDate = startDate,
                         endDate = endDate,
                         onStartDateClick = {
-                            showDatePicker { startDate = it }
+                            showDatePicker(endDate.ifBlank { startDate }) { selectedDate ->
+                                startDate = selectedDate
+
+                                if (endDate.isNotBlank() && endDate <= selectedDate) {
+                                    endDate = ""
+                                    errorMessage = "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
+                                } else {
+                                    errorMessage = null
+                                }
+                            }
                         },
                         onEndDateClick = {
-                            showDatePicker { endDate = it }
+                            showDatePicker(endDate.ifBlank { startDate }) { selectedDate ->
+                                if (startDate.isBlank()) {
+                                    errorMessage = "시작 날짜를 먼저 선택해주세요."
+                                    return@showDatePicker
+                                }
+
+                                if (selectedDate <= startDate) {
+                                    errorMessage = "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
+                                    return@showDatePicker
+                                }
+
+                                endDate = selectedDate
+                                errorMessage = null
+                            }
                         },
                         pageCount = pageCount,
                         onPageCountChange = { pageCount = it },
@@ -343,10 +395,6 @@ fun ScheduleSettingScreen(
 
                                 selectedCategory == ScheduleCategory.GOAL && endDate.isBlank() -> {
                                     errorMessage = "마감 날짜를 입력해주세요."
-                                }
-
-                                selectedCategory == ScheduleCategory.GOAL && pageCount.isBlank() -> {
-                                    errorMessage = "페이지 수를 입력해주세요."
                                 }
 
                                 selectedCategory == ScheduleCategory.GOAL && startDate > endDate -> {
@@ -473,6 +521,7 @@ fun ScheduleSettingScreen(
                         title = if (isSelectingStartTime) "시작시간" else "종료시간",
                         initialHour = parseHour(initialTime),
                         initialMinute = parseMinute(initialTime),
+                        blinkOnConfirm = isSelectingStartTime,
                         onDismiss = {
                             showTimePickerDialog = false
                             pendingStartTime = null
@@ -491,7 +540,13 @@ fun ScheduleSettingScreen(
                                 endTime = selectedTime
                                 pendingStartTime = selectedTime
                                 errorMessage = null
-                                isSelectingStartTime = false
+
+                                coroutineScope.launch {
+                                    showTimePickerDialog = false
+                                    isSelectingStartTime = false
+                                    delay(30)
+                                    showTimePickerDialog = true
+                                }
                             } else {
                                 val baseStartTime = pendingStartTime ?: startTime
 
