@@ -28,6 +28,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 
 @Composable
 fun CameraScreen(timerViewModel: TimerViewModel) {
@@ -114,15 +119,27 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
                 modifier = Modifier.fillMaxSize()
             )
 
-            PersonGuideOverlay(
-                modifier = Modifier.fillMaxSize()
-            )
+//            PersonGuideOverlay(
+//                modifier = Modifier.fillMaxSize()
+//            )
 
             // 집중도 상태 오버레이
-            FocusOverlay(
-                status = focusStatus,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CameraTimerOverlay(
+                    timerViewModel = timerViewModel
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                FocusOverlay(
+                    status = focusStatus
+                )
+            }
 
         } else {
             PermissionDeniedMessage()
@@ -170,7 +187,7 @@ fun PersonGuideOverlay(
 ) {
     Box(modifier = modifier) {
         Text(
-            text = "가이드 안에 얼굴과 상반신을 맞춰주세요",
+            text = "가이드 안에 얼굴과 어깨를 맞춰주세요",
             color = Color.White,
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
@@ -192,9 +209,10 @@ fun PersonGuideOverlay(
 
             val centerX = size.width / 2f
 
-            val headWidth = size.width * 0.22f
-            val headHeight = headWidth * 1.25f
-            val headTop = size.height * 0.20f
+            // 머리 가이드
+            val headWidth = size.width * 0.24f
+            val headHeight = headWidth * 1.22f
+            val headTop = size.height * 0.22f
             val headLeft = centerX - headWidth / 2f
 
             drawOval(
@@ -207,65 +225,52 @@ fun PersonGuideOverlay(
                     width = headWidth,
                     height = headHeight
                 ),
-                style = Stroke(
-                    width = strokeWidth
-                )
+                style = Stroke(width = strokeWidth)
             )
 
-            val shoulderY = headTop + headHeight + size.height * 0.08f
-            val bodyBottomY = size.height * 0.76f
+            // 어깨 가이드
+            val shoulderTop = headTop + headHeight + size.height * 0.05f
+            val shoulderWidth = size.width * 0.58f
+            val shoulderHeight = size.height * 0.12f
+            val shoulderLeft = centerX - shoulderWidth / 2f
 
-            val shoulderWidth = size.width * 0.62f
-            val waistWidth = size.width * 0.34f
+            val shoulderPath = Path().apply {
+                moveTo(shoulderLeft, shoulderTop + shoulderHeight)
 
-            val bodyPath = Path().apply {
-                moveTo(
-                    x = centerX - shoulderWidth / 2f,
-                    y = shoulderY
+                cubicTo(
+                    shoulderLeft,
+                    shoulderTop + shoulderHeight * 0.25f,
+                    centerX - shoulderWidth * 0.2f,
+                    shoulderTop,
+                    centerX,
+                    shoulderTop
                 )
 
                 cubicTo(
-                    x1 = centerX - shoulderWidth * 0.42f,
-                    y1 = shoulderY + size.height * 0.06f,
-                    x2 = centerX - waistWidth / 2f,
-                    y2 = bodyBottomY - size.height * 0.18f,
-                    x3 = centerX - waistWidth / 2f,
-                    y3 = bodyBottomY
-                )
-
-                lineTo(
-                    x = centerX + waistWidth / 2f,
-                    y = bodyBottomY
-                )
-
-                cubicTo(
-                    x1 = centerX + waistWidth / 2f,
-                    y1 = bodyBottomY - size.height * 0.18f,
-                    x2 = centerX + shoulderWidth * 0.42f,
-                    y2 = shoulderY + size.height * 0.06f,
-                    x3 = centerX + shoulderWidth / 2f,
-                    y3 = shoulderY
+                    centerX + shoulderWidth * 0.2f,
+                    shoulderTop,
+                    shoulderLeft + shoulderWidth,
+                    shoulderTop + shoulderHeight * 0.25f,
+                    shoulderLeft + shoulderWidth,
+                    shoulderTop + shoulderHeight
                 )
             }
 
             drawPath(
-                path = bodyPath,
+                path = shoulderPath,
                 color = guideColor,
-                style = Stroke(
-                    width = strokeWidth
-                )
+                style = Stroke(width = strokeWidth)
             )
 
+            // 얼굴 위치 참고용 약한 원형 가이드
             drawCircle(
-                color = Color.White.copy(alpha = 0.25f),
-                radius = size.width * 0.36f,
+                color = Color.White.copy(alpha = 0.22f),
+                radius = size.width * 0.24f,
                 center = Offset(
                     x = centerX,
-                    y = size.height * 0.48f
+                    y = headTop + headHeight * 0.9f
                 ),
-                style = Stroke(
-                    width = 2.dp.toPx()
-                )
+                style = Stroke(width = 2.dp.toPx())
             )
         }
     }
@@ -277,4 +282,52 @@ fun PermissionDeniedMessage() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = "카메라 권한이 필요합니다.", color = Color.Gray)
     }
+}
+
+@Composable
+fun CameraTimerOverlay(
+    timerViewModel: TimerViewModel
+) {
+    val targetTaskId = timerViewModel.runningTaskId ?: timerViewModel.selectedTaskId
+
+    val currentSubject = timerViewModel.subjects.firstOrNull {
+        it.id == targetTaskId
+    }
+
+    val subjectName = currentSubject?.name ?: "선택된 과목 없음"
+    val remainingSeconds = currentSubject?.remainingSeconds ?: 0
+
+    Column(
+        modifier = Modifier
+            .background(
+                color = Color.Black.copy(alpha = 0.55f),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = subjectName,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "남은 시간 ${formatCameraTimerTime(remainingSeconds)}",
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+private fun formatCameraTimerTime(totalSeconds: Int): String {
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+
+    return "%02d:%02d:%02d".format(hours, minutes, seconds)
 }
