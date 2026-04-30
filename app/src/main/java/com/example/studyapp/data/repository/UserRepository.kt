@@ -33,6 +33,7 @@ class UserRepository {
             )
             .await()
     }
+
     suspend fun updateProfileImageUrl(uid: String, imageUrl: String) {
         db.collection("users")
             .document(uid)
@@ -57,11 +58,56 @@ class UserRepository {
                 "name" to "",
                 "profileImageUrl" to "",
                 "isGuest" to isGuest,
+
+                "wakeTime" to "",
+                "sleepTime" to "",
+                "exercise" to false,
+                "lifestyleCompleted" to false,
+
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp()
             )
 
             userRef.set(data).await()
+        } else {
+            userRef.set(
+                mapOf(
+                    "uid" to uid,
+                    "isGuest" to isGuest,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            ).await()
         }
+    }
+
+    suspend fun isLifestyleCompleted(uid: String): Boolean {
+        val snapshot = db.collection("users")
+            .document(uid)
+            .get()
+            .await()
+
+        return snapshot.getBoolean("lifestyleCompleted") == true
+    }
+
+    suspend fun saveLifestyle(
+        uid: String,
+        wakeTime: String,
+        sleepTime: String,
+        exercise: Boolean
+    ) {
+        db.collection("users")
+            .document(uid)
+            .set(
+                mapOf(
+                    "wakeTime" to wakeTime,
+                    "sleepTime" to sleepTime,
+                    "exercise" to exercise,
+                    "lifestyleCompleted" to true,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            )
+            .await()
     }
 }

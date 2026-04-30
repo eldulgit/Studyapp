@@ -35,7 +35,9 @@ import com.example.studyapp.ui.timer.TimerViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    onLogout: () -> Unit = {}
+) {
     val navController = rememberNavController()
 
     val subjectViewModel: SubjectViewModel = viewModel()
@@ -73,7 +75,8 @@ fun MainScreen() {
 
             composable(BottomNavItem.Stats.route) {
                 StatsScreen(
-                    studiedMinutes = timerViewModel.studiedMinutes
+                    studiedMinutes = timerViewModel.studiedMinutes,
+                    commentOption = settingsViewModel.commentOption
                 )
             }
 
@@ -109,7 +112,10 @@ fun MainScreen() {
             }
 
             composable("setting_account") {
-                AccountSettingScreen(navController)
+                AccountSettingScreen(
+                    navController = navController,
+                    onLogout = onLogout
+                )
             }
         }
     }

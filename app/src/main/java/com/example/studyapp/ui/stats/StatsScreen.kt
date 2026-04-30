@@ -10,38 +10,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.studyapp.ui.stats.StatsViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatsScreen(
-    studiedMinutes: Int
+    studiedMinutes: Int,
+    commentOption: String
 ) {
     var selectedPeriod by remember { mutableStateOf(StatsPeriod.DAILY) }
 
-    val goal = when (selectedPeriod) {
+    val goalMinutes = when (selectedPeriod) {
         StatsPeriod.DAILY -> 120
         StatsPeriod.WEEKLY -> 600
         StatsPeriod.MONTHLY -> 2400
     }
 
-    val percent = if (goal > 0) {
-        (studiedMinutes * 100) / goal
-    } else 0
-
-    val comment = getStudyComment(
-        percent = percent,
-        period = selectedPeriod
-    )
+    val goalSeconds = goalMinutes * 60
 
     val statsViewModel: StatsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
@@ -50,6 +41,40 @@ fun StatsScreen(
     }
 
     val records = statsViewModel.records
+
+    val currentSeconds = getCurrentPeriodStudySeconds(
+        records = records,
+        period = selectedPeriod
+    )
+
+    val previousSeconds = getPreviousPeriodStudySeconds(
+        records = records,
+        period = selectedPeriod
+    )
+
+    val commentTitle = when (commentOption) {
+        "오늘의 명언" -> "오늘의 명언"
+        "AI 코멘트" -> "AI 코치"
+        else -> "AI 코치"
+    }
+
+    val comment = when (commentOption) {
+        "오늘의 명언" -> getTodayQuote()
+
+        "AI 코멘트" -> getAiStudyComment(
+            currentSeconds = currentSeconds,
+            previousSeconds = previousSeconds,
+            goalSeconds = goalSeconds,
+            period = selectedPeriod
+        )
+
+        else -> getAiStudyComment(
+            currentSeconds = currentSeconds,
+            previousSeconds = previousSeconds,
+            goalSeconds = goalSeconds,
+            period = selectedPeriod
+        )
+    }
 
     val scheduledHours = remember {
         listOf(9, 14, 16, 20)
@@ -91,7 +116,10 @@ fun StatsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            StatsCommentSection(comment = comment)
+            StatsCommentSection(
+                title = commentTitle,
+                comment = comment
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
         }

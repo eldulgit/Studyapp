@@ -26,6 +26,10 @@ class AuthRepository {
         return auth.currentUser != null
     }
 
+    fun isCurrentUserAnonymous(): Boolean {
+        return auth.currentUser?.isAnonymous == true
+    }
+
     suspend fun signInWithGoogle(activity: Activity): String {
         val credentialManager = CredentialManager.create(activity)
 

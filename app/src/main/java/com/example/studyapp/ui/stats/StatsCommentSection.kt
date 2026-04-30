@@ -20,12 +20,15 @@ import androidx.compose.ui.unit.dp
 import com.example.studyapp.R
 
 @Composable
-fun StatsCommentSection(comment: String) {
+fun StatsCommentSection(
+    title: String,
+    comment: String
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
 
         Image(
             painter = painterResource(id = R.drawable.blueberry_coach),
-            contentDescription = "AI 코치 이미지",
+            contentDescription = "코치 이미지",
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape),
@@ -35,8 +38,15 @@ fun StatsCommentSection(comment: String) {
         Spacer(modifier = Modifier.width(12.dp))
 
         Column {
-            Text("AI 코치", color = Color.Gray)
-            Text(comment, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = title,
+                color = Color.Gray
+            )
+
+            Text(
+                text = comment,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
