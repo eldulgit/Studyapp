@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.window.Dialog
-import com.example.studyapp.ui.timer.CameraPreviewScreen
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +46,9 @@ import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
 import com.example.studyapp.ui.timer.pomodoro.formatCountdown
 import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
 import androidx.compose.runtime.LaunchedEffect
+import android.widget.Toast
+import androidx.compose.ui.window.DialogProperties
+import com.example.studyapp.ui.camera.CameraScreen
 
 @Composable
 fun TimerScreen(
@@ -70,6 +72,15 @@ fun TimerScreen(
     }
 
     fun openCamera() {
+        if (timerViewModel.runningTaskId == null) {
+            Toast.makeText(
+                context,
+                "먼저 타이머를 시작해주세요.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
         when {
             ContextCompat.checkSelfPermission(
                 context,
@@ -77,6 +88,7 @@ fun TimerScreen(
             ) == PackageManager.PERMISSION_GRANTED -> {
                 showCameraPreview = true
             }
+
             else -> {
                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
             }
@@ -195,13 +207,21 @@ fun TimerScreen(
         }
     }
     if (showCameraPreview) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { showCameraPreview = false }
+        Dialog(
+            onDismissRequest = {
+                showCameraPreview = false
+                timerViewModel.stopCameraMonitoring()
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
         ) {
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                CameraPreviewScreen()
+                CameraScreen(
+                    timerViewModel = timerViewModel
+                )
             }
         }
     }

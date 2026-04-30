@@ -36,6 +36,9 @@ class MLKitFocusAnalyzer(
     private val DROWSY_THRESHOLD_MS = 5000L // 5초
     //eyesClosedStartTime에 기록하고, 눈을 감은 상태가 5초 이상 지속되면 졸음으로 판단한다.
 
+    private var absentStartTime: Long = 0L
+    private val ABSENT_THRESHOLD_MS = 3000L
+
     @SuppressLint("UnsafeOptInUsageError")
     override fun analyze(imageProxy: ImageProxy) {
         val mediaImage = imageProxy.image
@@ -45,9 +48,22 @@ class MLKitFocusAnalyzer(
             detector.process(image)
                 .addOnSuccessListener { faces ->
                     if (faces.isEmpty()) {
-                        eyesClosedStartTime = 0L // 자리 비움 시 초기화
-                        onStatusChanged(FocusStatus.ABSENT)
+                        eyesClosedStartTime = 0L
+
+                        val currentTime = System.currentTimeMillis()
+
+                        if (absentStartTime == 0L) {
+                            absentStartTime = currentTime
+                            onStatusChanged(FocusStatus.UNKNOWN)
+                        } else {
+                            if (currentTime - absentStartTime >= ABSENT_THRESHOLD_MS) {
+                                onStatusChanged(FocusStatus.ABSENT)
+                            } else {
+                                onStatusChanged(FocusStatus.UNKNOWN)
+                            }
+                        }
                     } else {
+                        absentStartTime = 0L
                         val face = faces[0]
                         val leftEyeOpen = face.leftEyeOpenProbability ?: 1.0f
                         val rightEyeOpen = face.rightEyeOpenProbability ?: 1.0f

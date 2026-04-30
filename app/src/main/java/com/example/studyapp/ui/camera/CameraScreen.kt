@@ -22,6 +22,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.studyapp.ui.timer.TimerViewModel
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 @Composable
 fun CameraScreen(timerViewModel: TimerViewModel) {
@@ -61,17 +67,19 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
     // 집중도 상태 변화에 따른 타이머 제어
     LaunchedEffect(focusStatus) {
         when (focusStatus) {
-            FocusStatus.DROWSY, FocusStatus.ABSENT -> {
-                // 졸거나 자리를 비웠을 때 타이머가 실행 중이면 일시정지
-                if (timerViewModel.runningTaskId != null) {
-                    timerViewModel.pause()
-                }
+            FocusStatus.ABSENT -> {
+                timerViewModel.pauseByCamera()
             }
-            FocusStatus.FOCUSING -> {
-                // 다시 집중할 때 자동으로 시작하게 하고 싶다면 여기에 로직 추가 가능
-                // 현재는 명시적으로 멈추는 기능에 집중
+
+            FocusStatus.FOCUSING,
+            FocusStatus.DROWSY -> {
+                timerViewModel.resumeByCamera()
             }
-            else -> {}
+
+            FocusStatus.UNKNOWN -> {
+                // 얼굴을 찾는 중인 상태입니다.
+                // 바로 멈추지 않고 ML_Kit.kt의 3초 기준을 기다립니다.
+            }
         }
     }
 
@@ -103,6 +111,10 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
                     
                     previewView
                 },
+                modifier = Modifier.fillMaxSize()
+            )
+
+            PersonGuideOverlay(
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -150,6 +162,115 @@ fun FocusOverlay(status: FocusStatus, modifier: Modifier = Modifier) {
         }
     }
 }
+
+//가이드라인
+@Composable
+fun PersonGuideOverlay(
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier) {
+        Text(
+            text = "가이드 안에 얼굴과 상반신을 맞춰주세요",
+            color = Color.White,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 40.dp)
+                .background(
+                    color = Color.Black.copy(alpha = 0.45f),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val guideColor = Color.White.copy(alpha = 0.85f)
+            val strokeWidth = 5.dp.toPx()
+
+            val centerX = size.width / 2f
+
+            val headWidth = size.width * 0.22f
+            val headHeight = headWidth * 1.25f
+            val headTop = size.height * 0.20f
+            val headLeft = centerX - headWidth / 2f
+
+            drawOval(
+                color = guideColor,
+                topLeft = Offset(
+                    x = headLeft,
+                    y = headTop
+                ),
+                size = Size(
+                    width = headWidth,
+                    height = headHeight
+                ),
+                style = Stroke(
+                    width = strokeWidth
+                )
+            )
+
+            val shoulderY = headTop + headHeight + size.height * 0.08f
+            val bodyBottomY = size.height * 0.76f
+
+            val shoulderWidth = size.width * 0.62f
+            val waistWidth = size.width * 0.34f
+
+            val bodyPath = Path().apply {
+                moveTo(
+                    x = centerX - shoulderWidth / 2f,
+                    y = shoulderY
+                )
+
+                cubicTo(
+                    x1 = centerX - shoulderWidth * 0.42f,
+                    y1 = shoulderY + size.height * 0.06f,
+                    x2 = centerX - waistWidth / 2f,
+                    y2 = bodyBottomY - size.height * 0.18f,
+                    x3 = centerX - waistWidth / 2f,
+                    y3 = bodyBottomY
+                )
+
+                lineTo(
+                    x = centerX + waistWidth / 2f,
+                    y = bodyBottomY
+                )
+
+                cubicTo(
+                    x1 = centerX + waistWidth / 2f,
+                    y1 = bodyBottomY - size.height * 0.18f,
+                    x2 = centerX + shoulderWidth * 0.42f,
+                    y2 = shoulderY + size.height * 0.06f,
+                    x3 = centerX + shoulderWidth / 2f,
+                    y3 = shoulderY
+                )
+            }
+
+            drawPath(
+                path = bodyPath,
+                color = guideColor,
+                style = Stroke(
+                    width = strokeWidth
+                )
+            )
+
+            drawCircle(
+                color = Color.White.copy(alpha = 0.25f),
+                radius = size.width * 0.36f,
+                center = Offset(
+                    x = centerX,
+                    y = size.height * 0.48f
+                ),
+                style = Stroke(
+                    width = 2.dp.toPx()
+                )
+            )
+        }
+    }
+}
+
 //카메라 권한
 @Composable
 fun PermissionDeniedMessage() {

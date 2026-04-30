@@ -36,6 +36,9 @@ class TimerViewModel : ViewModel() {
     var runningTaskId by mutableStateOf<Long?>(null)
         private set
 
+    var pausedByCamera by mutableStateOf(false)
+        private set
+
     private var timerJob: Job? = null
 
     private var nextId by mutableLongStateOf(1L)
@@ -214,6 +217,31 @@ class TimerViewModel : ViewModel() {
 
         finishCurrentSessionAndSave()
         runningTaskId = null
+    }
+
+    fun pauseByCamera() {
+        if (runningTaskId != null) {
+            pausedByCamera = true
+            pause()
+        }
+    }
+
+    fun resumeByCamera() {
+        val targetId = selectedTaskId ?: return
+        val targetSubject = subjects.firstOrNull { it.id == targetId } ?: return
+
+        if (
+            pausedByCamera &&
+            runningTaskId == null &&
+            targetSubject.remainingSeconds > 0
+        ) {
+            pausedByCamera = false
+            startTask(targetId)
+        }
+    }
+
+    fun stopCameraMonitoring() {
+        pausedByCamera = false
     }
 
     fun finishCurrentSessionAndSave() {
