@@ -37,8 +37,8 @@ data class StudyRequirement(
 // 기상~취침 시간 사이에서 기존 일정들을 피해 '내가 쓸 수 있는 진짜 빈 시간'을 찾아내는 메인 엔진
 fun getFreeTimeSlots(
     schedules: List<FixedScheduleItem>,
-    wakeUpTime: String = "07:00",
-    sleepTime: String = "23:00"
+    wakeUpTime: String,
+    sleepTime: String
 ): List<TimeRange> {
     // "09:00" 같은 시간을 숫자(분)로 바꾼 뒤, 일정이 시작하는 시간 순서대로 차례차례 줄을 세운다.
     val busySlots = schedules.mapNotNull { schedule ->
@@ -111,12 +111,13 @@ fun getFreeTimeSlots(
         return hour * 60 + minute
     }
 // 위에서 계산한 빈 시간들이 잘 나왔나 화면에 찍어서 확인해보는 테스트 도구
-fun printFreeTimes(fixedScheduleList: List<FixedScheduleItem>) {
-    val freeTimes = getFreeTimeSlots(fixedScheduleList)
+fun printFreeTimes(
+    fixedScheduleList: List<FixedScheduleItem>,
+    wakeUpTime: String,
+    sleepTime: String) {
+    val freeTimes = getFreeTimeSlots(fixedScheduleList, wakeUpTime, sleepTime)
     freeTimes.forEach {
-        //println("빈 시간: ${it.start}분 ~ ${it.end}분 (총 ${it.end - it.start}분)")
-        println("빈 시간: ${it.
-        toFormattedString()} (총 ${it.end - it.start}분)")
+        println("빈 시간: ${it.toFormattedString()} (총 ${it.end - it.start}분)")
     }
 }
 // 컴퓨터가 계산한 분 단위 숫자를 다시 우리가 읽기 편한 "09:30 ~ 11:00" 형태로 포장해 주는 도구
