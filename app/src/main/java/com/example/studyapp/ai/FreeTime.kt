@@ -46,12 +46,12 @@ fun generateDailyFreeItems(
         )
     }
 }
-
-fun collectEmptyTimeSlots(fixedSchedules: List<FixedScheduleItem>, date: String): List<TimeSlot> {
-    //일정 외의 시간 범위 계산
-    val freeRanges = getFreeTimeSlots(fixedSchedules)
-    //계산된 범위를 TimeSlot 객체로 생성
+fun collectEmptyTimeSlots(
+    fixedSchedules: List<FixedScheduleItem>,
+    wakeUpTime: String,
+    sleepTime: String,
+    date: String
+): List<TimeSlot> {
+    val freeRanges = getFreeTimeSlots(fixedSchedules, wakeUpTime, sleepTime)
     return generateFreeTimeObjects(freeRanges, date)
 }
-// 오늘 날짜의 빈 시간 슬롯 리스트를 가져와서 UI에 보여주기
-// val emptySlots = collectEmptyTimeSlots(fixedScheduleList, "2024-04-30")
