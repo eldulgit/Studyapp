@@ -80,12 +80,10 @@ fun StatsScreen(
         listOf(9, 14, 16, 20)
     }
 
-    val hourlyFocusPoints = remember(records, scheduledHours) {
-        generateHourlyFocusData(
-            records = records,
-            scheduledHours = scheduledHours
-        )
-    }
+    val hourlyFocusPoints = generateHourlyFocusData(
+        records = records,
+        scheduledHours = scheduledHours
+    )
 
     Column(
         modifier = Modifier
@@ -105,7 +103,8 @@ fun StatsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             StatsBarChart(
-                period = selectedPeriod
+                period = selectedPeriod,
+                records = records
             )
 
             Spacer(modifier = Modifier.height(32.dp))

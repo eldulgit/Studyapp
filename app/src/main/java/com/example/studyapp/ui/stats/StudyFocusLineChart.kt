@@ -50,7 +50,7 @@ fun StudyFocusLineChart(
         Text(
             text = "시간대별 집중도",
             modifier = Modifier.padding(bottom = 12.dp),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleSmall
         )
 
         Canvas(

@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import android.Manifest
 import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -35,20 +36,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.camera.CameraScreen
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.timer.pomodoro.CircularTimer
 import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
 import com.example.studyapp.ui.timer.pomodoro.formatCountdown
 import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
-import androidx.compose.runtime.LaunchedEffect
-import android.widget.Toast
-import androidx.compose.ui.window.DialogProperties
-import com.example.studyapp.ui.camera.CameraScreen
 
 @Composable
 fun TimerScreen(
@@ -57,6 +56,10 @@ fun TimerScreen(
 ) {
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
+
+        // TODO: DB 연결 완료 후 주석 해제
+        // AI/DB 스케줄을 오늘 날짜 기준 SubjectTimer 리스트로 불러오는 함수
+        // timerViewModel.loadTodayScheduleTimers()
     }
 
     val context = LocalContext.current
@@ -96,6 +99,9 @@ fun TimerScreen(
     }
 
     val availableSubjects = subjectViewModel.subjects
+
+    // TODO: DB 연결 완료 후 아래 줄로 교체
+    // val timerSubjects = timerViewModel.todayScheduleTimers
     val timerSubjects = timerViewModel.subjects
 
     var showSubjectDialog by remember { mutableStateOf(false) }
@@ -206,6 +212,7 @@ fun TimerScreen(
             }
         }
     }
+
     if (showCameraPreview) {
         Dialog(
             onDismissRequest = {

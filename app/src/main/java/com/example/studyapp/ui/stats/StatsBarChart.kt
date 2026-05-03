@@ -19,13 +19,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun StatsBarChart(period: StatsPeriod) {
-
+fun StatsBarChart(
+    period: StatsPeriod,
+    records: List<StudySessionRecord>
+) {
     val labels = generateLabels(period)
-    val values = List(labels.size) { 0 }
+
+    val values = generateBarValues(
+        records = records,
+        period = period,
+        labelCount = labels.size
+    )
+
+    val maxValue = values.maxOrNull()?.coerceAtLeast(1) ?: 1
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -39,10 +50,12 @@ fun StatsBarChart(period: StatsPeriod) {
             verticalAlignment = Alignment.Bottom
         ) {
             values.forEach { value ->
+                val barHeight = ((value.toFloat() / maxValue.toFloat()) * 160).dp
+
                 Box(
                     modifier = Modifier
                         .width(24.dp)
-                        .height(value.dp)
+                        .height(barHeight)
                         .background(
                             color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(4.dp)
@@ -60,8 +73,79 @@ fun StatsBarChart(period: StatsPeriod) {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             labels.forEach { label ->
-                Text(label, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun generateBarValues(
+    records: List<StudySessionRecord>,
+    period: StatsPeriod,
+    labelCount: Int
+): List<Int> {
+    val today = LocalDate.now()
+
+    return when (period) {
+        StatsPeriod.DAILY -> {
+            val startDate = today.minusDays((labelCount - 1).toLong())
+
+            List(labelCount) { index ->
+                val date = startDate.plusDays(index.toLong()).toString()
+
+                secondsToChartValue(
+                    records
+                        .filter { it.sessionDate == date }
+                        .sumOf { it.studiedSeconds }
+                )
+            }
+        }
+
+        StatsPeriod.WEEKLY -> {
+            val startOfWeek = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+
+            List(labelCount) { index ->
+                val date = startOfWeek.plusDays(index.toLong()).toString()
+
+                secondsToChartValue(
+                    records
+                        .filter { it.sessionDate == date }
+                        .sumOf { it.studiedSeconds }
+                )
+            }
+        }
+
+        StatsPeriod.MONTHLY -> {
+            val startMonth = today
+                .minusMonths((labelCount - 1).toLong())
+                .withDayOfMonth(1)
+
+            List(labelCount) { index ->
+                val targetMonth = startMonth.plusMonths(index.toLong())
+
+                secondsToChartValue(
+                    records
+                        .filter { record ->
+                            val recordDate = LocalDate.parse(record.sessionDate)
+
+                            recordDate.year == targetMonth.year &&
+                                    recordDate.monthValue == targetMonth.monthValue
+                        }
+                        .sumOf { it.studiedSeconds }
+                )
+            }
+        }
+    }
+}
+
+private fun secondsToChartValue(seconds: Int): Int {
+    return if (seconds > 0 && seconds < 60) {
+        1
+    } else {
+        seconds / 60
     }
 }

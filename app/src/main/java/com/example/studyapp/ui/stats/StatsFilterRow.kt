@@ -28,9 +28,9 @@ fun StatsFilterRow(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "기간별 공부시간",
+            text = "누적 공부시간",
             modifier = Modifier.padding(bottom = 12.dp),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleSmall
         )
 
         Row(

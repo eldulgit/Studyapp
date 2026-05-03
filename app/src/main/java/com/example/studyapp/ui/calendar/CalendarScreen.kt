@@ -24,11 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.studyapp.ui.settings.schedule.ScheduleViewModel
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import java.time.LocalDate
 
@@ -39,6 +40,7 @@ fun CalendarScreen(
     subjectViewModel: SubjectViewModel
 ) {
     val holidayViewModel: HolidayViewModel = viewModel()
+    val scheduleViewModel: ScheduleViewModel = viewModel()
 
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
@@ -46,6 +48,10 @@ fun CalendarScreen(
 
     var showCalendarDialog by remember {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(Unit) {
+        scheduleViewModel.loadSchedulesFromFirestore()
     }
 
     LaunchedEffect(selectedDate.year) {
@@ -61,7 +67,20 @@ fun CalendarScreen(
         }
     }
 
-    val daySchedules = emptyList<DayScheduleBlock>()
+    //db연결되면 사용하는 코드
+    /*val daySchedules = scheduleViewModel.calendarSchedules
+
+    LaunchedEffect(daySchedules.size, selectedDate) {
+        Log.d("ScheduleUI", "선택 날짜: $selectedDate")
+        Log.d("ScheduleUI", "타임테이블 표시 스케줄 개수: ${daySchedules.size}")
+
+        daySchedules.forEach {
+            Log.d(
+                "ScheduleUI",
+                "subject=${it.subject}, date=${it.date}, start=${it.startHour}:${it.startMinute}, end=${it.endHour}:${it.endMinute}"
+            )
+        }
+    }*/
 
     if (showCalendarDialog) {
         HolidayCalendarDialog(
@@ -122,12 +141,13 @@ fun CalendarScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        DayScheduleTimeline(
+        //db연결시 주석제거
+        /*DayScheduleTimeline(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
             selectedDate = selectedDate,
             schedules = daySchedules
-        )
+        )*/
     }
 }
