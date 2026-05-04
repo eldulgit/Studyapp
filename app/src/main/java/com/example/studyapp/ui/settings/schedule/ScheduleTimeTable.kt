@@ -44,7 +44,6 @@ fun ScheduleTimetable(
     // 기본 범위는 9~17
     val defaultStartHour = 9
     val defaultEndHour = 17
-
     val earliestHour = scheduleItems
         .mapNotNull { parseTimeToMinutes(it.startTime) }
         .minOrNull()
@@ -198,14 +197,13 @@ private fun DayColumn(
                 )
             }
         }
-
         items
             .filter {
                 it.dayOfWeek == day &&
                         it.startTime != null &&
                         it.endTime != null
             }
-            .forEachIndexed { index, item ->
+            .forEach { item ->
                 val startMinutes = parseTimeToMinutes(item.startTime)
                 val endMinutes = parseTimeToMinutes(item.endTime)
 
@@ -214,8 +212,10 @@ private fun DayColumn(
                     val topOffset = ((startMinutes - baseMinutes) / 60f) * hourHeight.value
                     val blockHeight = ((endMinutes - startMinutes) / 60f) * hourHeight.value
 
-                    val color = timetableColors[index % timetableColors.size]
-
+                    val globalIndex = items.indexOfFirst { it.id == item.id }
+                    val color = timetableColors[
+                        globalIndex.coerceAtLeast(0) % timetableColors.size
+                    ]
                     Box(
                         modifier = Modifier
                             .padding(horizontal = 2.dp, vertical = 1.dp)
@@ -246,6 +246,7 @@ private fun DayColumn(
             }
     }
 }
+
 
 private fun parseTimeToMinutes(time: String?): Int? {
     if (time.isNullOrBlank()) return null

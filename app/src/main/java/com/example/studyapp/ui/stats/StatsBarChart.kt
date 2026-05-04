@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -106,14 +108,24 @@ private fun generateBarValues(
         }
 
         StatsPeriod.WEEKLY -> {
-            val startOfWeek = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+            val currentWeekStart = today.with(
+                TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)
+            )
+
+            val startWeek = currentWeekStart.minusWeeks((labelCount - 1).toLong())
 
             List(labelCount) { index ->
-                val date = startOfWeek.plusDays(index.toLong()).toString()
+                val weekStart = startWeek.plusWeeks(index.toLong())
+                val weekEnd = weekStart.plusDays(6)
 
                 secondsToChartValue(
                     records
-                        .filter { it.sessionDate == date }
+                        .filter { record ->
+                            val recordDate = LocalDate.parse(record.sessionDate)
+
+                            !recordDate.isBefore(weekStart) &&
+                                    !recordDate.isAfter(weekEnd)
+                        }
                         .sumOf { it.studiedSeconds }
                 )
             }

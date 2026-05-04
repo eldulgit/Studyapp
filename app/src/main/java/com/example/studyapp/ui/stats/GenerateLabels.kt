@@ -2,17 +2,17 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun generateLabels(period: StatsPeriod): List<String> {
-
     val today = LocalDate.now()
     val formatter = DateTimeFormatter.ofPattern("MM.dd")
 
     return when (period) {
-
         StatsPeriod.DAILY -> (0..3).map {
             today.minusDays(it.toLong()).format(formatter)
         }.reversed()
@@ -24,4 +24,3 @@ fun generateLabels(period: StatsPeriod): List<String> {
         }.reversed()
     }
 }
-
