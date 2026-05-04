@@ -1,4 +1,4 @@
-package com.example.studyapp.ui.onboarding
+package com.example.studyapp.ui.settings.lifestyle
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,8 +25,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LifestyleInputScreen(
-    onCompleteClick: (
+fun LifeStyleSettingScreen(
+    initialWakeTime: String = "",
+    initialSleepTime: String = "",
+    initialLunchStartTime: String = "",
+    initialLunchEndTime: String = "",
+    initialDinnerStartTime: String = "",
+    initialDinnerEndTime: String = "",
+    initialExercise: Boolean = false,
+    onSaveClick: (
         wakeTime: String,
         sleepTime: String,
         lunchStartTime: String,
@@ -37,13 +44,13 @@ fun LifestyleInputScreen(
     ) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var wakeTime by remember { mutableStateOf("") }
-    var sleepTime by remember { mutableStateOf("") }
-    var lunchStartTime by remember { mutableStateOf("") }
-    var lunchEndTime by remember { mutableStateOf("") }
-    var dinnerStartTime by remember { mutableStateOf("") }
-    var dinnerEndTime by remember { mutableStateOf("") }
-    var exercise by remember { mutableStateOf(false) }
+    var wakeTime by remember { mutableStateOf(initialWakeTime) }
+    var sleepTime by remember { mutableStateOf(initialSleepTime) }
+    var lunchStartTime by remember { mutableStateOf(initialLunchStartTime) }
+    var lunchEndTime by remember { mutableStateOf(initialLunchEndTime) }
+    var dinnerStartTime by remember { mutableStateOf(initialDinnerStartTime) }
+    var dinnerEndTime by remember { mutableStateOf(initialDinnerEndTime) }
+    var exercise by remember { mutableStateOf(initialExercise) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -52,10 +59,10 @@ fun LifestyleInputScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
     ) {
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "생활패턴 입력",
+            text = "생활패턴 설정",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -63,12 +70,12 @@ fun LifestyleInputScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "더 나은 학습 관리를 위해 기본 생활패턴을 입력해주세요.",
+            text = "학습 계획에 반영될 생활패턴을 수정할 수 있어요.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
             value = wakeTime,
@@ -178,7 +185,6 @@ fun LifestyleInputScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-
         errorMessage?.let {
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -205,7 +211,7 @@ fun LifestyleInputScreen(
                     return@Button
                 }
 
-                onCompleteClick(
+                onSaveClick(
                     wakeTime,
                     sleepTime,
                     lunchStartTime,
@@ -217,7 +223,7 @@ fun LifestyleInputScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "완료")
+            Text(text = "저장")
         }
 
         Spacer(modifier = Modifier.height(32.dp))

@@ -119,6 +119,10 @@ fun StudyApp() {
     fun onCompleteClick(
         wakeTime: String,
         sleepTime: String,
+        lunchStartTime: String,
+        lunchEndTime: String,
+        dinnerStartTime: String,
+        dinnerEndTime: String,
         exercise: Boolean
     ) {
         if (isProcessing) return
@@ -135,6 +139,10 @@ fun StudyApp() {
                     uid = uid,
                     wakeTime = wakeTime,
                     sleepTime = sleepTime,
+                    lunchStartTime = lunchStartTime,
+                    lunchEndTime = lunchEndTime,
+                    dinnerStartTime = dinnerStartTime,
+                    dinnerEndTime = dinnerEndTime,
                     exercise = exercise
                 )
 

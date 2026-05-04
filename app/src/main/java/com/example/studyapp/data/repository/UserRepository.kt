@@ -61,6 +61,10 @@ class UserRepository {
 
                 "wakeTime" to "",
                 "sleepTime" to "",
+                "lunchStartTime" to "",
+                "lunchEndTime" to "",
+                "dinnerStartTime" to "",
+                "dinnerEndTime" to "",
                 "exercise" to false,
                 "lifestyleCompleted" to false,
 
@@ -94,6 +98,10 @@ class UserRepository {
         uid: String,
         wakeTime: String,
         sleepTime: String,
+        lunchStartTime: String,
+        lunchEndTime: String,
+        dinnerStartTime: String,
+        dinnerEndTime: String,
         exercise: Boolean
     ) {
         db.collection("users")
@@ -102,6 +110,10 @@ class UserRepository {
                 mapOf(
                     "wakeTime" to wakeTime,
                     "sleepTime" to sleepTime,
+                    "lunchStartTime" to lunchStartTime,
+                    "lunchEndTime" to lunchEndTime,
+                    "dinnerStartTime" to dinnerStartTime,
+                    "dinnerEndTime" to dinnerEndTime,
                     "exercise" to exercise,
                     "lifestyleCompleted" to true,
                     "updatedAt" to FieldValue.serverTimestamp()

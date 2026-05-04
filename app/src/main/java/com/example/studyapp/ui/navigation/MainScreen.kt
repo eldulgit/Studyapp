@@ -24,6 +24,7 @@ import com.example.studyapp.ui.settings.SettingsViewModel
 import com.example.studyapp.ui.settings.account.AccountSettingScreen
 import com.example.studyapp.ui.settings.ai.AiProfileSettingScreen
 import com.example.studyapp.ui.settings.common.SettingScreen
+import com.example.studyapp.ui.settings.lifestyle.LifeStyleSettingScreen
 import com.example.studyapp.ui.settings.notification.NotificationSettingScreen
 import com.example.studyapp.ui.settings.schedule.ScheduleSettingScreen
 import com.example.studyapp.ui.settings.subject.SubjectSettingScreen
@@ -97,6 +98,22 @@ fun MainScreen(
 
             composable("setting_schedule") {
                 ScheduleSettingScreen(navController)
+            }
+
+            composable("setting_lifestyle") {
+                LifeStyleSettingScreen(
+                    onSaveClick = {
+                            wakeTime,
+                            sleepTime,
+                            lunchStartTime,
+                            lunchEndTime,
+                            dinnerStartTime,
+                            dinnerEndTime,
+                            exercise ->
+
+                        navController.popBackStack()
+                    }
+                )
             }
 
             composable("setting_notification") {
