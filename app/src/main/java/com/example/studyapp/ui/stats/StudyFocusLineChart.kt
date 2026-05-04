@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlin.math.max
 
 @Composable
 fun StudyFocusLineChart(
@@ -25,24 +24,32 @@ fun StudyFocusLineChart(
 ) {
     val safePoints = if (points.isEmpty()) {
         listOf(
-            HourlyFocusPoint(17, 0),
-            HourlyFocusPoint(18, 0),
-            HourlyFocusPoint(19, 0),
-            HourlyFocusPoint(20, 0),
-            HourlyFocusPoint(21, 0),
-            HourlyFocusPoint(22, 0),
-            HourlyFocusPoint(23, 0),
-            HourlyFocusPoint(24, 0)
+            HourlyFocusPoint(hour = 7, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 8, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 9, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 10, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 11, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 12, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 13, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 14, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 15, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 16, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 17, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 18, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 19, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 20, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 21, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 22, studiedMinutes = 0, focusScore = 0),
+            HourlyFocusPoint(hour = 23, studiedMinutes = 0, focusScore = 0)
         )
     } else {
         points
     }
 
-    val maxY = max(safePoints.maxOfOrNull { it.studiedMinutes } ?: 0, 10)
+    val maxY = 100f
 
     val primaryColor = MaterialTheme.colorScheme.primary
     val outlineColor = MaterialTheme.colorScheme.outline
-    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = modifier.fillMaxWidth()
@@ -75,8 +82,10 @@ fun StudyFocusLineChart(
             }
 
             val guideCount = 4
+
             repeat(guideCount + 1) { index ->
                 val y = topPadding + (chartHeight / guideCount) * index
+
                 drawLine(
                     color = outlineColor.copy(alpha = 0.25f),
                     start = Offset(leftPadding, y),
@@ -86,15 +95,17 @@ fun StudyFocusLineChart(
             }
 
             val offsets = safePoints.mapIndexed { index, point ->
-                val ratio = point.studiedMinutes.toFloat() / maxY.toFloat()
+                val ratio = point.focusScore.toFloat() / maxY
                 val x = leftPadding + stepX * index
                 val y = topPadding + chartHeight - (chartHeight * ratio)
+
                 Offset(x, y)
             }
 
             if (offsets.isNotEmpty()) {
                 val path = Path().apply {
                     moveTo(offsets.first().x, offsets.first().y)
+
                     offsets.drop(1).forEach { point ->
                         lineTo(point.x, point.y)
                     }
@@ -130,7 +141,6 @@ fun StudyFocusLineChart(
                     modifier = Modifier.weight(1f)
                 )
             }
-
         }
     }
 }

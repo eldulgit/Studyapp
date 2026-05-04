@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ai.DailyScheduleItem
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -80,10 +81,65 @@ fun StatsScreen(
         listOf(9, 14, 16, 20)
     }
 
-    val hourlyFocusPoints = generateHourlyFocusData(
-        records = records,
-        scheduledHours = scheduledHours
-    )
+    val wakeTime = "07:00"
+    val sleepTime = "23:30"
+
+    val todaySchedules = remember {
+        listOf(
+            DailyScheduleItem(
+                id = "TEMP_1",
+                date = "2026-05-04",
+                subjectId = null,
+                title = "수학 공부",
+                startTime = "08:00",
+                endTime = "10:00",
+                isCompleted = false,
+                memo = "임시 테스트 일정",
+                priority = 3
+            ),
+            DailyScheduleItem(
+                id = "TEMP_2",
+                date = "2026-05-04",
+                subjectId = null,
+                title = "영어 공부",
+                startTime = "11:00",
+                endTime = "12:00",
+                isCompleted = false,
+                memo = "임시 테스트 일정",
+                priority = 1
+            ),
+            DailyScheduleItem(
+                id = "TEMP_3",
+                date = "2026-05-04",
+                subjectId = null,
+                title = "알고리즘 공부",
+                startTime = "15:00",
+                endTime = "17:00",
+                isCompleted = false,
+                memo = "임시 테스트 일정",
+                priority = 2
+            ),
+            DailyScheduleItem(
+                id = "TEMP_4",
+                date = "2026-05-04",
+                subjectId = null,
+                title = "프로젝트 공부",
+                startTime = "20:00",
+                endTime = "22:00",
+                isCompleted = false,
+                memo = "임시 테스트 일정",
+                priority = 3
+            )
+        )
+    }
+
+    val hourlyFocusPoints = remember(todaySchedules, wakeTime, sleepTime) {
+        generateHourlyFocusData(
+            schedules = todaySchedules,
+            wakeUpTime = wakeTime,
+            sleepTime = sleepTime
+        )
+    }
 
     Column(
         modifier = Modifier

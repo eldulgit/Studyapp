@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studyapp.ui.stats.StudySessionRepository
 import com.example.studyapp.data.repository.AuthRepository
+import com.example.studyapp.data.repository.GeneratedScheduleRepository
 import com.example.studyapp.data.repository.SubjectRepository
 import com.example.studyapp.data.repository.UserRepository
 import java.text.SimpleDateFormat
@@ -24,7 +25,7 @@ class TimerViewModel : ViewModel() {
         private set
 
     init {
-        loadSubjectsFromFirestore()
+//        loadSubjectsFromFirestore()
     }
 
     var studiedMinutes by mutableStateOf(0)
@@ -38,7 +39,9 @@ class TimerViewModel : ViewModel() {
 
     var pausedByCamera by mutableStateOf(false)
         private set
-
+    var todayScheduleTimers by mutableStateOf(listOf<SubjectTimer>())
+        private set
+    private val generatedScheduleRepository = GeneratedScheduleRepository()
     private var timerJob: Job? = null
 
     private var nextId by mutableLongStateOf(1L)
@@ -277,9 +280,82 @@ class TimerViewModel : ViewModel() {
         }
     }
 
+    fun loadTodayGeneratedScheduleTimersFromDb() {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val today = makeSessionDate(System.currentTimeMillis())
+
+                val generatedSchedules = generatedScheduleRepository.getSchedulesByDate(
+                    userId = uid,
+                    date = today
+                )
+
+                val firestoreSubjects = subjectRepository.getSubjects(uid)
+
+                subjects = generatedSchedules
+                    .filter { schedule ->
+                        !schedule.isCompleted &&
+                                schedule.title.isNotBlank() &&
+                                schedule.startTime.isNotBlank() &&
+                                schedule.endTime.isNotBlank()
+                    }
+                    .mapNotNull { schedule ->
+                        val durationSeconds = calculateDurationSeconds(
+                            startTime = schedule.startTime,
+                            endTime = schedule.endTime
+                        )
+
+                        if (durationSeconds <= 0) {
+                            return@mapNotNull null
+                        }
+
+                        val matchedSubject = firestoreSubjects.firstOrNull { subject ->
+                            subject.id == schedule.subjectId || subject.name == schedule.title
+                        }
+
+                        SubjectTimer(
+                            id = schedule.id.hashCode().toLong(),
+                            name = matchedSubject?.name ?: schedule.title,
+                            allocatedSeconds = durationSeconds,
+                            remainingSeconds = durationSeconds
+                        )
+                    }
+
+                nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "생성된 오늘 스케줄 타이머 불러오기 실패", e)
+            }
+        }
+    }
+
+
     override fun onCleared() {
         finishCurrentSessionAndSave()
         timerJob?.cancel()
         super.onCleared()
     }
+}
+
+private fun calculateDurationSeconds(
+    startTime: String,
+    endTime: String
+): Int {
+    val start = startTime.toMinutesOrNull() ?: return 0
+    val end = endTime.toMinutesOrNull() ?: return 0
+
+    return ((end - start).coerceAtLeast(0)) * 60
+}
+
+private fun String.toMinutesOrNull(): Int? {
+    val parts = split(":")
+    if (parts.size != 2) return null
+
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+
+    if (hour !in 0..23) return null
+    if (minute !in 0..59) return null
+
+    return hour * 60 + minute
 }

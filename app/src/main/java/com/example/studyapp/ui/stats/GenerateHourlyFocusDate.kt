@@ -1,63 +1,88 @@
 package com.example.studyapp.ui.stats
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import java.time.Instant
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
-import kotlin.math.max
+import com.example.studyapp.ai.DailyScheduleItem
+import kotlin.math.roundToInt
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun generateHourlyFocusData(
-    records: List<StudySessionRecord>,
-    scheduledHours: List<Int>,
-    days: Long = 30L,
-    zoneId: ZoneId = ZoneId.systemDefault()
+    schedules: List<DailyScheduleItem>,
+    wakeUpTime: String,
+    sleepTime: String
 ): List<HourlyFocusPoint> {
+    val wake = wakeUpTime.toMinutesOrNull() ?: return emptyList()
+    val sleep = sleepTime.toMinutesOrNull() ?: return emptyList()
 
-    val now = Instant.now()
-    val from = now.minus(days, ChronoUnit.DAYS)
+    if (wake >= sleep) return emptyList()
 
-    val secondsByHour = mutableMapOf<Int, Int>().apply {
-        scheduledHours.distinct().sorted().forEach { hour ->
-            this[hour] = 0
-        }
+    val points = mutableListOf<HourlyFocusPoint>()
+
+    var slotStart = wake
+
+    while (slotStart < sleep) {
+        val slotEnd = minOf(slotStart + 60, sleep)
+
+        val focusScore = calculateFocusScoreForSlot(
+            slotStart = slotStart,
+            slotEnd = slotEnd,
+            schedules = schedules
+        )
+
+        points.add(
+            HourlyFocusPoint(
+                hour = slotStart / 60,
+                studiedMinutes = 0,
+                focusScore = focusScore
+            )
+        )
+
+        slotStart += 60
     }
 
-    records.forEach { record ->
-        val recordStart = Instant.ofEpochMilli(record.startTimeMillis)
-        val recordEnd = Instant.ofEpochMilli(record.endTimeMillis)
+    return points
+}
 
-        if (recordEnd.isBefore(from) || !recordEnd.isAfter(recordStart)) {
-            return@forEach
-        }
+private fun calculateFocusScoreForSlot(
+    slotStart: Int,
+    slotEnd: Int,
+    schedules: List<DailyScheduleItem>
+): Int {
+    val slotLength = slotEnd - slotStart
+    if (slotLength <= 0) return 0
 
-        var segmentStart = if (recordStart.isBefore(from)) from else recordStart
-        val segmentEnd = if (recordEnd.isAfter(now)) now else recordEnd
+    var totalWeightedMinutes = 0.0
 
-        while (segmentStart.isBefore(segmentEnd)) {
-            val zoned = segmentStart.atZone(zoneId)
-            val nextHour = zoned.truncatedTo(ChronoUnit.HOURS).plusHours(1).toInstant()
-            val chunkEnd = if (nextHour.isBefore(segmentEnd)) nextHour else segmentEnd
+    schedules.forEach { schedule ->
+        val scheduleStart = schedule.startTime.toMinutesOrNull() ?: return@forEach
+        val scheduleEnd = schedule.endTime.toMinutesOrNull() ?: return@forEach
 
-            val seconds = ChronoUnit.SECONDS.between(segmentStart, chunkEnd).toInt()
-            val hour = zoned.hour
+        val overlapStart = maxOf(slotStart, scheduleStart)
+        val overlapEnd = minOf(slotEnd, scheduleEnd)
+        val overlapMinutes = overlapEnd - overlapStart
 
-            if (secondsByHour.containsKey(hour)) {
-                secondsByHour[hour] = (secondsByHour[hour] ?: 0) + max(seconds, 0)
+        if (overlapMinutes > 0) {
+            val priorityWeight = when (schedule.priority) {
+                3 -> 1.0
+                2 -> 0.75
+                else -> 0.5
             }
 
-            segmentStart = chunkEnd
+            totalWeightedMinutes += overlapMinutes * priorityWeight
         }
     }
 
-    return scheduledHours
-        .distinct()
-        .sorted()
-        .map { hour ->
-            HourlyFocusPoint(
-                hour = hour,
-                studiedMinutes = (secondsByHour[hour] ?: 0) / 60
-            )
-        }
+    return ((totalWeightedMinutes / slotLength) * 100)
+        .roundToInt()
+        .coerceIn(0, 100)
+}
+
+private fun String.toMinutesOrNull(): Int? {
+    val parts = this.split(":")
+    if (parts.size < 2) return null
+
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+
+    if (hour !in 0..23) return null
+    if (minute !in 0..59) return null
+
+    return hour * 60 + minute
 }

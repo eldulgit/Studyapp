@@ -56,10 +56,7 @@ fun TimerScreen(
 ) {
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
-
-        // TODO: DB 연결 완료 후 주석 해제
-        // AI/DB 스케줄을 오늘 날짜 기준 SubjectTimer 리스트로 불러오는 함수
-        // timerViewModel.loadTodayScheduleTimers()
+        timerViewModel.loadTodayGeneratedScheduleTimersFromDb()
     }
 
     val context = LocalContext.current
