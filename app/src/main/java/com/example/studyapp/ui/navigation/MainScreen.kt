@@ -33,6 +33,8 @@ import com.example.studyapp.ui.settings.theme.ThemeSettingScreen
 import com.example.studyapp.ui.stats.StatsScreen
 import com.example.studyapp.ui.timer.TimerScreen
 import com.example.studyapp.ui.timer.TimerViewModel
+import androidx.compose.runtime.LaunchedEffect
+import com.example.studyapp.ui.settings.lifestyle.LifeStyleViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -101,18 +103,27 @@ fun MainScreen(
             }
 
             composable("setting_lifestyle") {
-                LifeStyleSettingScreen(
-                    onSaveClick = {
-                            wakeTime,
-                            sleepTime,
-                            lunchStartTime,
-                            lunchEndTime,
-                            dinnerStartTime,
-                            dinnerEndTime,
-                            exercise ->
+                val lifeStyleViewModel: LifeStyleViewModel = viewModel()
 
+                LaunchedEffect(Unit) {
+                    lifeStyleViewModel.loadLifestyle()
+                }
+
+                LaunchedEffect(lifeStyleViewModel.saveCompleted) {
+                    if (lifeStyleViewModel.saveCompleted) {
+                        lifeStyleViewModel.consumeSaveCompleted()
                         navController.popBackStack()
                     }
+                }
+
+                LifeStyleSettingScreen(
+                    initialWakeTime = lifeStyleViewModel.wakeTime,
+                    initialSleepTime = lifeStyleViewModel.sleepTime,
+                    initialLunchStartTime = lifeStyleViewModel.lunchStartTime,
+                    initialLunchEndTime = lifeStyleViewModel.lunchEndTime,
+                    initialDinnerStartTime = lifeStyleViewModel.dinnerStartTime,
+                    initialDinnerEndTime = lifeStyleViewModel.dinnerEndTime,
+                    onSaveClick = lifeStyleViewModel::saveLifestyle
                 )
             }
 

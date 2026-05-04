@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -19,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,8 +30,7 @@ fun LifestyleInputScreen(
         lunchStartTime: String,
         lunchEndTime: String,
         dinnerStartTime: String,
-        dinnerEndTime: String,
-        exercise: Boolean
+        dinnerEndTime: String
     ) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -43,7 +40,6 @@ fun LifestyleInputScreen(
     var lunchEndTime by remember { mutableStateOf("") }
     var dinnerStartTime by remember { mutableStateOf("") }
     var dinnerEndTime by remember { mutableStateOf("") }
-    var exercise by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -211,8 +207,7 @@ fun LifestyleInputScreen(
                     lunchStartTime,
                     lunchEndTime,
                     dinnerStartTime,
-                    dinnerEndTime,
-                    exercise
+                    dinnerEndTime
                 )
             },
             modifier = Modifier.fillMaxWidth()

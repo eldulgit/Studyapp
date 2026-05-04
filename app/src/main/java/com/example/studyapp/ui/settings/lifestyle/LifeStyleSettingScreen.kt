@@ -10,16 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,15 +31,13 @@ fun LifeStyleSettingScreen(
     initialLunchEndTime: String = "",
     initialDinnerStartTime: String = "",
     initialDinnerEndTime: String = "",
-    initialExercise: Boolean = false,
     onSaveClick: (
         wakeTime: String,
         sleepTime: String,
         lunchStartTime: String,
         lunchEndTime: String,
         dinnerStartTime: String,
-        dinnerEndTime: String,
-        exercise: Boolean
+        dinnerEndTime: String
     ) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -50,8 +47,23 @@ fun LifeStyleSettingScreen(
     var lunchEndTime by remember { mutableStateOf(initialLunchEndTime) }
     var dinnerStartTime by remember { mutableStateOf(initialDinnerStartTime) }
     var dinnerEndTime by remember { mutableStateOf(initialDinnerEndTime) }
-    var exercise by remember { mutableStateOf(initialExercise) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(
+        initialWakeTime,
+        initialSleepTime,
+        initialLunchStartTime,
+        initialLunchEndTime,
+        initialDinnerStartTime,
+        initialDinnerEndTime
+    ) {
+        wakeTime = initialWakeTime
+        sleepTime = initialSleepTime
+        lunchStartTime = initialLunchStartTime
+        lunchEndTime = initialLunchEndTime
+        dinnerStartTime = initialDinnerStartTime
+        dinnerEndTime = initialDinnerEndTime
+    }
 
     Column(
         modifier = modifier
@@ -217,8 +229,7 @@ fun LifeStyleSettingScreen(
                     lunchStartTime,
                     lunchEndTime,
                     dinnerStartTime,
-                    dinnerEndTime,
-                    exercise
+                    dinnerEndTime
                 )
             },
             modifier = Modifier.fillMaxWidth()
