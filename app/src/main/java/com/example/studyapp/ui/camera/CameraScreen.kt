@@ -7,32 +7,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.studyapp.ui.timer.TimerViewModel
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 
 @Composable
 fun CameraScreen(timerViewModel: TimerViewModel) {
@@ -69,21 +64,24 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
         }
     }
 
-    // 집중도 상태 변화에 따른 타이머 제어
+    // 🌟 [수정 완료] 새로운 상태(노란색, 멍때림)에 맞춘 타이머 제어
     LaunchedEffect(focusStatus) {
         when (focusStatus) {
-            FocusStatus.ABSENT -> {
+            // 타이머 정지: 자리 비움, 최종 졸음(3초 빨간색)
+            FocusStatus.ABSENT,
+            FocusStatus.DROWSY -> {
                 timerViewModel.pauseByCamera()
             }
 
-            FocusStatus.FOCUSING,
-            FocusStatus.DROWSY -> {
+            // 타이머 유지: 활동 중, 멍때림, 1차 졸음 경고(2초 노란색)
+            FocusStatus.ACTIVE,
+            FocusStatus.INACTIVE_STARE,
+            FocusStatus.DROWSY_WARNING -> {
                 timerViewModel.resumeByCamera()
             }
 
             FocusStatus.UNKNOWN -> {
                 // 얼굴을 찾는 중인 상태입니다.
-                // 바로 멈추지 않고 ML_Kit.kt의 3초 기준을 기다립니다.
             }
         }
     }
@@ -93,27 +91,24 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
             AndroidView(
                 factory = { ctx ->
                     val previewView = PreviewView(ctx)
-                    
+
                     val preview = Preview.Builder().build().also {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
-
-                    // 집중도 분석기 생성 및 상태 업데이트 콜백 연결
-                    val focusAnalysis = createFocusAnalyzer { status ->
+                    val focusAnalysis = createFocusAnalyzer { status: FocusStatus ->
                         focusStatus = status
                     }
 
-                    // 전면 카메라를 사용
                     CameraXManager.startCamera(
-                        context = ctx,
-                        lifecycleOwner = lifecycleOwner,
+                        ctx,
+                        lifecycleOwner,
                         preview,
                         focusAnalysis,
-                        onConfigured = { provider ->
+                        { provider ->
                             cameraProvider = provider
                         }
                     )
-                    
+
                     previewView
                 },
                 modifier = Modifier.fillMaxSize()
@@ -146,13 +141,15 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
         }
     }
 }
-
+// 새로운 상태들에 맞춘 색상 및 문구 처리
 @Composable
 fun FocusOverlay(status: FocusStatus, modifier: Modifier = Modifier) {
     val backgroundColor = when (status) {
-        FocusStatus.FOCUSING -> Color.Black.copy(alpha = 0.6f)
-        FocusStatus.DROWSY -> Color.Red.copy(alpha = 0.7f)
-        FocusStatus.ABSENT -> Color.Yellow.copy(alpha = 0.7f)
+        FocusStatus.ACTIVE -> Color.Black.copy(alpha = 0.6f)
+        FocusStatus.INACTIVE_STARE -> Color(0xFFFFA500).copy(alpha = 0.7f) // 주황색
+        FocusStatus.DROWSY_WARNING -> Color.Yellow.copy(alpha = 0.8f)      // 노란색
+        FocusStatus.DROWSY -> Color.Red.copy(alpha = 0.7f)                 // 빨간색
+        FocusStatus.ABSENT -> Color(0xFF1E90FF).copy(alpha = 0.7f)         // 파란색
         FocusStatus.UNKNOWN -> Color.Gray.copy(alpha = 0.6f)
     }
 
@@ -179,7 +176,6 @@ fun FocusOverlay(status: FocusStatus, modifier: Modifier = Modifier) {
         }
     }
 }
-
 //가이드라인
 @Composable
 fun PersonGuideOverlay(
@@ -227,7 +223,6 @@ fun PersonGuideOverlay(
                 ),
                 style = Stroke(width = strokeWidth)
             )
-
             // 어깨 가이드
             val shoulderTop = headTop + headHeight + size.height * 0.05f
             val shoulderWidth = size.width * 0.58f
