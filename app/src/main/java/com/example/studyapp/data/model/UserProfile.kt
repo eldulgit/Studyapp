@@ -8,7 +8,10 @@ data class UserProfile(
 
     val wakeTime: String = "",
     val sleepTime: String = "",
-    val exercise: Boolean = false,
+    val lunchStartTime: String = "",
+    val lunchEndTime: String = "",
+    val dinnerStartTime: String = "",
+    val dinnerEndTime: String = "",
     val lifestyleCompleted: Boolean = false,
 
     val createdAt: Any? = null,

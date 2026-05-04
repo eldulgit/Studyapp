@@ -65,7 +65,6 @@ class UserRepository {
                 "lunchEndTime" to "",
                 "dinnerStartTime" to "",
                 "dinnerEndTime" to "",
-                "exercise" to false,
                 "lifestyleCompleted" to false,
 
                 "createdAt" to FieldValue.serverTimestamp(),
@@ -91,7 +90,22 @@ class UserRepository {
             .get()
             .await()
 
-        return snapshot.getBoolean("lifestyleCompleted") == true
+        if (!snapshot.exists()) return false
+
+        val requiredFields = listOf(
+            "wakeTime",
+            "sleepTime",
+            "lunchStartTime",
+            "lunchEndTime",
+            "dinnerStartTime",
+            "dinnerEndTime"
+        )
+
+        val hasAllRequiredValues = requiredFields.all { fieldName ->
+            !snapshot.getString(fieldName).isNullOrBlank()
+        }
+
+        return snapshot.getBoolean("lifestyleCompleted") == true && hasAllRequiredValues
     }
 
     suspend fun saveLifestyle(
@@ -101,8 +115,7 @@ class UserRepository {
         lunchStartTime: String,
         lunchEndTime: String,
         dinnerStartTime: String,
-        dinnerEndTime: String,
-        exercise: Boolean
+        dinnerEndTime: String
     ) {
         db.collection("users")
             .document(uid)
@@ -114,7 +127,6 @@ class UserRepository {
                     "lunchEndTime" to lunchEndTime,
                     "dinnerStartTime" to dinnerStartTime,
                     "dinnerEndTime" to dinnerEndTime,
-                    "exercise" to exercise,
                     "lifestyleCompleted" to true,
                     "updatedAt" to FieldValue.serverTimestamp()
                 ),

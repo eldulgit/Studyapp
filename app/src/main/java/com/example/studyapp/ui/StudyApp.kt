@@ -122,8 +122,7 @@ fun StudyApp() {
         lunchStartTime: String,
         lunchEndTime: String,
         dinnerStartTime: String,
-        dinnerEndTime: String,
-        exercise: Boolean
+        dinnerEndTime: String
     ) {
         if (isProcessing) return
 
@@ -142,8 +141,7 @@ fun StudyApp() {
                     lunchStartTime = lunchStartTime,
                     lunchEndTime = lunchEndTime,
                     dinnerStartTime = dinnerStartTime,
-                    dinnerEndTime = dinnerEndTime,
-                    exercise = exercise
+                    dinnerEndTime = dinnerEndTime
                 )
 
                 currentScreen = StartScreen.Main
