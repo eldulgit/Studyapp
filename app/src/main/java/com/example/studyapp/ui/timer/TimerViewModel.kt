@@ -284,6 +284,7 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
+
                 val today = makeSessionDate(System.currentTimeMillis())
 
                 val generatedSchedules = generatedScheduleRepository.getSchedulesByDate(
@@ -293,34 +294,62 @@ class TimerViewModel : ViewModel() {
 
                 val firestoreSubjects = subjectRepository.getSubjects(uid)
 
-                subjects = generatedSchedules
+                val mergedTimerMap = linkedMapOf<String, SubjectTimer>()
+
+                generatedSchedules
                     .filter { schedule ->
                         !schedule.isCompleted &&
                                 schedule.title.isNotBlank() &&
                                 schedule.startTime.isNotBlank() &&
                                 schedule.endTime.isNotBlank()
                     }
-                    .mapNotNull { schedule ->
+                    .forEach { schedule ->
                         val durationSeconds = calculateDurationSeconds(
                             startTime = schedule.startTime,
                             endTime = schedule.endTime
                         )
 
                         if (durationSeconds <= 0) {
-                            return@mapNotNull null
+                            return@forEach
                         }
 
                         val matchedSubject = firestoreSubjects.firstOrNull { subject ->
                             subject.id == schedule.subjectId || subject.name == schedule.title
                         }
 
-                        SubjectTimer(
-                            id = schedule.id.hashCode().toLong(),
-                            name = matchedSubject?.name ?: schedule.title,
-                            allocatedSeconds = durationSeconds,
-                            remainingSeconds = durationSeconds
-                        )
+                        val subjectName = matchedSubject?.name ?: schedule.title.trim()
+
+                        /*
+                         * 같은 과목인지 판단하는 기준
+                         *
+                         * 1순위: DB에 등록된 과목 id
+                         * 2순위: 과목 이름
+                         *
+                         * subjectId가 있는 경우에는 과목 id 기준
+                         * subjectId가 없는 경우에는 과목명 기준
+                         */
+                        val subjectKey = matchedSubject?.id ?: subjectName
+
+                        val existingTimer = mergedTimerMap[subjectKey]
+
+                        if (existingTimer == null) {
+                            mergedTimerMap[subjectKey] = SubjectTimer(
+                                id = subjectKey.hashCode().toLong(),
+                                name = subjectName,
+                                allocatedSeconds = durationSeconds,
+                                remainingSeconds = durationSeconds
+                            )
+                        } else {
+                            val totalSeconds = existingTimer.allocatedSeconds + durationSeconds
+
+                            mergedTimerMap[subjectKey] = existingTimer.copy(
+                                allocatedSeconds = totalSeconds,
+                                remainingSeconds = totalSeconds
+                            )
+                        }
                     }
+
+                subjects = mergedTimerMap.values.toList()
 
                 nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
             } catch (e: Exception) {

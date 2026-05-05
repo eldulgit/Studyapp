@@ -67,21 +67,18 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
     // 🌟 [수정 완료] 새로운 상태(노란색, 멍때림)에 맞춘 타이머 제어
     LaunchedEffect(focusStatus) {
         when (focusStatus) {
-            // 타이머 정지: 자리 비움, 최종 졸음(3초 빨간색)
+            // 타이머 정지: 얼굴 찾는 중, 자리 비움, 최종 졸음
+            FocusStatus.UNKNOWN,
             FocusStatus.ABSENT,
             FocusStatus.DROWSY -> {
                 timerViewModel.pauseByCamera()
             }
 
-            // 타이머 유지: 활동 중, 멍때림, 1차 졸음 경고(2초 노란색)
+            // 타이머 재개: 정상 활동, 멍때림 경고, 졸음 경고
             FocusStatus.ACTIVE,
             FocusStatus.INACTIVE_STARE,
             FocusStatus.DROWSY_WARNING -> {
                 timerViewModel.resumeByCamera()
-            }
-
-            FocusStatus.UNKNOWN -> {
-                // 얼굴을 찾는 중인 상태입니다.
             }
         }
     }
@@ -172,100 +169,6 @@ fun FocusOverlay(status: FocusStatus, modifier: Modifier = Modifier) {
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
-//가이드라인
-@Composable
-fun PersonGuideOverlay(
-    modifier: Modifier = Modifier
-) {
-    Box(modifier = modifier) {
-        Text(
-            text = "가이드 안에 얼굴과 어깨를 맞춰주세요",
-            color = Color.White,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 40.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.45f),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        Canvas(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val guideColor = Color.White.copy(alpha = 0.85f)
-            val strokeWidth = 5.dp.toPx()
-
-            val centerX = size.width / 2f
-
-            // 머리 가이드
-            val headWidth = size.width * 0.24f
-            val headHeight = headWidth * 1.22f
-            val headTop = size.height * 0.22f
-            val headLeft = centerX - headWidth / 2f
-
-            drawOval(
-                color = guideColor,
-                topLeft = Offset(
-                    x = headLeft,
-                    y = headTop
-                ),
-                size = Size(
-                    width = headWidth,
-                    height = headHeight
-                ),
-                style = Stroke(width = strokeWidth)
-            )
-            // 어깨 가이드
-            val shoulderTop = headTop + headHeight + size.height * 0.05f
-            val shoulderWidth = size.width * 0.58f
-            val shoulderHeight = size.height * 0.12f
-            val shoulderLeft = centerX - shoulderWidth / 2f
-
-            val shoulderPath = Path().apply {
-                moveTo(shoulderLeft, shoulderTop + shoulderHeight)
-
-                cubicTo(
-                    shoulderLeft,
-                    shoulderTop + shoulderHeight * 0.25f,
-                    centerX - shoulderWidth * 0.2f,
-                    shoulderTop,
-                    centerX,
-                    shoulderTop
-                )
-
-                cubicTo(
-                    centerX + shoulderWidth * 0.2f,
-                    shoulderTop,
-                    shoulderLeft + shoulderWidth,
-                    shoulderTop + shoulderHeight * 0.25f,
-                    shoulderLeft + shoulderWidth,
-                    shoulderTop + shoulderHeight
-                )
-            }
-
-            drawPath(
-                path = shoulderPath,
-                color = guideColor,
-                style = Stroke(width = strokeWidth)
-            )
-
-            // 얼굴 위치 참고용 약한 원형 가이드
-            drawCircle(
-                color = Color.White.copy(alpha = 0.22f),
-                radius = size.width * 0.24f,
-                center = Offset(
-                    x = centerX,
-                    y = headTop + headHeight * 0.9f
-                ),
-                style = Stroke(width = 2.dp.toPx())
             )
         }
     }
