@@ -19,6 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Studyapp"
+        android:extractNativeLibs="false"
         >
         <activity
             android:name=".MainActivity"

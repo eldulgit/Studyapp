@@ -27,7 +27,11 @@ fun generatePriorityStudySchedule(
     subjects: List<SubjectItem>,
     fixedSchedules: List<ScheduleItem>,
     wakeTime: String,
-    sleepTime: String
+    sleepTime: String,
+    lunchStartTime: String,
+    lunchEndTime: String,
+    dinnerStartTime: String,
+    dinnerEndTime: String
 ): List<GeneratedScheduleItem> {
     if (subjects.isEmpty()) return emptyList()
 
@@ -56,12 +60,25 @@ fun generatePriorityStudySchedule(
             } else {
                 TimeRange(start, end)
             }
-        }
-        .sortedBy { it.start }
+        }.sortedBy { it.start }
+
+    val mealRanges = mutableListOf<TimeRange>()
+    val lunchStartMins = parseTimeToMinutes(lunchStartTime)
+    val lunchEndMins = parseTimeToMinutes(lunchEndTime)
+    if (lunchStartMins != null && lunchEndMins != null && lunchStartMins < lunchEndMins) {
+        mealRanges.add(TimeRange(lunchStartMins, lunchEndMins))
+    }
+
+    val dinnerStartMins = parseTimeToMinutes(dinnerStartTime)
+    val dinnerEndMins = parseTimeToMinutes(dinnerEndTime)
+    if (dinnerStartMins != null && dinnerEndMins != null && dinnerStartMins < dinnerEndMins) {
+        mealRanges.add(TimeRange(dinnerStartMins, dinnerEndMins))
+    }
+    val allUnavailableRanges = (todayFixedRanges + mealRanges).sortedBy { it.start }
 
     val freeRanges = subtractFixedSchedules(
         awakeRanges = studyRanges,
-        fixedRanges = todayFixedRanges
+        fixedRanges = allUnavailableRanges
     ).filter { it.duration >= 30 }
 
     val totalFreeMinutes = freeRanges.sumOf { it.duration }
@@ -81,8 +98,7 @@ fun generatePriorityStudySchedule(
                 subject = subject,
                 remainingMinutes = minutes
             )
-        }
-        .toMutableList()
+        }.toMutableList()
 
     val generatedSchedules = mutableListOf<GeneratedScheduleItem>()
 
@@ -125,12 +141,10 @@ fun generatePriorityStudySchedule(
                     isCompleted = false
                 )
             )
-
             current = end
             currentSubject.remainingMinutes -= studyMinutes
         }
     }
-
     return generatedSchedules.sortedBy { it.startTime }
 }
 
@@ -198,10 +212,8 @@ private fun subtractFixedSchedules(
                     )
                 )
             }
-
             currentStart = maxOf(currentStart, fixedEnd)
         }
-
         if (currentStart < awakeRange.end) {
             result.add(
                 TimeRange(
@@ -211,7 +223,6 @@ private fun subtractFixedSchedules(
             )
         }
     }
-
     return result
 }
 

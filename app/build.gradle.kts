@@ -12,13 +12,26 @@ android {
     defaultConfig {
         applicationId = "com.example.studyapp"
         minSdk = 23
+<<<<<<< HEAD
+        targetSdk = 36
+=======
         targetSdk = 34
+>>>>>>> master
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+<<<<<<< HEAD
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
+=======
+>>>>>>> master
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,10 +55,13 @@ android {
         compose = true
     }
 
+<<<<<<< HEAD
+=======
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.3"
     }
 
+>>>>>>> master
     signingConfigs {
         create("sharedDebug") {
             storeFile = file("debug-shared.keystore")
@@ -89,7 +105,11 @@ dependencies {
     implementation("androidx.camera:camera-extensions:$cameraxVersion")
 
     implementation("com.google.guava:guava:31.1-android")
+<<<<<<< HEAD
+    implementation("com.google.mlkit:face-detection:16.1.7")
+=======
     implementation("com.google.mlkit:face-detection:16.1.6")
+>>>>>>> master
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-firestore")

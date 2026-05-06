@@ -74,8 +74,10 @@ class GeneratedScheduleViewModel : ViewModel() {
                 val profile = userRepository.getUserProfile(uid)
                     ?: throw IllegalStateException("사용자 생활패턴 정보가 없습니다.")
 
-                if (profile.wakeTime.isBlank() || profile.sleepTime.isBlank()) {
-                    throw IllegalStateException("기상 시간과 취침 시간을 먼저 입력해주세요.")
+                if (profile.wakeTime.isBlank() || profile.sleepTime.isBlank() ||
+                    profile.lunchStartTime.isBlank() || profile.lunchEndTime.isBlank() || //추가
+                    profile.dinnerStartTime.isBlank() || profile.dinnerEndTime.isBlank()  //추가
+                ) { throw IllegalStateException("기상/취침 시간 및 점심/저녁 시간을 모두 입력해주세요.")
                 }
 
                 val subjects = subjectRepository.getSubjects(uid)
@@ -91,7 +93,11 @@ class GeneratedScheduleViewModel : ViewModel() {
                     subjects = subjects,
                     fixedSchedules = fixedSchedules,
                     wakeTime = profile.wakeTime,
-                    sleepTime = profile.sleepTime
+                    sleepTime = profile.sleepTime,
+                    lunchStartTime = profile.lunchStartTime, // 점심 시작
+                    lunchEndTime = profile.lunchEndTime,     // 점심 끝
+                    dinnerStartTime = profile.dinnerStartTime, // 저녁 시작
+                    dinnerEndTime = profile.dinnerEndTime      // 저녁 끝
                 )
 
                 if (generatedSchedules.isEmpty()) {

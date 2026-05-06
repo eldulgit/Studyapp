@@ -4,11 +4,11 @@ import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
 
 // 일정 1개(제목, 시작/종료 시간 등)의 정보를 묶어두는 틀
 data class TimeSlot(
-    val id: String = "",              //firestore 연동을 위한 ID
+    val id: String = "",              // firestore 연동을 위한 ID
     val title: String,                // 일정 제목 (예: "수학 공부")
     val startTime: String,            // 시작 시간 (예: "09:00")
     val endTime: String,              // 종료 시간 (예: "10:30")
-    val subjectId: String? = null,    //어떤 과목인지 (색생 연동용)
+    val subjectId: String? = null,    // 어떤 과목인지 (색생 연동용)
     val isCompleted: Boolean = false, // 완료 체크 여부
     val date: String? = null          // 특정 날짜용 (고정 스케줄이 아닐 경우)
 )

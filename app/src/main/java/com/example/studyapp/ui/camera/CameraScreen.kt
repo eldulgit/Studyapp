@@ -66,14 +66,23 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
     // 카메라 제공자 관리를 위한 상태
     var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
 
-    // 화면을 벗어날 때 카메라 해제
+    // ML Kit 분석기 및 ImageAnalysis 유즈케이스 관리
+    val analyzer = remember {
+        MLKitFocusAnalyzer { status -> focusStatus = status }
+    }
+    val focusAnalysis = remember(analyzer) {
+        createFocusAnalyzer(analyzer)
+    }
+
+    // 화면을 벗어날 때 카메라 및 분석기 해제
     DisposableEffect(lifecycleOwner) {
         onDispose {
             cameraProvider?.unbindAll()
+            analyzer.close()
         }
     }
 
-    // 🌟 [수정 완료] 새로운 상태(노란색, 멍때림)에 맞춘 타이머 제어
+    // 새로운 상태(노란색, 멍때림)에 맞춘 타이머 제어
     LaunchedEffect(focusStatus) {
         when (focusStatus) {
             FocusStatus.UNKNOWN,
@@ -108,10 +117,8 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
                     val preview = Preview.Builder().build().also {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
-                    val focusAnalysis = createFocusAnalyzer { status: FocusStatus ->
-                        focusStatus = status
-                    }
 
+                    // AndroidView에서 제공하는 ctx를 직접 사용 (이미 액티비티 컨텍스트일 확률이 높음)
                     CameraXManager.startCamera(
                         ctx,
                         lifecycleOwner,
@@ -162,7 +169,7 @@ fun FocusOverlay(status: FocusStatus, modifier: Modifier = Modifier) {
         FocusStatus.INACTIVE_STARE -> Color(0xFFFFA500).copy(alpha = 0.7f) // 주황색
         FocusStatus.DROWSY_WARNING -> Color.Yellow.copy(alpha = 0.8f)      // 노란색
         FocusStatus.DROWSY -> Color.Red.copy(alpha = 0.7f)                 // 빨간색
-        FocusStatus.ABSENT -> Color(0xFF1E90FF).copy(alpha = 0.7f)         // 파란색
+        FocusStatus.ABSENT -> Color.Yellow.copy(alpha = 0.7f)              // 노란색
         FocusStatus.UNKNOWN -> Color.Gray.copy(alpha = 0.6f)
     }
 

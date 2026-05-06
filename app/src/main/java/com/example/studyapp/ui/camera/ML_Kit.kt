@@ -18,7 +18,6 @@ enum class FocusStatus(val message: String) {
     ABSENT("자리를 비우셨나요? 공부를 시작해 주세요."),
     UNKNOWN("얼굴을 찾는 중...")
 }
-
 class MLKitFocusAnalyzer(
     private val onStatusChanged: (FocusStatus) -> Unit
 ) : ImageAnalysis.Analyzer {
@@ -30,7 +29,13 @@ class MLKitFocusAnalyzer(
 
     private val detector = FaceDetection.getClient(options)
 
+    fun close() {
+        detector.close()
+    }
+
     // [시간 임계값 설정]
+// ... rest of the class
+
     private var absentStartTime: Long = 0L
     private val ABSENT_THRESHOLD_MS = 3000L // 3초
 
@@ -132,14 +137,14 @@ class MLKitFocusAnalyzer(
     }
 }
 
-fun createFocusAnalyzer(onStatusChanged: (FocusStatus) -> Unit): ImageAnalysis {
+fun createFocusAnalyzer(analyzer: ImageAnalysis.Analyzer): ImageAnalysis {
     val imageAnalysis = ImageAnalysis.Builder()
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
         .build()
 
     imageAnalysis.setAnalyzer(
         Executors.newSingleThreadExecutor(),
-        MLKitFocusAnalyzer(onStatusChanged)
+        analyzer
     )
     return imageAnalysis
 }
