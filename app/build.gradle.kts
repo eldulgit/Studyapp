@@ -12,27 +12,33 @@ android {
     defaultConfig {
         applicationId = "com.example.studyapp"
         minSdk = 23
-<<<<<<< HEAD
         targetSdk = 36
-=======
-        targetSdk = 34
->>>>>>> master
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-<<<<<<< HEAD
     packaging {
         jniLibs {
             useLegacyPackaging = false
         }
     }
 
-=======
->>>>>>> master
+    signingConfigs {
+        create("sharedDebug") {
+            storeFile = file("debug-shared.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("sharedDebug")
+        }
+
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -53,28 +59,6 @@ android {
 
     buildFeatures {
         compose = true
-    }
-
-<<<<<<< HEAD
-=======
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
-    }
-
->>>>>>> master
-    signingConfigs {
-        create("sharedDebug") {
-            storeFile = file("debug-shared.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-    }
-
-    buildTypes {
-        debug {
-            signingConfig = signingConfigs.getByName("sharedDebug")
-        }
     }
 }
 
@@ -105,11 +89,7 @@ dependencies {
     implementation("androidx.camera:camera-extensions:$cameraxVersion")
 
     implementation("com.google.guava:guava:31.1-android")
-<<<<<<< HEAD
     implementation("com.google.mlkit:face-detection:16.1.7")
-=======
-    implementation("com.google.mlkit:face-detection:16.1.6")
->>>>>>> master
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-firestore")
@@ -120,7 +100,7 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
-    //공휴일 API 호출
+    // 공휴일 API 호출
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 
