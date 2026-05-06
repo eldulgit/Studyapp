@@ -2,7 +2,9 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun getCurrentPeriodStudySeconds(
@@ -20,8 +22,12 @@ fun getCurrentPeriodStudySeconds(
             }
 
             StatsPeriod.WEEKLY -> {
-                val start = today.minusDays(6)
-                !date.isBefore(start) && !date.isAfter(today)
+                val start = today.with(
+                    TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)
+                )
+                val end = start.plusDays(6)
+
+                !date.isBefore(start) && !date.isAfter(end)
             }
 
             StatsPeriod.MONTHLY -> {
@@ -47,17 +53,18 @@ fun getPreviousPeriodStudySeconds(
             }
 
             StatsPeriod.WEEKLY -> {
-                val start = today.minusDays(13)
-                val end = today.minusDays(7)
+                val currentWeekStart = today.with(
+                    TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)
+                )
+                val start = currentWeekStart.minusWeeks(1)
+                val end = start.plusDays(6)
 
                 !date.isBefore(start) && !date.isAfter(end)
             }
 
             StatsPeriod.MONTHLY -> {
                 val previousMonth = today.minusMonths(1)
-
-                date.year == previousMonth.year &&
-                        date.monthValue == previousMonth.monthValue
+                date.year == previousMonth.year && date.monthValue == previousMonth.monthValue
             }
         }
     }.sumOf { it.studiedSeconds }

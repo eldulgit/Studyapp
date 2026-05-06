@@ -42,6 +42,13 @@ import androidx.navigation.NavController
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import java.time.LocalDate
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import com.example.studyapp.ui.settings.subject.SubjectItem
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -58,6 +65,15 @@ fun CalendarScreen(
     val isGenerating = generatedScheduleViewModel.isGenerating
     val scheduleMessage = generatedScheduleViewModel.message
 
+    val scheduledSubjects = remember(generatedSchedules, subjectViewModel.subjects) {
+        val scheduledTitles = generatedSchedules
+            .map { it.subject }
+            .toSet()
+
+        subjectViewModel.subjects
+            .filter { subject -> subject.name in scheduledTitles }
+    }
+
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
     }
@@ -72,9 +88,15 @@ fun CalendarScreen(
 
     val holidays = holidayViewModel.holidays
 
+    LaunchedEffect(Unit) {
+        subjectViewModel.loadSubjectsFromFirestore()
+    }
+
+
     LaunchedEffect(selectedDate.year) {
         holidayViewModel.loadKoreanHolidays(selectedDate.year)
     }
+
 
     LaunchedEffect(holidays.size) {
         Log.d("HolidayApi", "받아온 공휴일 개수: ${holidays.size}")
@@ -154,6 +176,12 @@ fun CalendarScreen(
                             Text(text = "시간표 생성")
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    SubjectColorLegend(
+                        subjects = scheduledSubjects
+                    )
 
                     Spacer(modifier = Modifier.height(6.dp))
                 }
@@ -259,5 +287,38 @@ private fun formatScheduleDate(date: String): String {
         "${localDate.year}년 ${localDate.monthValue}월 ${localDate.dayOfMonth}일"
     } catch (e: Exception) {
         date
+    }
+}
+@Composable
+private fun SubjectColorLegend(
+    subjects: List<SubjectItem>
+) {
+    if (subjects.isEmpty()) return
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        items(subjects) { subject ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(
+                            color = Color(subject.colorArgb),
+                            shape = CircleShape
+                        )
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = subject.name,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
     }
 }

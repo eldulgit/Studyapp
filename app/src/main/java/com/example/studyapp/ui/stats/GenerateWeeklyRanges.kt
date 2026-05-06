@@ -2,20 +2,29 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun generateWeeklyRanges(): List<String> {
-
     val today = LocalDate.now()
-    val formatter = DateTimeFormatter.ofPattern("d")
+    val currentWeekStart = today.with(
+        TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)
+    )
 
-    return (0..3).map { block ->
+    return (3 downTo 0).map { weeksAgo ->
+        val start = currentWeekStart.minusWeeks(weeksAgo.toLong())
+        val end = start.plusDays(6)
 
-        val end = today.minusDays((3 - block) * 7L)
-        val start = end.minusDays(6)
-
-        "${start.format(formatter)}-${end.format(formatter)}"
+        formatWeeklyRange(start, end)
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun formatWeeklyRange(
+    start: LocalDate,
+    end: LocalDate
+): String {
+    return "${start.dayOfMonth}~${end.dayOfMonth}일";
 }
