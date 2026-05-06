@@ -183,6 +183,32 @@ fun ScheduleSettingScreen(
     }
 
     Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+
+                Text(
+                    text = "스케줄 설정",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.size(48.dp))
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -212,91 +238,33 @@ fun ScheduleSettingScreen(
             }
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .navigationBarsPadding()
         ) {
-            Row(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
+                item {
+                    Column {
+                        Text(
+                            text = "스케줄",
+                            style = MaterialTheme.typography.titleMedium
+                        )
 
-                Text(
-                    text = "스케줄 설정",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.size(48.dp))
-            }
-
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    item {
-                        Column {
-                            Text(
-                                text = "스케줄",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            ScheduleTimetable(
-                                items = scheduleItems,
-                                onItemClick = { item ->
-                                    editingItemId = item.id
-                                    selectedCategory = ScheduleCategory.SCHEDULE
-                                    title = item.title
-                                    startDate = item.startDate.orEmpty()
-                                    endDate = item.endDate.orEmpty()
-                                    pageCount = item.pageCount?.toString() ?: ""
-                                    selectedDay = item.dayOfWeek ?: "월"
-                                    startTime = item.startTime ?: "09:00"
-                                    endTime = item.endTime ?: "10:00"
-                                    isDayDropdownExpanded = false
-                                    errorMessage = null
-
-                                    showTimePickerDialog = false
-                                    isSelectingStartTime = true
-                                    pendingStartTime = null
-
-                                    showAddDialog = true
-                                }
-                            )
-                        }
-                    }
-
-                    item {
-                        ScheduleSection(
-                            title = "목표",
-                            items = goalItems,
-                            subtitleBuilder = {
-                                "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"
-                            },
-                            onEditClick = { item ->
+                        ScheduleTimetable(
+                            items = scheduleItems,
+                            onItemClick = { item ->
                                 editingItemId = item.id
-                                selectedCategory = item.category
+                                selectedCategory = ScheduleCategory.SCHEDULE
                                 title = item.title
                                 startDate = item.startDate.orEmpty()
                                 endDate = item.endDate.orEmpty()
@@ -317,183 +285,184 @@ fun ScheduleSettingScreen(
                     }
                 }
 
-                if (showAddDialog) {
-                    ScheduleAddDialog(
-                        selectedCategory = selectedCategory,
-                        onCategoryChange = { selectedCategory = it },
-                        title = title,
-                        onTitleChange = { title = it },
-                        startDate = startDate,
-                        endDate = endDate,
-                        onStartDateClick = {
-                            showDatePicker(endDate.ifBlank { startDate }) { selectedDate ->
-                                startDate = selectedDate
-
-                                if (endDate.isNotBlank() && endDate <= selectedDate) {
-                                    endDate = ""
-                                    errorMessage = "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
-                                } else {
-                                    errorMessage = null
-                                }
-                            }
+                item {
+                    ScheduleSection(
+                        title = "목표",
+                        items = goalItems,
+                        subtitleBuilder = {
+                            "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"
                         },
-                        onEndDateClick = {
-                            showDatePicker(endDate.ifBlank { startDate }) { selectedDate ->
-                                if (startDate.isBlank()) {
-                                    errorMessage = "시작 날짜를 먼저 선택해주세요."
-                                    return@showDatePicker
-                                }
-
-                                if (selectedDate <= startDate) {
-                                    errorMessage = "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
-                                    return@showDatePicker
-                                }
-
-                                endDate = selectedDate
-                                errorMessage = null
-                            }
-                        },
-                        pageCount = pageCount,
-                        onPageCountChange = { pageCount = it },
-                        dayOptions = dayOptions,
-                        selectedDay = selectedDay,
-                        onSelectedDayChange = { selectedDay = it },
-                        isDayDropdownExpanded = isDayDropdownExpanded,
-                        onDayDropdownExpandedChange = { isDayDropdownExpanded = it },
-                        startTime = startTime,
-                        endTime = endTime,
-                        onStartTimeClick = {
+                        onEditClick = { item ->
+                            editingItemId = item.id
+                            selectedCategory = item.category
+                            title = item.title
+                            startDate = item.startDate.orEmpty()
+                            endDate = item.endDate.orEmpty()
+                            pageCount = item.pageCount?.toString() ?: ""
+                            selectedDay = item.dayOfWeek ?: "월"
+                            startTime = item.startTime ?: "09:00"
+                            endTime = item.endTime ?: "10:00"
+                            isDayDropdownExpanded = false
                             errorMessage = null
-                            isSelectingStartTime = true
-                            pendingStartTime = null
-                            showTimePickerDialog = true
-                        },
-                        onEndTimeClick = {
-                            errorMessage = null
-                            isSelectingStartTime = false
-                            pendingStartTime = null
-                            showTimePickerDialog = true
-                        },
-                        errorMessage = errorMessage,
-                        onDismiss = {
-                            showAddDialog = false
-                            editingItemId = null
-                            errorMessage = null
+
                             showTimePickerDialog = false
                             isSelectingStartTime = true
                             pendingStartTime = null
-                        },
-                        onConfirm = {
-                            when {
-                                title.isBlank() -> {
-                                    errorMessage = "제목을 입력해주세요."
-                                }
 
-                                selectedCategory == ScheduleCategory.GOAL && startDate.isBlank() -> {
-                                    errorMessage = "시작 날짜를 입력해주세요."
-                                }
+                            showAddDialog = true
+                        }
+                    )
+                }
+            }
 
-                                selectedCategory == ScheduleCategory.GOAL && endDate.isBlank() -> {
-                                    errorMessage = "마감 날짜를 입력해주세요."
-                                }
+            if (showAddDialog) {
+                ScheduleAddDialog(
+                    selectedCategory = selectedCategory,
+                    onCategoryChange = { selectedCategory = it },
+                    title = title,
+                    onTitleChange = { title = it },
+                    startDate = startDate,
+                    endDate = endDate,
+                    onStartDateClick = {
+                        showDatePicker(endDate.ifBlank { startDate }) { selectedDate ->
+                            startDate = selectedDate
 
-                                selectedCategory == ScheduleCategory.GOAL && startDate > endDate -> {
-                                    errorMessage = "마감 날짜는 시작 날짜보다 빠를 수 없습니다."
-                                }
+                            if (endDate.isNotBlank() && endDate <= selectedDate) {
+                                endDate = ""
+                                errorMessage = "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
+                            } else {
+                                errorMessage = null
+                            }
+                        }
+                    },
+                    onEndDateClick = {
+                        showDatePicker(endDate.ifBlank { startDate }) { selectedDate ->
+                            if (startDate.isBlank()) {
+                                errorMessage = "시작 날짜를 먼저 선택해주세요."
+                                return@showDatePicker
+                            }
 
-                                selectedCategory == ScheduleCategory.SCHEDULE &&
-                                        parseTimeToMinutes(startTime) >= parseTimeToMinutes(endTime) -> {
-                                    errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
-                                }
+                            if (selectedDate <= startDate) {
+                                errorMessage = "마감 날짜는 시작 날짜보다 늦은 날짜여야 합니다."
+                                return@showDatePicker
+                            }
 
-                                selectedCategory == ScheduleCategory.SCHEDULE &&
-                                        hasScheduleConflict(
-                                            items = scheduleItems,
-                                            editingId = editingItemId,
-                                            dayOfWeek = selectedDay,
-                                            startTime = startTime,
-                                            endTime = endTime
-                                        ) -> {
-                                    errorMessage = "같은 요일에 시간이 겹치는 스케줄이 있습니다."
-                                }
+                            endDate = selectedDate
+                            errorMessage = null
+                        }
+                    },
+                    pageCount = pageCount,
+                    onPageCountChange = { pageCount = it },
+                    dayOptions = dayOptions,
+                    selectedDay = selectedDay,
+                    onSelectedDayChange = { selectedDay = it },
+                    isDayDropdownExpanded = isDayDropdownExpanded,
+                    onDayDropdownExpandedChange = { isDayDropdownExpanded = it },
+                    startTime = startTime,
+                    endTime = endTime,
+                    onStartTimeClick = {
+                        errorMessage = null
+                        isSelectingStartTime = true
+                        pendingStartTime = null
+                        showTimePickerDialog = true
+                    },
+                    onEndTimeClick = {
+                        errorMessage = null
+                        isSelectingStartTime = false
+                        pendingStartTime = null
+                        showTimePickerDialog = true
+                    },
+                    errorMessage = errorMessage,
+                    onDismiss = {
+                        showAddDialog = false
+                        editingItemId = null
+                        errorMessage = null
+                        showTimePickerDialog = false
+                        isSelectingStartTime = true
+                        pendingStartTime = null
+                    },
+                    onConfirm = {
+                        when {
+                            title.isBlank() -> {
+                                errorMessage = "제목을 입력해주세요."
+                            }
 
-                                else -> {
-                                    if (selectedCategory == ScheduleCategory.GOAL) {
-                                        val parsedPageCount = pageCount.toIntOrNull() ?: 0
+                            selectedCategory == ScheduleCategory.GOAL && startDate.isBlank() -> {
+                                errorMessage = "시작 날짜를 입력해주세요."
+                            }
 
-                                        if (editingItemId == null) {
-                                            goalViewModel.addGoal(
+                            selectedCategory == ScheduleCategory.GOAL && endDate.isBlank() -> {
+                                errorMessage = "마감 날짜를 입력해주세요."
+                            }
+
+                            selectedCategory == ScheduleCategory.GOAL && startDate > endDate -> {
+                                errorMessage = "마감 날짜는 시작 날짜보다 빠를 수 없습니다."
+                            }
+
+                            selectedCategory == ScheduleCategory.SCHEDULE &&
+                                    parseTimeToMinutes(startTime) >= parseTimeToMinutes(endTime) -> {
+                                errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
+                            }
+
+                            selectedCategory == ScheduleCategory.SCHEDULE &&
+                                    hasScheduleConflict(
+                                        items = scheduleItems,
+                                        editingId = editingItemId,
+                                        dayOfWeek = selectedDay,
+                                        startTime = startTime,
+                                        endTime = endTime
+                                    ) -> {
+                                errorMessage = "같은 요일에 시간이 겹치는 스케줄이 있습니다."
+                            }
+
+                            else -> {
+                                if (selectedCategory == ScheduleCategory.GOAL) {
+                                    val parsedPageCount = pageCount.toIntOrNull() ?: 0
+
+                                    if (editingItemId == null) {
+                                        goalViewModel.addGoal(
+                                            title = title.trim(),
+                                            startDate = startDate,
+                                            endDate = endDate,
+                                            pageCount = parsedPageCount
+                                        )
+                                    } else {
+                                        val firestoreId = goalViewModel.goals
+                                            .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                            ?.id
+
+                                        if (firestoreId != null) {
+                                            goalViewModel.updateGoal(
+                                                id = firestoreId,
                                                 title = title.trim(),
                                                 startDate = startDate,
                                                 endDate = endDate,
                                                 pageCount = parsedPageCount
                                             )
-                                        } else {
-                                            val firestoreId = goalViewModel.goals
-                                                .firstOrNull { it.id.hashCode().toLong() == editingItemId }
-                                                ?.id
-
-                                            if (firestoreId != null) {
-                                                goalViewModel.updateGoal(
-                                                    id = firestoreId,
-                                                    title = title.trim(),
-                                                    startDate = startDate,
-                                                    endDate = endDate,
-                                                    pageCount = parsedPageCount
-                                                )
-                                            }
                                         }
+                                    }
+                                } else {
+                                    if (editingItemId == null) {
+                                        scheduleViewModel.addSchedule(
+                                            title = title.trim(),
+                                            dayOfWeek = selectedDay,
+                                            startTime = startTime,
+                                            endTime = endTime
+                                        )
                                     } else {
-                                        if (editingItemId == null) {
-                                            scheduleViewModel.addSchedule(
+                                        val firestoreId = scheduleViewModel.schedules
+                                            .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                            ?.id
+
+                                        if (firestoreId != null) {
+                                            scheduleViewModel.updateSchedule(
+                                                id = firestoreId,
                                                 title = title.trim(),
                                                 dayOfWeek = selectedDay,
                                                 startTime = startTime,
                                                 endTime = endTime
                                             )
-                                        } else {
-                                            val firestoreId = scheduleViewModel.schedules
-                                                .firstOrNull { it.id.hashCode().toLong() == editingItemId }
-                                                ?.id
-
-                                            if (firestoreId != null) {
-                                                scheduleViewModel.updateSchedule(
-                                                    id = firestoreId,
-                                                    title = title.trim(),
-                                                    dayOfWeek = selectedDay,
-                                                    startTime = startTime,
-                                                    endTime = endTime
-                                                )
-                                            }
                                         }
-                                    }
-
-                                    showAddDialog = false
-                                    editingItemId = null
-                                    errorMessage = null
-                                    showTimePickerDialog = false
-                                    isSelectingStartTime = true
-                                    pendingStartTime = null
-                                }
-                            }
-                        },
-                        onDelete = if (editingItemId != null) {
-                            {
-                                if (selectedCategory == ScheduleCategory.GOAL) {
-                                    val firestoreId = goalViewModel.goals
-                                        .firstOrNull { it.id.hashCode().toLong() == editingItemId }
-                                        ?.id
-
-                                    if (firestoreId != null) {
-                                        goalViewModel.deleteGoal(firestoreId)
-                                    }
-                                } else {
-                                    val firestoreId = scheduleViewModel.schedules
-                                        .firstOrNull { it.id.hashCode().toLong() == editingItemId }
-                                        ?.id
-
-                                    if (firestoreId != null) {
-                                        scheduleViewModel.deleteSchedule(firestoreId)
                                     }
                                 }
 
@@ -504,66 +473,94 @@ fun ScheduleSettingScreen(
                                 isSelectingStartTime = true
                                 pendingStartTime = null
                             }
-                        } else {
-                            null
                         }
-                    )
-                }
+                    },
+                    onDelete = if (editingItemId != null) {
+                        {
+                            if (selectedCategory == ScheduleCategory.GOAL) {
+                                val firestoreId = goalViewModel.goals
+                                    .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                    ?.id
 
-                if (showTimePickerDialog) {
-                    val initialTime = if (isSelectingStartTime) {
-                        startTime
-                    } else {
-                        pendingStartTime ?: endTime
-                    }
-
-                    CustomTimePicker(
-                        title = if (isSelectingStartTime) "시작시간" else "종료시간",
-                        initialHour = parseHour(initialTime),
-                        initialMinute = parseMinute(initialTime),
-                        blinkOnConfirm = isSelectingStartTime,
-                        onDismiss = {
-                            showTimePickerDialog = false
-                            pendingStartTime = null
-                            isSelectingStartTime = true
-                        },
-                        onConfirm = { selectedHour, selectedMinute ->
-                            val selectedTime = String.format(
-                                Locale.getDefault(),
-                                "%02d:%02d",
-                                selectedHour,
-                                selectedMinute
-                            )
-
-                            if (isSelectingStartTime) {
-                                startTime = selectedTime
-                                endTime = selectedTime
-                                pendingStartTime = selectedTime
-                                errorMessage = null
-
-                                coroutineScope.launch {
-                                    showTimePickerDialog = false
-                                    isSelectingStartTime = false
-                                    delay(30)
-                                    showTimePickerDialog = true
+                                if (firestoreId != null) {
+                                    goalViewModel.deleteGoal(firestoreId)
                                 }
                             } else {
-                                val baseStartTime = pendingStartTime ?: startTime
+                                val firestoreId = scheduleViewModel.schedules
+                                    .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                    ?.id
 
-                                if (parseTimeToMinutes(selectedTime) <= parseTimeToMinutes(baseStartTime)) {
-                                    errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
-                                } else {
-                                    startTime = baseStartTime
-                                    endTime = selectedTime
-                                    errorMessage = null
-                                    showTimePickerDialog = false
-                                    pendingStartTime = null
-                                    isSelectingStartTime = true
+                                if (firestoreId != null) {
+                                    scheduleViewModel.deleteSchedule(firestoreId)
                                 }
                             }
+
+                            showAddDialog = false
+                            editingItemId = null
+                            errorMessage = null
+                            showTimePickerDialog = false
+                            isSelectingStartTime = true
+                            pendingStartTime = null
                         }
-                    )
+                    } else {
+                        null
+                    }
+                )
+            }
+
+            if (showTimePickerDialog) {
+                val initialTime = if (isSelectingStartTime) {
+                    startTime
+                } else {
+                    pendingStartTime ?: endTime
                 }
+
+                CustomTimePicker(
+                    title = if (isSelectingStartTime) "시작시간" else "종료시간",
+                    initialHour = parseHour(initialTime),
+                    initialMinute = parseMinute(initialTime),
+                    blinkOnConfirm = isSelectingStartTime,
+                    onDismiss = {
+                        showTimePickerDialog = false
+                        pendingStartTime = null
+                        isSelectingStartTime = true
+                    },
+                    onConfirm = { selectedHour, selectedMinute ->
+                        val selectedTime = String.format(
+                            Locale.getDefault(),
+                            "%02d:%02d",
+                            selectedHour,
+                            selectedMinute
+                        )
+
+                        if (isSelectingStartTime) {
+                            startTime = selectedTime
+                            endTime = selectedTime
+                            pendingStartTime = selectedTime
+                            errorMessage = null
+
+                            coroutineScope.launch {
+                                showTimePickerDialog = false
+                                isSelectingStartTime = false
+                                delay(30)
+                                showTimePickerDialog = true
+                            }
+                        } else {
+                            val baseStartTime = pendingStartTime ?: startTime
+
+                            if (parseTimeToMinutes(selectedTime) <= parseTimeToMinutes(baseStartTime)) {
+                                errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
+                            } else {
+                                startTime = baseStartTime
+                                endTime = selectedTime
+                                errorMessage = null
+                                showTimePickerDialog = false
+                                pendingStartTime = null
+                                isSelectingStartTime = true
+                            }
+                        }
+                    }
+                )
             }
         }
     }
