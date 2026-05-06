@@ -163,11 +163,13 @@ fun ScheduleSettingScreen(
     val goalItems = goalViewModel.goals.map { goal ->
         FixedScheduleItem(
             id = goal.id.hashCode().toLong(),
+            firestoreId = goal.id,
             category = ScheduleCategory.GOAL,
             title = goal.title,
             startDate = goal.startDate,
             endDate = goal.endDate,
-            pageCount = goal.pageCount
+            pageCount = goal.pageCount,
+            increasePriorityOverTime = goal.increasePriorityOverTime
         )
     }
 
@@ -291,6 +293,15 @@ fun ScheduleSettingScreen(
                         items = goalItems,
                         subtitleBuilder = {
                             "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"
+                        },
+                        onCheckedChange = { item, checked ->
+                            val goalId = item.firestoreId
+                            if (goalId != null) {
+                                goalViewModel.updateGoalPriorityIncrease(
+                                    id = goalId,
+                                    increasePriorityOverTime = checked
+                                )
+                            }
                         },
                         onEditClick = { item ->
                             editingItemId = item.id
@@ -428,7 +439,9 @@ fun ScheduleSettingScreen(
                                         )
                                     } else {
                                         val firestoreId = goalViewModel.goals
-                                            .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                            .firstOrNull {
+                                                it.id.hashCode().toLong() == editingItemId
+                                            }
                                             ?.id
 
                                         if (firestoreId != null) {
@@ -451,7 +464,9 @@ fun ScheduleSettingScreen(
                                         )
                                     } else {
                                         val firestoreId = scheduleViewModel.schedules
-                                            .firstOrNull { it.id.hashCode().toLong() == editingItemId }
+                                            .firstOrNull {
+                                                it.id.hashCode().toLong() == editingItemId
+                                            }
                                             ?.id
 
                                         if (firestoreId != null) {

@@ -12,7 +12,8 @@ class GoalRepository {
         title: String,
         startDate: String,
         endDate: String,
-        pageCount: Int
+        pageCount: Int,
+        increasePriorityOverTime: Boolean = false
     ) {
         val docRef = db.collection("users")
             .document(userId)
@@ -24,7 +25,8 @@ class GoalRepository {
             "title" to title,
             "startDate" to startDate,
             "endDate" to endDate,
-            "pageCount" to pageCount
+            "pageCount" to pageCount,
+            "increasePriorityOverTime" to increasePriorityOverTime
         )
 
         docRef.set(goalData).await()
@@ -42,13 +44,16 @@ class GoalRepository {
             val startDate = doc.getString("startDate") ?: return@mapNotNull null
             val endDate = doc.getString("endDate") ?: return@mapNotNull null
             val pageCount = doc.getLong("pageCount")?.toInt() ?: return@mapNotNull null
+            val increasePriorityOverTime =
+                doc.getBoolean("increasePriorityOverTime") ?: false
 
             GoalItem(
                 id = doc.id,
                 title = title,
                 startDate = startDate,
                 endDate = endDate,
-                pageCount = pageCount
+                pageCount = pageCount,
+                increasePriorityOverTime = increasePriorityOverTime
             )
         }
     }
@@ -82,6 +87,22 @@ class GoalRepository {
             .collection("goals")
             .document(id)
             .delete()
+            .await()
+    }
+
+    suspend fun updateGoalPriorityIncrease(
+        userId: String,
+        id: String,
+        increasePriorityOverTime: Boolean
+    ) {
+        db.collection("users")
+            .document(userId)
+            .collection("goals")
+            .document(id)
+            .update(
+                "increasePriorityOverTime",
+                increasePriorityOverTime
+            )
             .await()
     }
 }
