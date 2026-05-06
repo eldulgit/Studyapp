@@ -5,10 +5,14 @@ data class FixedScheduleItem(
     val category: ScheduleCategory,
     val title: String,
 
+    // Firestore 원본 id
+    val firestoreId: String? = null,
+
     // 목표용
     val startDate: String? = null,
     val endDate: String? = null,
     val pageCount: Int? = null,
+    val increasePriorityOverTime: Boolean = false,
 
     // 스케줄용
     val dayOfWeek: String? = null,

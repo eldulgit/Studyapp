@@ -5,5 +5,6 @@ data class GoalItem(
     val title: String,
     val startDate: String,
     val endDate: String,
-    val pageCount: Int
+    val pageCount: Int,
+    val increasePriorityOverTime: Boolean = false
 )

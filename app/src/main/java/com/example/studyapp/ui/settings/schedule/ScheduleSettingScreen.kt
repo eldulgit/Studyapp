@@ -163,11 +163,13 @@ fun ScheduleSettingScreen(
     val goalItems = goalViewModel.goals.map { goal ->
         FixedScheduleItem(
             id = goal.id.hashCode().toLong(),
+            firestoreId = goal.id,
             category = ScheduleCategory.GOAL,
             title = goal.title,
             startDate = goal.startDate,
             endDate = goal.endDate,
-            pageCount = goal.pageCount
+            pageCount = goal.pageCount,
+            increasePriorityOverTime = goal.increasePriorityOverTime
         )
     }
 
@@ -294,6 +296,15 @@ fun ScheduleSettingScreen(
                             subtitleBuilder = {
                                 "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"
                             },
+                            onCheckedChange = { item, checked ->
+                                val goalId = item.firestoreId
+                                if (goalId != null) {
+                                    goalViewModel.updateGoalPriorityIncrease(
+                                        id = goalId,
+                                        increasePriorityOverTime = checked
+                                    )
+                                }
+                            },
                             onEditClick = { item ->
                                 editingItemId = item.id
                                 selectedCategory = item.category
@@ -306,11 +317,9 @@ fun ScheduleSettingScreen(
                                 endTime = item.endTime ?: "10:00"
                                 isDayDropdownExpanded = false
                                 errorMessage = null
-
                                 showTimePickerDialog = false
                                 isSelectingStartTime = true
                                 pendingStartTime = null
-
                                 showAddDialog = true
                             }
                         )

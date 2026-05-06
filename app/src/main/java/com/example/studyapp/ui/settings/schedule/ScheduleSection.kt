@@ -8,23 +8,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-//목표화면
+// 목표화면
 @Composable
 fun ScheduleSection(
     title: String,
     items: List<FixedScheduleItem>,
     subtitleBuilder: (FixedScheduleItem) -> String,
-    onEditClick: (FixedScheduleItem) -> Unit
+    onEditClick: (FixedScheduleItem) -> Unit,
+    onCheckedChange: (FixedScheduleItem, Boolean) -> Unit = { _, _ -> }
 ) {
-    var checkedItemIds by remember { mutableStateOf(setOf<Long>()) }
-
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -49,11 +44,9 @@ fun ScheduleSection(
                     SubjectSettingCard(
                         title = item.title,
                         subtitle = subtitleBuilder(item),
-                        checked = item.id in checkedItemIds,
+                        checked = item.increasePriorityOverTime,
                         onCheckedChange = { checked ->
-                            checkedItemIds =
-                                if (checked) checkedItemIds + item.id
-                                else checkedItemIds - item.id
+                            onCheckedChange(item, checked)
                         },
                         onEditClick = {
                             onEditClick(item)

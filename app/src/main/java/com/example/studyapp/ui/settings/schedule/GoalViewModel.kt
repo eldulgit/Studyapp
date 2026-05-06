@@ -44,7 +44,14 @@ class GoalViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
-                repository.addGoal(uid, title, startDate, endDate, pageCount)
+                repository.addGoal(
+                    userId = uid,
+                    title = title,
+                    startDate = startDate,
+                    endDate = endDate,
+                    pageCount = pageCount,
+                    increasePriorityOverTime = false
+                )
                 loadGoalsFromFirestore()
             } catch (e: Exception) {
                 android.util.Log.e("GoalFirestore", "저장 실패", e)
@@ -78,6 +85,32 @@ class GoalViewModel : ViewModel() {
                 loadGoalsFromFirestore()
             } catch (e: Exception) {
                 android.util.Log.e("GoalFirestore", "삭제 실패", e)
+            }
+        }
+    }
+
+    fun updateGoalPriorityIncrease(
+        id: String,
+        increasePriorityOverTime: Boolean
+    ) {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+
+                repository.updateGoalPriorityIncrease(
+                    userId = uid,
+                    id = id,
+                    increasePriorityOverTime = increasePriorityOverTime
+                )
+
+                val index = goals.indexOfFirst { it.id == id }
+                if (index != -1) {
+                    goals[index] = goals[index].copy(
+                        increasePriorityOverTime = increasePriorityOverTime
+                    )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("GoalFirestore", "목표 체크 상태 저장 실패", e)
             }
         }
     }
