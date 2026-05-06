@@ -7,7 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,11 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,11 +23,25 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.studyapp.ui.timer.TimerViewModel
+//카메라 부저음
+import android.media.AudioManager
+import android.media.ToneGenerator
 
 @Composable
 fun CameraScreen(timerViewModel: TimerViewModel) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    //부저 함수
+    val toneGenerator = remember {
+        ToneGenerator(AudioManager.STREAM_NOTIFICATION, 60)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            toneGenerator.release()
+        }
+    }
 
     // 현재 집중도 상태 관리
     var focusStatus by remember { mutableStateOf(FocusStatus.UNKNOWN) }
@@ -67,14 +76,21 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
     // 🌟 [수정 완료] 새로운 상태(노란색, 멍때림)에 맞춘 타이머 제어
     LaunchedEffect(focusStatus) {
         when (focusStatus) {
-            // 타이머 정지: 얼굴 찾는 중, 자리 비움, 최종 졸음
             FocusStatus.UNKNOWN,
-            FocusStatus.ABSENT,
-            FocusStatus.DROWSY -> {
+            FocusStatus.ABSENT -> {
                 timerViewModel.pauseByCamera()
             }
 
-            // 타이머 재개: 정상 활동, 멍때림 경고, 졸음 경고
+            FocusStatus.DROWSY -> {
+                timerViewModel.pauseByCamera()
+
+                // 졸음이 감지되면 짧은 부저음 재생
+                toneGenerator.startTone(
+                    ToneGenerator.TONE_PROP_BEEP,
+                    300
+                )
+            }
+
             FocusStatus.ACTIVE,
             FocusStatus.INACTIVE_STARE,
             FocusStatus.DROWSY_WARNING -> {
