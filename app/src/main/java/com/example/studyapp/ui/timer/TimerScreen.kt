@@ -26,8 +26,6 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -144,105 +142,93 @@ fun TimerScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { openCamera() }) {
-                        Icon(
-                            imageVector = Icons.Default.PhotoCamera,
-                            contentDescription = "Camera"
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(modifier = Modifier.size(270.dp)) {
-                    CircularTimer(
-                        modifier = Modifier.fillMaxSize(),
-                        segments = segments,
-                        colorForIndex = { runningTaskColor }
+                IconButton(onClick = { openCamera() }) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoCamera,
+                        contentDescription = "Camera"
                     )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                LazyColumn(
-                    modifier = Modifier
-                        .width(timerWidth)
-                        .weight(1f),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(
-                        items = timerSubjects,
-                        key = { it.id }
-                    ) { item ->
-                        val isRunning = timerViewModel.runningTaskId == item.id
-
-                        val subjectColorArgb = availableSubjects
-                            .firstOrNull { it.name == item.name }
-                            ?.colorArgb
-                            ?: Color.Gray.toArgb()
-
-                        TimerTaskRow(
-                            subject = item.name,
-                            time = formatCountdown(item.remainingSeconds),
-                            subjectColorArgb = subjectColorArgb,
-                            containerWidth = timerWidth,
-                            isRunning = isRunning,
-                            onToggle = {
-                                timerViewModel.toggleTask(item.id)
-                            },
-                            onEditClick = {
-                                editTargetId = item.id
-                                showTimeEditDialog = true
-                            }
-                        )
-                    }
                 }
             }
 
-            // 카메라 프리뷰 오버레이 (Dialog 대신 Box 사용)
-            if (showCameraPreview) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                ) {
-                    CameraScreen(
-                        timerViewModel = timerViewModel
-                    )
-                    
-                    // 닫기 버튼 추가
-                    IconButton(
-                        onClick = {
-                            showCameraPreview = false
-                            timerViewModel.stopCameraMonitoring()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Box(modifier = Modifier.size(270.dp)) {
+                CircularTimer(
+                    modifier = Modifier.fillMaxSize(),
+                    segments = segments,
+                    colorForIndex = { runningTaskColor }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .width(timerWidth)
+                    .weight(1f),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(
+                    items = timerSubjects,
+                    key = { it.id }
+                ) { item ->
+                    val isRunning = timerViewModel.runningTaskId == item.id
+
+                    val subjectColorArgb = availableSubjects
+                        .firstOrNull { it.name == item.name }
+                        ?.colorArgb
+                        ?: Color.Gray.toArgb()
+
+                    TimerTaskRow(
+                        subject = item.name,
+                        time = formatCountdown(item.remainingSeconds),
+                        subjectColorArgb = subjectColorArgb,
+                        containerWidth = timerWidth,
+                        isRunning = isRunning,
+                        onToggle = {
+                            timerViewModel.toggleTask(item.id)
                         },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = Color.White
-                        )
-                    }
+                        onEditClick = {
+                            editTargetId = item.id
+                            showTimeEditDialog = true
+                        }
+                    )
                 }
             }
         }
     }
 
-    // 아래의 if (showCameraPreview) { Dialog { ... } } 블록은 제거되었습니다.
+    if (showCameraPreview) {
+        Dialog(
+            onDismissRequest = {
+                showCameraPreview = false
+                timerViewModel.stopCameraMonitoring()
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                CameraScreen(
+                    timerViewModel = timerViewModel
+                )
+            }
+        }
+    }
 
     TimeEditDialog(
         show = showTimeEditDialog,

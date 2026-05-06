@@ -6,4 +6,3 @@ data class SubjectItem(
     val priority: Int,
     val colorArgb: Int
 )
-

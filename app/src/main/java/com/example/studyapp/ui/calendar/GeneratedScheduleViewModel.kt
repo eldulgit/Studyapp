@@ -77,7 +77,7 @@ class GeneratedScheduleViewModel : ViewModel() {
                 if (profile.wakeTime.isBlank() || profile.sleepTime.isBlank() ||
                     profile.lunchStartTime.isBlank() || profile.lunchEndTime.isBlank() || //추가
                     profile.dinnerStartTime.isBlank() || profile.dinnerEndTime.isBlank()  //추가
-                    ) { throw IllegalStateException("기상/취침 시간 및 점심/저녁 시간을 모두 입력해주세요.")
+                ) { throw IllegalStateException("기상/취침 시간 및 점심/저녁 시간을 모두 입력해주세요.")
                 }
 
                 val subjects = subjectRepository.getSubjects(uid)
