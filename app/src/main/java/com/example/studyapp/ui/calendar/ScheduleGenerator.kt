@@ -102,27 +102,35 @@ fun generatePriorityStudySchedule(
 
     val generatedSchedules = mutableListOf<GeneratedScheduleItem>()
 
+
+    var allocationIndex = 0
+
     for (freeRange in freeRanges) {
         var current = freeRange.start
 
-        while (current < freeRange.end && allocations.any { it.remainingMinutes > 0 }) {
-            val currentSubject = allocations
-                .filter { it.remainingMinutes > 0 }
-                .maxWithOrNull(
-                    compareBy<SubjectAllocation> { it.remainingMinutes }
-                        .thenBy { it.subject.priority }
-                ) ?: break
+        while (current < freeRange.end && allocationIndex < allocations.size) {
+            val currentSubject = allocations[allocationIndex]
+
+            if (currentSubject.remainingMinutes <= 0) {
+                allocationIndex++
+                continue
+            }
 
             val availableMinutes = freeRange.end - current
 
             val studyMinutes = minOf(
                 currentSubject.remainingMinutes,
-                availableMinutes,
-                60
+                availableMinutes
             )
 
             if (studyMinutes < 20) {
-                currentSubject.remainingMinutes = 0
+                if (currentSubject.remainingMinutes < 20) {
+                    currentSubject.remainingMinutes = 0
+                    allocationIndex++
+                } else {
+                    // 현재 빈 칸이 너무 작으면 이 시간대는 건너뛰고 다음 freeRange로 이동
+                    current = freeRange.end
+                }
                 continue
             }
 
@@ -143,6 +151,10 @@ fun generatePriorityStudySchedule(
             )
             current = end
             currentSubject.remainingMinutes -= studyMinutes
+
+            if (currentSubject.remainingMinutes <= 0) {
+                allocationIndex++
+            }
         }
     }
     return generatedSchedules.sortedBy { it.startTime }

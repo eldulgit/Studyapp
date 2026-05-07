@@ -2,6 +2,13 @@ package com.example.studyapp.ai
 
 import kotlin.math.abs
 
+/*data class TimeRange(val start: Int, val end: Int)
+data class StudyRequirement(
+    val name: String,
+    val priority: Int,
+    val requiredMinutes: Int,
+    val preferredStartHour: Int? = null
+)*/
  // 적합도 계산 함수
  fun calculateSuitability(slot: TimeRange, requirement: StudyRequirement): Double {
      val slotDuration = slot.end - slot.start
@@ -36,34 +43,27 @@ fun arrangeSchedulesByPriority(
     requirements: List<StudyRequirement>
 ): List<Pair<TimeRange, StudyRequirement>> {
     // 우선순위 높은 순 -> 소요시간 긴 순으로 정렬
-    val sortedRequirements = requirements.sortedWith(
-        compareByDescending<StudyRequirement> { it.priority }
-            .thenByDescending { it.requiredMinutes }
-    )
-    val remainingSlots = freeSlots.toMutableList()
+    val sortedReqs = requirements.sortedByDescending { it.priority }
+
+    val availableSlots = freeSlots.sortedBy { it.start }.toMutableList()
+
     val finalAssignments = mutableListOf<Pair<TimeRange, StudyRequirement>>()
-    for (req in sortedRequirements) {
-        var bestSlotIndex = -1
-        var maxScore = -1.0
-        // 가장 적합한 슬롯 찾기
-        for (i in remainingSlots.indices) {
-            val score = calculateSuitability(remainingSlots[i], req)
-            if (score > 0 && score > maxScore) {
-                maxScore = score
-                        bestSlotIndex = i
-            }
-        }
-        // 3. 최적의 슬롯을 찾았다면 배정 및 자투리 처리
-        if (bestSlotIndex != -1) {
-            val selectedSlot = remainingSlots.removeAt(bestSlotIndex)
-            // 공부에 필요한 시간만큼만 딱 자름
-            val assignedRange = TimeRange(selectedSlot.start, selectedSlot.start + req.requiredMinutes)
-            finalAssignments.add(assignedRange to req)
-            // 남은 자투리 시간이 있다면 다시 목록에 넣어서 다음 과목이 쓸 수 있게 함
-            val leftoverStart = assignedRange.end
-            val leftoverEnd = selectedSlot.end
-            if (leftoverStart < leftoverEnd) {
-                remainingSlots.add(bestSlotIndex, TimeRange(leftoverStart, leftoverEnd))
+
+    for (req in sortedReqs) {
+        var remainingMin = req.requiredMinutes
+
+        while (remainingMin > 0 && availableSlots.isNotEmpty()) {
+            val slot = availableSlots.removeAt(0)
+            val slotDuration = slot.end - slot.start
+
+            if (slotDuration <= remainingMin) {
+                finalAssignments.add(slot to req)
+                remainingMin -= slotDuration
+            } else {
+                val studyRange = TimeRange(slot.start, slot.start + remainingMin)
+                finalAssignments.add(studyRange to req)
+                availableSlots.add(0, TimeRange(slot.start + remainingMin, slot.end))
+                remainingMin = 0
             }
         }
     }
@@ -85,7 +85,7 @@ fun getFinalTimeTable(
             title = req.name,
             startTime = startStr,
             endTime = endStr,
-            subjectId = null, // subjectId 누락 해결
+            subjectId = null,
             isCompleted = false,
             date = date
             )
