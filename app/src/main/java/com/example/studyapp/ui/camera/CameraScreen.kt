@@ -34,7 +34,7 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
 
     //부저 함수
     val toneGenerator = remember {
-        ToneGenerator(AudioManager.STREAM_NOTIFICATION, 60)
+        ToneGenerator(AudioManager.STREAM_MUSIC, 80)
     }
 
     DisposableEffect(Unit) {
@@ -89,15 +89,16 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
             FocusStatus.ABSENT -> {
                 timerViewModel.pauseByCamera()
             }
-
             FocusStatus.DROWSY -> {
                 timerViewModel.pauseByCamera()
-
-                // 졸음이 감지되면 짧은 부저음 재생
-                toneGenerator.startTone(
-                    ToneGenerator.TONE_PROP_BEEP,
-                    300
-                )
+                while (true) {
+                    // 졸음이 감지되면 짧은 부저음 재생
+                    toneGenerator.startTone(
+                        ToneGenerator.TONE_PROP_BEEP,
+                        300
+                    )
+                    kotlinx.coroutines.delay(1500)
+                }
             }
 
             FocusStatus.ACTIVE,
