@@ -34,7 +34,7 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
 
     //부저 함수
     val toneGenerator = remember {
-        ToneGenerator(AudioManager.STREAM_NOTIFICATION, 60)
+        ToneGenerator(AudioManager.STREAM_ALARM, 80)
     }
 
     DisposableEffect(Unit) {
