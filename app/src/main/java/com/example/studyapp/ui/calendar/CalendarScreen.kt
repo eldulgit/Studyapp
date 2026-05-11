@@ -65,13 +65,10 @@ fun CalendarScreen(
     val isGenerating = generatedScheduleViewModel.isGenerating
     val scheduleMessage = generatedScheduleViewModel.message
 
-    val scheduledSubjects = remember(generatedSchedules, subjectViewModel.subjects) {
-        val scheduledTitles = generatedSchedules
-            .map { it.subject }
-            .toSet()
-
-        subjectViewModel.subjects
-            .filter { subject -> subject.name in scheduledTitles }
+    val scheduledSubjects = remember(generatedSchedules.size) {
+        generatedSchedules
+            .distinctBy { it.subject }
+            .toList()
     }
 
     var selectedDate by remember {
@@ -180,7 +177,7 @@ fun CalendarScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     SubjectColorLegend(
-                        subjects = scheduledSubjects
+                        schedules = scheduledSubjects
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
@@ -291,15 +288,15 @@ private fun formatScheduleDate(date: String): String {
 }
 @Composable
 private fun SubjectColorLegend(
-    subjects: List<SubjectItem>
+    schedules: List<DayScheduleBlock>
 ) {
-    if (subjects.isEmpty()) return
+    if (schedules.isEmpty()) return
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(subjects) { subject ->
+        items(schedules) { schedule ->
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -307,7 +304,7 @@ private fun SubjectColorLegend(
                     modifier = Modifier
                         .size(8.dp)
                         .background(
-                            color = Color(subject.colorArgb),
+                            color = schedule.color,
                             shape = CircleShape
                         )
                 )
@@ -315,7 +312,7 @@ private fun SubjectColorLegend(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 Text(
-                    text = subject.name,
+                    text = schedule.subject,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
