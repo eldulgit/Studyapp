@@ -26,6 +26,7 @@ import com.example.studyapp.ui.timer.TimerViewModel
 //카메라 부저음
 import android.media.AudioManager
 import android.media.ToneGenerator
+import kotlinx.coroutines.delay
 
 @Composable
 fun CameraScreen(timerViewModel: TimerViewModel) {
@@ -94,10 +95,10 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
                 timerViewModel.pauseByCamera()
 
                 // 졸음이 감지되면 짧은 부저음 재생
-                toneGenerator.startTone(
-                    ToneGenerator.TONE_PROP_BEEP,
-                    300
-                )
+                while (true) {
+                    toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP, 300)
+                    delay(1500)
+                }
             }
 
             FocusStatus.ACTIVE,
