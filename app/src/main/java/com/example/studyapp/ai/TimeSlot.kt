@@ -108,7 +108,9 @@ fun getFreeTimeSlots(
         if (parts.size != 2) return null
         val hour = parts[0].toIntOrNull() ?: return null
         val minute = parts[1].toIntOrNull() ?: return null
-        return hour * 60 + minute
+
+        val totalMinutes = hour * 60 + minute
+        return (totalMinutes / 10) * 10
     }
 // 위에서 계산한 빈 시간들이 잘 나왔나 화면에 찍어서 확인해보는 테스트 도구
 fun printFreeTimes(

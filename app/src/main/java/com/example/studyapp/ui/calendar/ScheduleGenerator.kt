@@ -92,7 +92,7 @@ fun generatePriorityStudySchedule(
     val allocations = subjects
         .sortedByDescending { it.priority }
         .map { subject ->
-            val minutes = totalFreeMinutes * subject.priority.coerceAtLeast(1) / totalPriority
+            val minutes = (totalFreeMinutes * subject.priority.coerceAtLeast(1) / totalPriority / 10) * 10
 
             SubjectAllocation(
                 subject = subject,
@@ -118,10 +118,7 @@ fun generatePriorityStudySchedule(
 
             val availableMinutes = freeRange.end - current
 
-            val studyMinutes = minOf(
-                currentSubject.remainingMinutes,
-                availableMinutes
-            )
+            val studyMinutes = (minOf(currentSubject.remainingMinutes, availableMinutes) / 10) * 10
 
             if (studyMinutes < 20) {
                 if (currentSubject.remainingMinutes < 20) {
@@ -170,7 +167,8 @@ private fun parseTimeToMinutes(time: String): Int? {
     if (hour !in 0..23) return null
     if (minute !in 0..59) return null
 
-    return hour * 60 + minute
+    val totalMinutes = hour * 60 + minute
+    return (totalMinutes / 10) * 10
 }
 
 private fun formatMinutesToTime(minutes: Int): String {
