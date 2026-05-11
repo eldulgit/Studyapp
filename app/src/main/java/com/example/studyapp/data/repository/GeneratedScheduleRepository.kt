@@ -4,6 +4,7 @@ import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.SetOptions
 
 class GeneratedScheduleRepository {
     private val db = FirebaseFirestore.getInstance()
@@ -98,4 +99,78 @@ class GeneratedScheduleRepository {
             )
         }.sortedBy { it.startTime }
     }
+
+    private fun timerOverridesCollection(
+        userId: String,
+        date: String
+    ) = scheduleDateDocument(userId, date)
+        .collection("timer_overrides")
+
+    suspend fun saveTimerTimeOverride(
+        userId: String,
+        date: String,
+        timerId: Long,
+        subjectName: String,
+        allocatedSeconds: Int,
+        remainingSeconds: Int
+    ) {
+        val dateDocument = scheduleDateDocument(userId, date)
+
+        dateDocument.set(
+            mapOf(
+                "date" to date,
+                "updatedAt" to FieldValue.serverTimestamp()
+            ),
+            SetOptions.merge()
+        ).await()
+
+        timerOverridesCollection(userId, date)
+            .document(timerId.toString())
+            .set(
+                hashMapOf<String, Any?>(
+                    "timerId" to timerId,
+                    "subjectName" to subjectName,
+                    "allocatedSeconds" to allocatedSeconds,
+                    "remainingSeconds" to remainingSeconds,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            )
+            .await()
+    }
+
+    suspend fun getTimerTimeOverrides(
+        userId: String,
+        date: String
+    ): Map<Long, TimerTimeOverride> {
+        val result = timerOverridesCollection(userId, date)
+            .get()
+            .await()
+
+        return result.documents.mapNotNull { document ->
+            val timerId = document.getLong("timerId")
+                ?: document.id.toLongOrNull()
+                ?: return@mapNotNull null
+
+            val allocatedSeconds = document.getLong("allocatedSeconds")?.toInt()
+                ?: return@mapNotNull null
+
+            val remainingSeconds = document.getLong("remainingSeconds")?.toInt()
+                ?: allocatedSeconds
+
+            timerId to TimerTimeOverride(
+                timerId = timerId,
+                subjectName = document.getString("subjectName").orEmpty(),
+                allocatedSeconds = allocatedSeconds,
+                remainingSeconds = remainingSeconds
+            )
+        }.toMap()
+    }
 }
+
+data class TimerTimeOverride(
+    val timerId: Long,
+    val subjectName: String,
+    val allocatedSeconds: Int,
+    val remainingSeconds: Int
+)

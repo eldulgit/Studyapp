@@ -65,10 +65,15 @@ fun CalendarScreen(
     val isGenerating = generatedScheduleViewModel.isGenerating
     val scheduleMessage = generatedScheduleViewModel.message
 
-    val scheduledSubjects = remember(generatedSchedules.size) {
-        generatedSchedules
-            .distinctBy { it.subject }
-            .toList()
+    val scheduledSubjects = remember(
+        generatedSchedules.size,
+        subjectViewModel.subjects.size
+    ) {
+        subjectViewModel.subjects
+            .mapNotNull { subject ->
+                generatedSchedules
+                    .firstOrNull { it.subject == subject.name }
+            }
     }
 
     var selectedDate by remember {

@@ -16,19 +16,30 @@ import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
 import com.example.studyapp.ui.settings.schedule.ScheduleCategory
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
+import kotlin.math.ceil
+import kotlin.math.floor
 
 @Composable
 fun TimeTableScreen(
     subjectViewModel: SubjectViewModel,
     fixedScheduleList: List<FixedScheduleItem>
 ) {
-    val startHour = 1
-    val endHour = 24
-
-    // 스케줄 카테고리만 필터
+    // 자동 스케줄링된 결과 + 고정 스케줄 중 실제 시간이 있는 항목만 사용
     val scheduleItems = fixedScheduleList.filter {
-        it.category == ScheduleCategory.SCHEDULE
+        it.startTime != null && it.endTime != null
     }
+
+    val startHour = scheduleItems
+        .mapNotNull { it.startTime.toMinutesOrNull() }
+        .minOrNull()
+        ?.let { floor(it / 60f).toInt() }
+        ?: 9
+
+    val endHour = scheduleItems
+        .mapNotNull { it.endTime.toMinutesOrNull() }
+        .maxOrNull()
+        ?.let { ceil(it / 60f).toInt() }
+        ?: 18
 
     Column(
         modifier = Modifier
@@ -46,7 +57,7 @@ fun TimeTableScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items((startHour..endHour).toList()) { hour ->
+            items((startHour until endHour).toList()) { hour ->
                 HourSlice(
                     hour = hour,
                     schedules = scheduleItems,
@@ -55,4 +66,16 @@ fun TimeTableScreen(
             }
         }
     }
+}
+
+private fun String?.toMinutesOrNull(): Int? {
+    if (this.isNullOrBlank()) return null
+
+    val parts = split(":")
+    if (parts.size != 2) return null
+
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+
+    return hour * 60 + minute
 }

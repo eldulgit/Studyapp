@@ -108,9 +108,12 @@ class TimerViewModel : ViewModel() {
     }
 
     fun updateSubjectTime(subjectId: Long, hour: String, minute: String) {
+        val targetSubject = subjects.firstOrNull { it.id == subjectId } ?: return
+
         val hourInt = hour.toIntOrNull() ?: 0
         val minuteInt = minute.toIntOrNull() ?: 0
-        val totalSeconds = (hourInt * 60 + minuteInt) * 60
+
+        val totalSeconds = ((hourInt * 60) + minuteInt) * 60
 
         subjects = subjects.map { subject ->
             if (subject.id == subjectId) {
@@ -127,34 +130,46 @@ class TimerViewModel : ViewModel() {
             pause()
             selectedTaskId = null
         }
+
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val today = makeSessionDate(System.currentTimeMillis())
+
+                generatedScheduleRepository.saveTimerTimeOverride(
+                    userId = uid,
+                    date = today,
+                    timerId = subjectId,
+                    subjectName = targetSubject.name,
+                    allocatedSeconds = totalSeconds,
+                    remainingSeconds = totalSeconds
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "타이머 직접 수정값 저장 실패", e)
+            }
+        }
     }
 
     fun toggleTask(subjectId: Long) {
         val target = subjects.firstOrNull { it.id == subjectId } ?: return
         if (target.allocatedSeconds <= 0) return
+        if (target.remainingSeconds <= 0) return
 
         if (selectedTaskId == subjectId) {
-            if (runningTaskId == subjectId) {
-                pause()
-            } else {
-                if (target.remainingSeconds > 0) {
-                    startTask(subjectId)
-                }
-            }
+            // 같은 과목을 다시 누르면 선택 해제 + 실제 타이머 정지
+            pause()
+            selectedTaskId = null
+            pausedByCamera = false
             return
         }
 
-        if (target.remainingSeconds <= 0) return
+        // 다른 과목을 선택하면 기존 실제 타이머만 정지
+        pause()
 
-        if (runningTaskId != null) {
-            finishCurrentSessionAndSave()
-            timerJob?.cancel()
-            timerJob = null
-            runningTaskId = null
-        }
-
+        // 여기서는 과목 선택만 함
+        // 시간을 감소시키는 startTask(subjectId)는 호출하지 않음
         selectedTaskId = subjectId
-        startTask(subjectId)
+        pausedByCamera = false
     }
 
     private suspend fun getOrCreateUid(): String {
@@ -225,22 +240,20 @@ class TimerViewModel : ViewModel() {
     fun pauseByCamera() {
         if (runningTaskId != null) {
             pausedByCamera = true
-            pause()
         }
+
+        pause()
     }
 
     fun resumeByCamera() {
         val targetId = selectedTaskId ?: return
         val targetSubject = subjects.firstOrNull { it.id == targetId } ?: return
 
-        if (
-            pausedByCamera &&
-            runningTaskId == null &&
-            targetSubject.remainingSeconds > 0
-        ) {
-            pausedByCamera = false
-            startTask(targetId)
-        }
+        if (runningTaskId != null) return
+        if (targetSubject.remainingSeconds <= 0) return
+
+        pausedByCamera = false
+        startTask(targetId)
     }
 
     fun stopCameraMonitoring() {
@@ -288,6 +301,11 @@ class TimerViewModel : ViewModel() {
                 val today = makeSessionDate(System.currentTimeMillis())
 
                 val generatedSchedules = generatedScheduleRepository.getSchedulesByDate(
+                    userId = uid,
+                    date = today
+                )
+
+                val timerOverrides = generatedScheduleRepository.getTimerTimeOverrides(
                     userId = uid,
                     date = today
                 )
@@ -349,7 +367,18 @@ class TimerViewModel : ViewModel() {
                         }
                     }
 
-                subjects = mergedTimerMap.values.toList()
+                subjects = mergedTimerMap.values.map { timer ->
+                    val override = timerOverrides[timer.id]
+
+                    if (override != null) {
+                        timer.copy(
+                            allocatedSeconds = override.allocatedSeconds,
+                            remainingSeconds = override.remainingSeconds
+                        )
+                    } else {
+                        timer
+                    }
+                }
 
                 nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
             } catch (e: Exception) {

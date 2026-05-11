@@ -35,8 +35,27 @@ fun DayScheduleTimeline(
     val actualDate = selectedDate ?: LocalDate.now()
     val displayedSchedules = schedules.filter { it.date == actualDate }
 
-    val startHour = 12
-    val endHour = 26
+    val baseStartMinute = displayedSchedules
+        .map { it.startHour * 60 + it.startMinute }
+        .filter { it >= 6 * 60 }
+        .minOrNull()
+        ?: displayedSchedules
+            .map { it.startHour * 60 + it.startMinute }
+            .minOrNull()
+        ?: 7 * 60
+
+    val startHour = baseStartMinute / 60
+
+    val endHour = displayedSchedules
+        .maxOfOrNull {
+            normalizeScheduleMinute(
+                hour = it.endHour,
+                minute = it.endMinute,
+                baseStartMinute = baseStartMinute
+            )
+        }
+        ?.let { (it + 59) / 60 }
+        ?: 23
 
     val rowHeight = 38.dp
     val timeLabelWidth = 56.dp
@@ -84,12 +103,15 @@ fun DayScheduleTimeline(
 
                             val matched = displayedSchedules.find { schedule ->
                                 val scheduleStart = normalizeScheduleMinute(
-                                    schedule.startHour,
-                                    schedule.startMinute
+                                    hour = schedule.startHour,
+                                    minute = schedule.startMinute,
+                                    baseStartMinute = baseStartMinute
                                 )
+
                                 val scheduleEnd = normalizeScheduleMinute(
-                                    schedule.endHour,
-                                    schedule.endMinute
+                                    hour = schedule.endHour,
+                                    minute = schedule.endMinute,
+                                    baseStartMinute = baseStartMinute
                                 )
 
                                 slotStartMinute < scheduleEnd && slotEndMinute > scheduleStart
@@ -113,11 +135,19 @@ fun DayScheduleTimeline(
     }
 }
 
-private fun normalizeScheduleMinute(hour: Int, minute: Int): Int {
-    val normalizedHour = if (hour < 12) hour + 24 else hour
-    return normalizedHour * 60 + minute
-}
+private fun normalizeScheduleMinute(
+    hour: Int,
+    minute: Int,
+    baseStartMinute: Int
+): Int {
+    val rawMinute = hour * 60 + minute
 
+    return if (rawMinute < baseStartMinute) {
+        rawMinute + 24 * 60
+    } else {
+        rawMinute
+    }
+}
 private fun formatHourLabel(hour: Int): String {
     val normalized = when {
         hour < 24 -> hour

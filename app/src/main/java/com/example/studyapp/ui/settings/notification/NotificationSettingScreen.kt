@@ -72,20 +72,6 @@ fun NotificationSettingScreen(
                     settingsViewModel.updateNotificationTime(hour, minute)
                 }
             )
-
-            Spacer(modifier = Modifier.padding(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("목표 미달 시 알림")
-                Switch(
-                    checked = goalAlertEnabled,
-                    onCheckedChange = { settingsViewModel.updateGoalAlertEnabled(it) }
-                )
-            }
         }
     }
 }
