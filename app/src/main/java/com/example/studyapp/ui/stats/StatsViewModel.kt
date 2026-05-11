@@ -6,9 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.studyapp.data.repository.AuthRepository
 import com.example.studyapp.data.repository.UserRepository
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.studyapp.data.model.UserProfile
 
 class StatsViewModel : ViewModel() {
-
+    var userProfile by mutableStateOf<UserProfile?>(null)
+        private set
     private val authRepository = AuthRepository()
     private val userRepository = UserRepository()
     private val studySessionRepository = StudySessionRepository()
@@ -30,6 +35,24 @@ class StatsViewModel : ViewModel() {
                 records.addAll(result)
             } catch (e: Exception) {
                 android.util.Log.e("StatsFirestore", "기록 불러오기 실패", e)
+            }
+        }
+    }
+
+    fun loadStatsData() {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+
+                val profile = userRepository.getUserProfile(uid)
+                val result = studySessionRepository.getAllRecords(uid)
+
+                userProfile = profile
+
+                records.clear()
+                records.addAll(result)
+            } catch (e: Exception) {
+                android.util.Log.e("StatsFirestore", "통계 데이터 불러오기 실패", e)
             }
         }
     }

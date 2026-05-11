@@ -49,6 +49,7 @@ import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
 import com.example.studyapp.ui.timer.pomodoro.formatCountdown
 import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
 
+
 @Composable
 fun TimerScreen(
     subjectViewModel: SubjectViewModel,
@@ -63,13 +64,16 @@ fun TimerScreen(
 
     var showCameraPreview by remember { mutableStateOf(false) }
 
+    fun showCamera() {
+        showCameraPreview = true
+        timerViewModel.startCameraMonitoring()
+    }
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        timerViewModel.pauseByCamera()
-
         if (isGranted) {
-            showCameraPreview = true
+            showCamera()
         }
     }
 
@@ -91,7 +95,7 @@ fun TimerScreen(
                 context,
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED -> {
-                showCameraPreview = true
+                showCamera()
             }
 
             else -> {
@@ -217,9 +221,8 @@ fun TimerScreen(
     if (showCameraPreview) {
         Dialog(
             onDismissRequest = {
-                showCameraPreview = false
                 timerViewModel.stopCameraMonitoring()
-                timerViewModel.pauseByCamera()
+                showCameraPreview = false
             },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false
