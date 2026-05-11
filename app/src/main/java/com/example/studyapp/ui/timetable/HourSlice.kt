@@ -46,7 +46,7 @@ fun HourSlice(
             horizontalArrangement = Arrangement.Center
         ) {
             repeat(6) { slotIndex ->
-                val slotStartMinute = (hour - 1) * 60 + (slotIndex * 10)
+                val slotStartMinute = hour * 60 + (slotIndex * 10)
                 val slotEndMinute = slotStartMinute + 10
 
                 val matchedSchedule = schedules.find { schedule ->
@@ -60,7 +60,6 @@ fun HourSlice(
                     val matchedSubject = subjectViewModel.subjects.find { subject ->
                         subject.name == schedule.title
                     }
-
                     matchedSubject?.let { Color(it.colorArgb) } ?: Color.LightGray
                 } ?: Color(0xFFF1F1F1)
 

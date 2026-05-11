@@ -132,29 +132,23 @@ class TimerViewModel : ViewModel() {
     fun toggleTask(subjectId: Long) {
         val target = subjects.firstOrNull { it.id == subjectId } ?: return
         if (target.allocatedSeconds <= 0) return
+        if (target.remainingSeconds <= 0) return
 
         if (selectedTaskId == subjectId) {
-            if (runningTaskId == subjectId) {
-                pause()
-            } else {
-                if (target.remainingSeconds > 0) {
-                    startTask(subjectId)
-                }
-            }
+            // 같은 과목을 다시 누르면 선택 해제 + 실제 타이머 정지
+            pause()
+            selectedTaskId = null
+            pausedByCamera = false
             return
         }
 
-        if (target.remainingSeconds <= 0) return
+        // 다른 과목을 선택하면 기존 실제 타이머만 정지
+        pause()
 
-        if (runningTaskId != null) {
-            finishCurrentSessionAndSave()
-            timerJob?.cancel()
-            timerJob = null
-            runningTaskId = null
-        }
-
+        // 여기서는 과목 선택만 함
+        // 시간을 감소시키는 startTask(subjectId)는 호출하지 않음
         selectedTaskId = subjectId
-        startTask(subjectId)
+        pausedByCamera = false
     }
 
     private suspend fun getOrCreateUid(): String {
@@ -225,22 +219,20 @@ class TimerViewModel : ViewModel() {
     fun pauseByCamera() {
         if (runningTaskId != null) {
             pausedByCamera = true
-            pause()
         }
+
+        pause()
     }
 
     fun resumeByCamera() {
         val targetId = selectedTaskId ?: return
         val targetSubject = subjects.firstOrNull { it.id == targetId } ?: return
 
-        if (
-            pausedByCamera &&
-            runningTaskId == null &&
-            targetSubject.remainingSeconds > 0
-        ) {
-            pausedByCamera = false
-            startTask(targetId)
-        }
+        if (runningTaskId != null) return
+        if (targetSubject.remainingSeconds <= 0) return
+
+        pausedByCamera = false
+        startTask(targetId)
     }
 
     fun stopCameraMonitoring() {

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +21,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.util.normalizeTimeInput
 
@@ -42,6 +48,15 @@ fun LifestyleInputScreen(
     var dinnerStartTime by remember { mutableStateOf("") }
     var dinnerEndTime by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val focusManager = LocalFocusManager.current
+
+    val wakeFocusRequester = remember { FocusRequester() }
+    val sleepFocusRequester = remember { FocusRequester() }
+    val lunchStartFocusRequester = remember { FocusRequester() }
+    val lunchEndFocusRequester = remember { FocusRequester() }
+    val dinnerStartFocusRequester = remember { FocusRequester() }
+    val dinnerEndFocusRequester = remember { FocusRequester() }
 
     Column(
         modifier = modifier
@@ -76,7 +91,15 @@ fun LifestyleInputScreen(
             label = { Text("기상 시간") },
             placeholder = { Text("예: 7, 700, 07:00") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { sleepFocusRequester.requestFocus() }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(wakeFocusRequester)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -90,7 +113,15 @@ fun LifestyleInputScreen(
             label = { Text("취침 시간") },
             placeholder = { Text("예: 2330, 23:30") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { lunchStartFocusRequester.requestFocus() }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(sleepFocusRequester)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -115,7 +146,15 @@ fun LifestyleInputScreen(
                 label = { Text("시작") },
                 placeholder = { Text("예 : 12, 1200, 12:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { lunchEndFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(lunchStartFocusRequester)
             )
 
             Spacer(modifier = Modifier.padding(horizontal = 6.dp))
@@ -129,7 +168,15 @@ fun LifestyleInputScreen(
                 label = { Text("끝") },
                 placeholder = { Text("예 : 13, 1300, 13:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { dinnerStartFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(lunchEndFocusRequester)
             )
         }
 
@@ -155,7 +202,15 @@ fun LifestyleInputScreen(
                 label = { Text("시작") },
                 placeholder = { Text("예 : 18, 1800, 18:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { dinnerEndFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(dinnerStartFocusRequester)
             )
 
             Spacer(modifier = Modifier.padding(horizontal = 6.dp))
@@ -169,12 +224,19 @@ fun LifestyleInputScreen(
                 label = { Text("끝") },
                 placeholder = { Text("예 : 19, 1900, 19:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(dinnerEndFocusRequester)
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-
 
         errorMessage?.let {
             Spacer(modifier = Modifier.height(12.dp))
@@ -209,7 +271,6 @@ fun LifestyleInputScreen(
                     return@Button
                 }
 
-                // 화면에 보이는 값도 07:00 형식으로 바꿔줌
                 wakeTime = normalizedWakeTime
                 sleepTime = normalizedSleepTime
                 lunchStartTime = normalizedLunchStartTime

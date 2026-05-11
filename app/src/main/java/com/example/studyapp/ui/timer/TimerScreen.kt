@@ -66,20 +66,25 @@ fun TimerScreen(
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
+        timerViewModel.pauseByCamera()
+
         if (isGranted) {
             showCameraPreview = true
         }
     }
 
     fun openCamera() {
-        if (timerViewModel.runningTaskId == null) {
+        if (timerViewModel.selectedTaskId == null) {
             Toast.makeText(
                 context,
-                "먼저 타이머를 시작해주세요.",
+                "먼저 과목을 선택해주세요.",
                 Toast.LENGTH_SHORT
             ).show()
             return
         }
+
+        // 카메라에 들어가기 전에는 항상 정지
+        timerViewModel.pauseByCamera()
 
         when {
             ContextCompat.checkSelfPermission(
@@ -94,7 +99,6 @@ fun TimerScreen(
             }
         }
     }
-
     val availableSubjects = subjectViewModel.subjects
 
     // TODO: DB 연결 완료 후 아래 줄로 교체
@@ -184,7 +188,7 @@ fun TimerScreen(
                     items = timerSubjects,
                     key = { it.id }
                 ) { item ->
-                    val isRunning = timerViewModel.runningTaskId == item.id
+                    val isRunning = timerViewModel.selectedTaskId == item.id
 
                     val subjectColorArgb = availableSubjects
                         .firstOrNull { it.name == item.name }
@@ -215,6 +219,7 @@ fun TimerScreen(
             onDismissRequest = {
                 showCameraPreview = false
                 timerViewModel.stopCameraMonitoring()
+                timerViewModel.pauseByCamera()
             },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false

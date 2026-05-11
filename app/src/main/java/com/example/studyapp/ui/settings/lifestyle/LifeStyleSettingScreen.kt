@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.util.normalizeTimeInput
 
@@ -49,6 +55,15 @@ fun LifeStyleSettingScreen(
     var dinnerStartTime by remember { mutableStateOf(initialDinnerStartTime) }
     var dinnerEndTime by remember { mutableStateOf(initialDinnerEndTime) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val focusManager = LocalFocusManager.current
+
+    val wakeFocusRequester = remember { FocusRequester() }
+    val sleepFocusRequester = remember { FocusRequester() }
+    val lunchStartFocusRequester = remember { FocusRequester() }
+    val lunchEndFocusRequester = remember { FocusRequester() }
+    val dinnerStartFocusRequester = remember { FocusRequester() }
+    val dinnerEndFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(
         initialWakeTime,
@@ -99,7 +114,15 @@ fun LifeStyleSettingScreen(
             label = { Text("기상 시간") },
             placeholder = { Text("예: 07:00") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { sleepFocusRequester.requestFocus() }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(wakeFocusRequester)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -113,7 +136,15 @@ fun LifeStyleSettingScreen(
             label = { Text("취침 시간") },
             placeholder = { Text("예: 23:30") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { lunchStartFocusRequester.requestFocus() }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(sleepFocusRequester)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -138,7 +169,15 @@ fun LifeStyleSettingScreen(
                 label = { Text("시작") },
                 placeholder = { Text("12:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { lunchEndFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(lunchStartFocusRequester)
             )
 
             Spacer(modifier = Modifier.padding(horizontal = 6.dp))
@@ -152,7 +191,15 @@ fun LifeStyleSettingScreen(
                 label = { Text("끝") },
                 placeholder = { Text("13:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { dinnerStartFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(lunchEndFocusRequester)
             )
         }
 
@@ -178,7 +225,15 @@ fun LifeStyleSettingScreen(
                 label = { Text("시작") },
                 placeholder = { Text("18:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { dinnerEndFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(dinnerStartFocusRequester)
             )
 
             Spacer(modifier = Modifier.padding(horizontal = 6.dp))
@@ -192,7 +247,15 @@ fun LifeStyleSettingScreen(
                 label = { Text("끝") },
                 placeholder = { Text("19:00") },
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(dinnerEndFocusRequester)
             )
         }
 
@@ -231,7 +294,6 @@ fun LifeStyleSettingScreen(
                     return@Button
                 }
 
-                // 저장 전에 화면 값도 정규화
                 wakeTime = normalizedWakeTime
                 sleepTime = normalizedSleepTime
                 lunchStartTime = normalizedLunchStartTime
