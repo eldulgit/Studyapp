@@ -50,7 +50,7 @@ fun arrangeSchedulesByPriority(
     val finalAssignments = mutableListOf<Pair<TimeRange, StudyRequirement>>()
 
     for (req in sortedReqs) {
-        var remainingMin = req.requiredMinutes
+        var remainingMin = (req.requiredMinutes / 10) * 10
 
         while (remainingMin > 0 && availableSlots.isNotEmpty()) {
             val slot = availableSlots.removeAt(0)
