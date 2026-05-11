@@ -108,9 +108,12 @@ class TimerViewModel : ViewModel() {
     }
 
     fun updateSubjectTime(subjectId: Long, hour: String, minute: String) {
+        val targetSubject = subjects.firstOrNull { it.id == subjectId } ?: return
+
         val hourInt = hour.toIntOrNull() ?: 0
         val minuteInt = minute.toIntOrNull() ?: 0
-        val totalSeconds = (hourInt * 60 + minuteInt) * 60
+
+        val totalSeconds = ((hourInt * 60) + minuteInt) * 60
 
         subjects = subjects.map { subject ->
             if (subject.id == subjectId) {
@@ -126,6 +129,24 @@ class TimerViewModel : ViewModel() {
         if (selectedTaskId == subjectId && totalSeconds <= 0) {
             pause()
             selectedTaskId = null
+        }
+
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val today = makeSessionDate(System.currentTimeMillis())
+
+                generatedScheduleRepository.saveTimerTimeOverride(
+                    userId = uid,
+                    date = today,
+                    timerId = subjectId,
+                    subjectName = targetSubject.name,
+                    allocatedSeconds = totalSeconds,
+                    remainingSeconds = totalSeconds
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "타이머 직접 수정값 저장 실패", e)
+            }
         }
     }
 
@@ -284,6 +305,11 @@ class TimerViewModel : ViewModel() {
                     date = today
                 )
 
+                val timerOverrides = generatedScheduleRepository.getTimerTimeOverrides(
+                    userId = uid,
+                    date = today
+                )
+
                 val firestoreSubjects = subjectRepository.getSubjects(uid)
 
                 val mergedTimerMap = linkedMapOf<String, SubjectTimer>()
@@ -341,7 +367,18 @@ class TimerViewModel : ViewModel() {
                         }
                     }
 
-                subjects = mergedTimerMap.values.toList()
+                subjects = mergedTimerMap.values.map { timer ->
+                    val override = timerOverrides[timer.id]
+
+                    if (override != null) {
+                        timer.copy(
+                            allocatedSeconds = override.allocatedSeconds,
+                            remainingSeconds = override.remainingSeconds
+                        )
+                    } else {
+                        timer
+                    }
+                }
 
                 nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
             } catch (e: Exception) {
