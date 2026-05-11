@@ -66,26 +66,31 @@ fun TimerScreen(
     var showCameraPreview by remember { mutableStateOf(false) }
 
     /*
-     * 아이콘 표시 전용 상태
+     * pauseIconTaskId:
+     * - 리스트 아이콘만 Ⅱ 모양으로 보여줄지 결정하는 상태
      *
      * selectedTaskId:
-     * - 선택된 과목 유지용
-     * - 원형 타이머 표시용
-     * - 카메라에서 인식됐을 때 resumeByCamera()가 사용할 값
+     * - 선택된 과목 유지
+     * - 원형 타이머 표시
+     * - 카메라 인식 시 resumeByCamera()가 다시 시작할 과목
      *
-     * pauseIconTaskId:
-     * - 리스트 아이콘만 Ⅱ 모양으로 보여줄지 결정
-     * - 카메라에서 나오면 null로 만들어서 세모 아이콘으로 변경
+     * 원하는 동작:
+     * 1. 과목 재생 버튼 클릭 -> 아이콘 Ⅱ, 시간은 아직 안 감
+     * 2. 카메라 진입 -> 인식되면 시간 감
+     * 3. 카메라 종료 -> 시간 멈춤, 선택 과목 유지, 아이콘은 세모
      */
     var pauseIconTaskId by remember { mutableStateOf<Long?>(null) }
+
+    fun showCamera() {
+        showCameraPreview = true
+        timerViewModel.startCameraMonitoring()
+    }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        timerViewModel.pauseByCamera()
-
         if (isGranted) {
-            showCameraPreview = true
+            showCamera()
         } else {
             pauseIconTaskId = null
         }
@@ -101,7 +106,7 @@ fun TimerScreen(
             return
         }
 
-        // 카메라에 들어가기 전에는 항상 정지
+        // 카메라에 들어가기 전에는 항상 시간만 정지
         // selectedTaskId는 유지해야 카메라 인식 시 resumeByCamera()가 다시 시작할 수 있음
         timerViewModel.pauseByCamera()
 
@@ -110,7 +115,7 @@ fun TimerScreen(
                 context,
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED -> {
-                showCameraPreview = true
+                showCamera()
             }
 
             else -> {
@@ -251,8 +256,8 @@ fun TimerScreen(
                                  * 세모 아이콘 상태에서 누르면 선택 상태로 만들고
                                  * 아이콘만 Ⅱ로 변경
                                  *
-                                 * 단, 카메라에서 나온 직후처럼 이미 selectedTaskId가 같은 과목이면
-                                 * toggleTask()를 호출하지 않아야 선택이 해제되지 않음
+                                 * 카메라에서 나온 직후에는 selectedTaskId가 이미 같은 과목일 수 있음.
+                                 * 이때 toggleTask()를 호출하면 선택이 해제되므로 호출하지 않음.
                                  */
                                 if (timerViewModel.selectedTaskId != item.id) {
                                     timerViewModel.toggleTask(item.id)
@@ -274,14 +279,16 @@ fun TimerScreen(
     if (showCameraPreview) {
         Dialog(
             onDismissRequest = {
-                showCameraPreview = false
                 timerViewModel.stopCameraMonitoring()
                 timerViewModel.pauseByCamera()
+
+                showCameraPreview = false
 
                 /*
                  * 카메라에서 나오면:
                  * - 시간은 멈춤
                  * - selectedTaskId는 유지
+                 * - 원형 타이머 진행상황/색상 유지
                  * - 아이콘만 세모 모양으로 변경
                  */
                 pauseIconTaskId = null

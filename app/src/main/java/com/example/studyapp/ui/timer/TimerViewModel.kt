@@ -71,6 +71,16 @@ class TimerViewModel : ViewModel() {
         }
     }
 
+    fun startCameraMonitoring() {
+        if (runningTaskId == null) return
+
+        pausedByCamera = false
+
+        // 카메라를 켠 시점을 실제 집중 시작 시점으로 저장
+        currentSessionStartMillis = System.currentTimeMillis()
+        currentSessionStudiedSeconds = 0
+    }
+
     fun loadSubjectsFromFirestore() {
         viewModelScope.launch {
             try {
@@ -258,19 +268,31 @@ class TimerViewModel : ViewModel() {
 
     fun stopCameraMonitoring() {
         pausedByCamera = false
+
+        pause()
     }
 
     fun finishCurrentSessionAndSave() {
         val currentId = runningTaskId ?: return
         val currentSubject = subjects.firstOrNull { it.id == currentId } ?: return
-        val subjectName = currentSubject.name
 
+        val subjectName = currentSubject.name
         val startTime = currentSessionStartMillis ?: return
         val endTime = System.currentTimeMillis()
         val studiedSeconds = currentSessionStudiedSeconds
-        if (studiedSeconds <= 0) return
+
+        // 저장할 공부 시간이 없으면 저장하지 않음
+        if (studiedSeconds <= 0) {
+            currentSessionStartMillis = null
+            currentSessionStudiedSeconds = 0
+            return
+        }
 
         val sessionDate = makeSessionDate(startTime)
+
+        // 다음 세션과 값이 섞이지 않게 먼저 초기화
+        currentSessionStartMillis = null
+        currentSessionStudiedSeconds = 0
 
         viewModelScope.launch {
             try {
@@ -284,9 +306,6 @@ class TimerViewModel : ViewModel() {
                     studiedSeconds = studiedSeconds,
                     sessionDate = sessionDate
                 )
-
-                currentSessionStartMillis = null
-                currentSessionStudiedSeconds = 0
             } catch (e: Exception) {
                 android.util.Log.e("TimerFirestore", "공부 기록 저장 실패", e)
             }

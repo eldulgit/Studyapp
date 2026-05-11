@@ -17,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.studyapp.ai.DailyScheduleItem
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -38,7 +37,7 @@ fun StatsScreen(
     val statsViewModel: StatsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
     LaunchedEffect(Unit) {
-        statsViewModel.loadRecordsFromFirestore()
+        statsViewModel.loadStatsData()
     }
 
     val records = statsViewModel.records
@@ -77,67 +76,21 @@ fun StatsScreen(
         )
     }
 
-    val scheduledHours = remember {
-        listOf(9, 14, 16, 20)
-    }
+    val userProfile = statsViewModel.userProfile
+    val recordSnapshot = records.toList()
 
-    val wakeTime = "07:00"
-    val sleepTime = "23:30"
-
-    val todaySchedules = remember {
-        listOf(
-            DailyScheduleItem(
-                id = "TEMP_1",
-                date = "2026-05-04",
-                subjectId = null,
-                title = "수학 공부",
-                startTime = "08:00",
-                endTime = "10:00",
-                isCompleted = false,
-                memo = "임시 테스트 일정",
-                priority = 3
-            ),
-            DailyScheduleItem(
-                id = "TEMP_2",
-                date = "2026-05-04",
-                subjectId = null,
-                title = "영어 공부",
-                startTime = "11:00",
-                endTime = "12:00",
-                isCompleted = false,
-                memo = "임시 테스트 일정",
-                priority = 1
-            ),
-            DailyScheduleItem(
-                id = "TEMP_3",
-                date = "2026-05-04",
-                subjectId = null,
-                title = "알고리즘 공부",
-                startTime = "15:00",
-                endTime = "17:00",
-                isCompleted = false,
-                memo = "임시 테스트 일정",
-                priority = 2
-            ),
-            DailyScheduleItem(
-                id = "TEMP_4",
-                date = "2026-05-04",
-                subjectId = null,
-                title = "프로젝트 공부",
-                startTime = "20:00",
-                endTime = "22:00",
-                isCompleted = false,
-                memo = "임시 테스트 일정",
-                priority = 3
-            )
+    val studyHourRange = remember(userProfile) {
+        getStudyHourRangeFromUserProfile(
+            wakeTime = userProfile?.wakeTime,
+            sleepTime = userProfile?.sleepTime
         )
     }
 
-    val hourlyFocusPoints = remember(todaySchedules, wakeTime, sleepTime) {
-        generateHourlyFocusData(
-            schedules = todaySchedules,
-            wakeUpTime = wakeTime,
-            sleepTime = sleepTime
+    val hourlyFocusPoints = remember(recordSnapshot, studyHourRange) {
+        generateHourlyFocusDataForLast30Days(
+            records = recordSnapshot,
+            startHour = studyHourRange.startHour,
+            endHourExclusive = studyHourRange.endHourExclusive
         )
     }
 
@@ -179,4 +132,43 @@ fun StatsScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+private data class StudyHourRange(
+    val startHour: Int,
+    val endHourExclusive: Int
+)
+
+private fun getStudyHourRangeFromUserProfile(
+    wakeTime: String?,
+    sleepTime: String?
+): StudyHourRange {
+    val wakeMinutes = parseTimeToMinutes(wakeTime) ?: (7 * 60)
+    val sleepMinutes = parseTimeToMinutes(sleepTime) ?: (23 * 60)
+
+    val startHour = wakeMinutes / 60
+
+    // 23:30이면 23시대까지 보여줘야 하므로 endHourExclusive는 24
+    // 23:00이면 23시대는 포함하지 않고 22시대까지만 보여줌
+    val endHourExclusive = (sleepMinutes + 59) / 60
+
+    return StudyHourRange(
+        startHour = startHour.coerceIn(0, 23),
+        endHourExclusive = endHourExclusive.coerceIn(0, 24)
+    )
+}
+
+private fun parseTimeToMinutes(time: String?): Int? {
+    if (time.isNullOrBlank()) return null
+
+    val parts = time.split(":")
+    if (parts.size != 2) return null
+
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+
+    if (hour !in 0..23) return null
+    if (minute !in 0..59) return null
+
+    return hour * 60 + minute
 }

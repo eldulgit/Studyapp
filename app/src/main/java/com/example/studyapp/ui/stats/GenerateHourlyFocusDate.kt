@@ -1,88 +1,112 @@
 package com.example.studyapp.ui.stats
 
-import com.example.studyapp.ai.DailyScheduleItem
+import android.os.Build
+import androidx.annotation.RequiresApi
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import kotlin.math.max
 import kotlin.math.roundToInt
 
-fun generateHourlyFocusData(
-    schedules: List<DailyScheduleItem>,
-    wakeUpTime: String,
-    sleepTime: String
+@RequiresApi(Build.VERSION_CODES.O)
+fun generateHourlyFocusDataForLast30Days(
+    records: List<StudySessionRecord>,
+    startHour: Int,
+    endHourExclusive: Int,
+    zoneId: ZoneId = ZoneId.systemDefault()
 ): List<HourlyFocusPoint> {
-    val wake = wakeUpTime.toMinutesOrNull() ?: return emptyList()
-    val sleep = sleepTime.toMinutesOrNull() ?: return emptyList()
+    val now = Instant.now()
+    val from = now.minus(30, ChronoUnit.DAYS)
 
-    if (wake >= sleep) return emptyList()
+    val hoursToShow = buildHourRange(
+        startHour = startHour,
+        endHourExclusive = endHourExclusive
+    )
 
-    val points = mutableListOf<HourlyFocusPoint>()
+    val secondsByHour = hoursToShow.associateWith { 0 }.toMutableMap()
 
-    var slotStart = wake
+    records.forEach { record ->
+        val recordStart = Instant.ofEpochMilli(record.startTimeMillis)
+        val recordEnd = Instant.ofEpochMilli(record.endTimeMillis)
 
-    while (slotStart < sleep) {
-        val slotEnd = minOf(slotStart + 60, sleep)
+        // 최근 30일 범위 밖이면 제외
+        if (!recordEnd.isAfter(from)) return@forEach
+        if (!recordEnd.isAfter(recordStart)) return@forEach
 
-        val focusScore = calculateFocusScoreForSlot(
-            slotStart = slotStart,
-            slotEnd = slotEnd,
-            schedules = schedules
-        )
+        var segmentStart = if (recordStart.isBefore(from)) from else recordStart
+        val segmentEnd = if (recordEnd.isAfter(now)) now else recordEnd
 
-        points.add(
-            HourlyFocusPoint(
-                hour = slotStart / 60,
-                studiedMinutes = 0,
-                focusScore = focusScore
-            )
-        )
+        while (segmentStart.isBefore(segmentEnd)) {
+            val zonedStart = segmentStart.atZone(zoneId)
 
-        slotStart += 60
-    }
+            val nextHour = zonedStart
+                .truncatedTo(ChronoUnit.HOURS)
+                .plusHours(1)
+                .toInstant()
 
-    return points
-}
-
-private fun calculateFocusScoreForSlot(
-    slotStart: Int,
-    slotEnd: Int,
-    schedules: List<DailyScheduleItem>
-): Int {
-    val slotLength = slotEnd - slotStart
-    if (slotLength <= 0) return 0
-
-    var totalWeightedMinutes = 0.0
-
-    schedules.forEach { schedule ->
-        val scheduleStart = schedule.startTime.toMinutesOrNull() ?: return@forEach
-        val scheduleEnd = schedule.endTime.toMinutesOrNull() ?: return@forEach
-
-        val overlapStart = maxOf(slotStart, scheduleStart)
-        val overlapEnd = minOf(slotEnd, scheduleEnd)
-        val overlapMinutes = overlapEnd - overlapStart
-
-        if (overlapMinutes > 0) {
-            val priorityWeight = when (schedule.priority) {
-                3 -> 1.0
-                2 -> 0.75
-                else -> 0.5
+            val chunkEnd = if (nextHour.isBefore(segmentEnd)) {
+                nextHour
+            } else {
+                segmentEnd
             }
 
-            totalWeightedMinutes += overlapMinutes * priorityWeight
+            val seconds = ChronoUnit.SECONDS
+                .between(segmentStart, chunkEnd)
+                .toInt()
+                .coerceAtLeast(0)
+
+            val hour = zonedStart.hour
+
+            // 사용자의 공부 가능 시간 범위 안에 있는 시간대만 누적
+            if (secondsByHour.containsKey(hour)) {
+                secondsByHour[hour] = (secondsByHour[hour] ?: 0) + seconds
+            }
+
+            segmentStart = chunkEnd
         }
     }
 
-    return ((totalWeightedMinutes / slotLength) * 100)
-        .roundToInt()
-        .coerceIn(0, 100)
+    val maxSeconds = max(secondsByHour.values.maxOrNull() ?: 0, 1)
+
+    return hoursToShow.map { hour ->
+        val seconds = secondsByHour[hour] ?: 0
+
+        val studiedMinutes =
+            if (seconds == 0) 0
+            else (seconds + 59) / 60
+
+        val focusScore =
+            if (seconds == 0) {
+                0
+            } else {
+                ((seconds.toDouble() / maxSeconds) * 100)
+                    .roundToInt()
+                    .coerceIn(0, 100)
+            }
+
+        HourlyFocusPoint(
+            hour = hour,
+            studiedMinutes = studiedMinutes,
+            focusScore = focusScore
+        )
+    }
 }
 
-private fun String.toMinutesOrNull(): Int? {
-    val parts = this.split(":")
-    if (parts.size < 2) return null
+private fun buildHourRange(
+    startHour: Int,
+    endHourExclusive: Int
+): List<Int> {
+    val safeStartHour = startHour.coerceIn(0, 23)
 
-    val hour = parts[0].toIntOrNull() ?: return null
-    val minute = parts[1].toIntOrNull() ?: return null
+    var safeEndHour = endHourExclusive.coerceIn(0, 24)
 
-    if (hour !in 0..23) return null
-    if (minute !in 0..59) return null
+    // 예: 기상 07:00, 취침 00:00이면
+    // 7 until 24 → 7시~23시까지 표시
+    if (safeEndHour <= safeStartHour) {
+        safeEndHour += 24
+    }
 
-    return hour * 60 + minute
+    return (safeStartHour until safeEndHour).map { hour ->
+        hour % 24
+    }
 }
