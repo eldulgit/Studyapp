@@ -37,10 +37,6 @@ class MLKitFocusAnalyzer(
     private val BLANK_STARE_THRESHOLD_MS = 10000L
     private val HEAD_MOVEMENT_THRESHOLD = 2.0f
     private val HEAD_DOWN_THRESHOLD = 12.0f
-
-    // ★ 빡센 각도 기준 추가 (좌우 25도, 기울기 25도)
-    private val STRICT_ANGLE_THRESHOLD = 25.0f
-
     private var absentStartTime: Long = 0L
     private var eyesClosedStartTime: Long = 0L
     private var headStillStartTime: Long = 0L
@@ -97,7 +93,7 @@ class MLKitFocusAnalyzer(
                     val faceHeightRatio = face.boundingBox.height().toFloat() / frameHeight
                     val isTooSmall = faceWidthRatio < 0.1f || faceHeightRatio < 0.1f // 화면의 10%보다 작으면 아웃
 
-                    // 2. 이목구비 랜드마크 추출
+                    // 2. 이목구비
                     val leftEye = face.getLandmark(FaceLandmark.LEFT_EYE)
                     val rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE)
                     val nose = face.getLandmark(FaceLandmark.NOSE_BASE)
@@ -108,13 +104,8 @@ class MLKitFocusAnalyzer(
                     val rightEyeProb = face.rightEyeOpenProbability
                     val isEyesNotVisible = leftEyeProb == null || rightEyeProb == null
 
-                    // 4. 고개 각도 타이트하게 체크 (좌우 Y축, 갸우뚱 Z축)
-                    val yaw = abs(face.headEulerAngleY)
-                    val roll = abs(face.headEulerAngleZ)
-                    val isHeadTurnedAway = yaw > STRICT_ANGLE_THRESHOLD || roll > STRICT_ANGLE_THRESHOLD
-
-                    // ★ 핵심 로직: 하나라도 걸리면 무조건 자리 비움(딴짓)으로 간주
-                    if (isTooSmall || leftEye == null || rightEye == null || nose == null || mouth == null || isEyesNotVisible || isHeadTurnedAway) {
+                    // 하나라도 걸리면 무조건 자리 비움(딴짓)으로 간주
+                    if (isTooSmall || leftEye == null || rightEye == null || nose == null || mouth == null || isEyesNotVisible) {
                         eyesClosedStartTime = 0L // 졸음 타이머 초기화
 
                         if (absentStartTime == 0L) absentStartTime = currentTime
