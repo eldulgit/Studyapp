@@ -72,6 +72,20 @@ fun NotificationSettingScreen(
                     settingsViewModel.updateNotificationTime(hour, minute)
                 }
             )
+
+            Spacer(modifier = Modifier.padding(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("졸음 감지 알림")
+                Switch(
+                    checked = notificationEnabled,
+                    onCheckedChange = { settingsViewModel.updateNotificationEnabled(it) }
+                )
+            }
         }
     }
 }

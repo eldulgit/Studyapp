@@ -9,10 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -185,6 +186,7 @@ fun ScheduleSettingScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             Row(
                 modifier = Modifier
@@ -243,14 +245,16 @@ fun ScheduleSettingScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .navigationBarsPadding()
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp),
+                contentPadding = PaddingValues(
+                    top = 16.dp,
+                    bottom = 0.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {

@@ -1,11 +1,18 @@
 package com.example.studyapp.ui.timer
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,11 +28,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import android.Manifest
-import android.content.pm.PackageManager
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,15 +35,15 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.example.studyapp.ui.camera.CameraScreen
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.timer.pomodoro.CircularTimer
@@ -63,6 +65,20 @@ fun TimerScreen(
 
     var showCameraPreview by remember { mutableStateOf(false) }
 
+    /*
+     * 아이콘 표시 전용 상태
+     *
+     * selectedTaskId:
+     * - 선택된 과목 유지용
+     * - 원형 타이머 표시용
+     * - 카메라에서 인식됐을 때 resumeByCamera()가 사용할 값
+     *
+     * pauseIconTaskId:
+     * - 리스트 아이콘만 Ⅱ 모양으로 보여줄지 결정
+     * - 카메라에서 나오면 null로 만들어서 세모 아이콘으로 변경
+     */
+    var pauseIconTaskId by remember { mutableStateOf<Long?>(null) }
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -70,6 +86,8 @@ fun TimerScreen(
 
         if (isGranted) {
             showCameraPreview = true
+        } else {
+            pauseIconTaskId = null
         }
     }
 
@@ -84,6 +102,7 @@ fun TimerScreen(
         }
 
         // 카메라에 들어가기 전에는 항상 정지
+        // selectedTaskId는 유지해야 카메라 인식 시 resumeByCamera()가 다시 시작할 수 있음
         timerViewModel.pauseByCamera()
 
         when {
@@ -99,6 +118,7 @@ fun TimerScreen(
             }
         }
     }
+
     val availableSubjects = subjectViewModel.subjects
 
     // TODO: DB 연결 완료 후 아래 줄로 교체
@@ -115,7 +135,19 @@ fun TimerScreen(
 
     val currentEditTarget = timerSubjects.firstOrNull { it.id == editTargetId }
 
-    val selectedTask = timerSubjects.firstOrNull { it.id == timerViewModel.selectedTaskId }
+    var lastSelectedTaskId by remember { mutableStateOf<Long?>(null) }
+
+    LaunchedEffect(timerViewModel.selectedTaskId) {
+        if (timerViewModel.selectedTaskId != null) {
+            lastSelectedTaskId = timerViewModel.selectedTaskId
+        } else {
+            pauseIconTaskId = null
+        }
+    }
+
+    val displayTaskId = timerViewModel.selectedTaskId ?: lastSelectedTaskId
+
+    val selectedTask = timerSubjects.firstOrNull { it.id == displayTaskId }
 
     val segments = if (selectedTask == null) {
         emptyList()
@@ -135,6 +167,7 @@ fun TimerScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showSubjectDialog = true }
@@ -149,8 +182,13 @@ fun TimerScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+                .padding(top = padding.calculateTopPadding())
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
+                    bottom = 0.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
@@ -182,13 +220,13 @@ fun TimerScreen(
                 modifier = Modifier
                     .width(timerWidth)
                     .weight(1f),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentPadding = PaddingValues(bottom = 0.dp)
             ) {
                 items(
                     items = timerSubjects,
                     key = { it.id }
                 ) { item ->
-                    val isRunning = timerViewModel.selectedTaskId == item.id
+                    val isRunningIcon = pauseIconTaskId == item.id
 
                     val subjectColorArgb = availableSubjects
                         .firstOrNull { it.name == item.name }
@@ -200,9 +238,28 @@ fun TimerScreen(
                         time = formatCountdown(item.remainingSeconds),
                         subjectColorArgb = subjectColorArgb,
                         containerWidth = timerWidth,
-                        isRunning = isRunning,
+                        isRunning = isRunningIcon,
                         onToggle = {
-                            timerViewModel.toggleTask(item.id)
+                            if (pauseIconTaskId == item.id) {
+                                /*
+                                 * Ⅱ 아이콘 상태에서 다시 누르면 선택 해제
+                                 */
+                                timerViewModel.toggleTask(item.id)
+                                pauseIconTaskId = null
+                            } else {
+                                /*
+                                 * 세모 아이콘 상태에서 누르면 선택 상태로 만들고
+                                 * 아이콘만 Ⅱ로 변경
+                                 *
+                                 * 단, 카메라에서 나온 직후처럼 이미 selectedTaskId가 같은 과목이면
+                                 * toggleTask()를 호출하지 않아야 선택이 해제되지 않음
+                                 */
+                                if (timerViewModel.selectedTaskId != item.id) {
+                                    timerViewModel.toggleTask(item.id)
+                                }
+
+                                pauseIconTaskId = item.id
+                            }
                         },
                         onEditClick = {
                             editTargetId = item.id
@@ -220,6 +277,14 @@ fun TimerScreen(
                 showCameraPreview = false
                 timerViewModel.stopCameraMonitoring()
                 timerViewModel.pauseByCamera()
+
+                /*
+                 * 카메라에서 나오면:
+                 * - 시간은 멈춤
+                 * - selectedTaskId는 유지
+                 * - 아이콘만 세모 모양으로 변경
+                 */
+                pauseIconTaskId = null
             },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false
