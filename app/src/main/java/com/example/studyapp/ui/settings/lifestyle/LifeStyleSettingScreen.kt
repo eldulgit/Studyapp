@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.util.normalizeTimeInput
 
 @Composable
 fun LifeStyleSettingScreen(
@@ -211,25 +212,40 @@ fun LifeStyleSettingScreen(
 
         Button(
             onClick = {
+                val normalizedWakeTime = normalizeTimeInput(wakeTime)
+                val normalizedSleepTime = normalizeTimeInput(sleepTime)
+                val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
+                val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
+                val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
+                val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
+
                 if (
-                    wakeTime.isBlank() ||
-                    sleepTime.isBlank() ||
-                    lunchStartTime.isBlank() ||
-                    lunchEndTime.isBlank() ||
-                    dinnerStartTime.isBlank() ||
-                    dinnerEndTime.isBlank()
+                    normalizedWakeTime == null ||
+                    normalizedSleepTime == null ||
+                    normalizedLunchStartTime == null ||
+                    normalizedLunchEndTime == null ||
+                    normalizedDinnerStartTime == null ||
+                    normalizedDinnerEndTime == null
                 ) {
-                    errorMessage = "기상 시간, 취침 시간, 점심 시간, 저녁 시간을 모두 입력해주세요."
+                    errorMessage = "시간은 7, 700, 730, 07:00 형식으로 입력해주세요."
                     return@Button
                 }
 
+                // 저장 전에 화면 값도 정규화
+                wakeTime = normalizedWakeTime
+                sleepTime = normalizedSleepTime
+                lunchStartTime = normalizedLunchStartTime
+                lunchEndTime = normalizedLunchEndTime
+                dinnerStartTime = normalizedDinnerStartTime
+                dinnerEndTime = normalizedDinnerEndTime
+
                 onSaveClick(
-                    wakeTime,
-                    sleepTime,
-                    lunchStartTime,
-                    lunchEndTime,
-                    dinnerStartTime,
-                    dinnerEndTime
+                    normalizedWakeTime,
+                    normalizedSleepTime,
+                    normalizedLunchStartTime,
+                    normalizedLunchEndTime,
+                    normalizedDinnerStartTime,
+                    normalizedDinnerEndTime
                 )
             },
             modifier = Modifier.fillMaxWidth()
