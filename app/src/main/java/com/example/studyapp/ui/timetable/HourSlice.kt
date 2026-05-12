@@ -17,15 +17,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ai.toMinutes
 import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
+import com.example.studyapp.ui.settings.schedule.goalColors
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 
 @Composable
 fun HourSlice(
     hour: Int,
     schedules: List<FixedScheduleItem>,
+    goals: List<FixedScheduleItem>,
     subjectViewModel: SubjectViewModel
-) {
+){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -60,7 +63,16 @@ fun HourSlice(
                     val matchedSubject = subjectViewModel.subjects.find { subject ->
                         subject.name == schedule.title
                     }
-                    matchedSubject?.let { Color(it.colorArgb) } ?: Color.LightGray
+
+                    val matchedGoalIndex = goals.indexOfFirst { goal ->
+                        goal.title == schedule.title
+                    }
+
+                    when {
+                        matchedSubject != null -> Color(matchedSubject.colorArgb)
+                        matchedGoalIndex != -1 -> goalColors[matchedGoalIndex % goalColors.size]
+                        else -> Color.LightGray
+                    }
                 } ?: Color(0xFFF1F1F1)
 
                 Box(

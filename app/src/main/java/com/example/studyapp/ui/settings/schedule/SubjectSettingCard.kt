@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -23,14 +24,15 @@ fun SubjectSettingCard(
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.surface
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEditClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = containerColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
