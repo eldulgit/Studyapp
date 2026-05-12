@@ -414,14 +414,12 @@ class TimerViewModel : ViewModel() {
     }
 }
 
-private fun calculateDurationSeconds(
-    startTime: String,
-    endTime: String
-): Int {
+private fun calculateDurationSeconds(startTime: String, endTime: String): Int {
     val start = startTime.toMinutesOrNull() ?: return 0
     val end = endTime.toMinutesOrNull() ?: return 0
 
-    return ((end - start).coerceAtLeast(0)) * 60
+    val diff = (end - start + 1440) % 1440
+    return (if (diff == 0 && startTime != endTime) 1440 else diff) * 60
 }
 
 private fun String.toMinutesOrNull(): Int? {

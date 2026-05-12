@@ -30,32 +30,22 @@ import java.time.LocalDate
 fun DayScheduleTimeline(
     modifier: Modifier = Modifier,
     selectedDate: LocalDate?,
-    schedules: List<DayScheduleBlock>
+    schedules: List<DayScheduleBlock>,
+    wakeTime: String,
+    sleepTime: String
 ) {
     val actualDate = selectedDate ?: LocalDate.now()
     val displayedSchedules = schedules.filter { it.date == actualDate }
 
-    val baseStartMinute = displayedSchedules
-        .map { it.startHour * 60 + it.startMinute }
-        .filter { it >= 6 * 60 }
-        .minOrNull()
-        ?: displayedSchedules
-            .map { it.startHour * 60 + it.startMinute }
-            .minOrNull()
-        ?: 7 * 60
+    val wakeMinutes = wakeTime.split(":").let { it[0].toInt() * 60 + it[1].toInt() }
+    val sleepMinutes = sleepTime.split(":").let {
+        val mins = it[0].toInt() * 60 + it[1].toInt()
+        if (mins < wakeMinutes) mins + 1440 else mins
+    }
 
+    val baseStartMinute = (wakeMinutes / 10) * 10
     val startHour = baseStartMinute / 60
-
-    val endHour = displayedSchedules
-        .maxOfOrNull {
-            normalizeScheduleMinute(
-                hour = it.endHour,
-                minute = it.endMinute,
-                baseStartMinute = baseStartMinute
-            )
-        }
-        ?.let { (it + 59) / 60 }
-        ?: 23
+    val endHour = (sleepMinutes + 59) / 60
 
     val rowHeight = 38.dp
     val timeLabelWidth = 56.dp
