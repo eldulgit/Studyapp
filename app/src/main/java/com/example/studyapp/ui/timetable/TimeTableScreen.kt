@@ -39,7 +39,9 @@ fun TimeTableScreen(
 
     // 목표 항목만 라벨로 표시
     val goalItems = fixedScheduleList.filter {
-        it.category == ScheduleCategory.GOAL
+        it.category == ScheduleCategory.GOAL &&
+                it.startTime != null &&
+                it.endTime != null
     }
 
     val startHour = scheduleItems
