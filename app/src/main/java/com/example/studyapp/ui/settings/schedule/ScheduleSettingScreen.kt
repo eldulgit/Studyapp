@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -28,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +44,8 @@ import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -60,6 +64,14 @@ fun ScheduleSettingScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(ScheduleCategory.GOAL) }
+    val listState = rememberLazyListState()
+
+    val showFab by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
+        }
+    }
     var title by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
@@ -214,31 +226,31 @@ fun ScheduleSettingScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    editingItemId = null
-                    selectedCategory = ScheduleCategory.GOAL
-                    title = ""
-                    startDate = ""
-                    endDate = ""
-                    pageCount = ""
-                    selectedDay = "월"
-                    startTime = "09:00"
-                    endTime = "10:00"
-                    isDayDropdownExpanded = false
-                    errorMessage = null
-
-                    showTimePickerDialog = false
-                    isSelectingStartTime = true
-                    pendingStartTime = null
-
-                    showAddDialog = true
+            if (showFab) {
+                FloatingActionButton(
+                    onClick = {
+                        editingItemId = null
+                        selectedCategory = ScheduleCategory.GOAL
+                        title = ""
+                        startDate = ""
+                        endDate = ""
+                        pageCount = ""
+                        selectedDay = "월"
+                        startTime = "09:00"
+                        endTime = "10:00"
+                        isDayDropdownExpanded = false
+                        errorMessage = null
+                        showTimePickerDialog = false
+                        isSelectingStartTime = true
+                        pendingStartTime = null
+                        showAddDialog = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "항목 추가"
+                    )
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "항목 추가"
-                )
             }
         }
     ) { innerPadding ->
@@ -248,13 +260,11 @@ fun ScheduleSettingScreen(
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(
-                    top = 16.dp,
-                    bottom = 0.dp
-                ),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
@@ -294,6 +304,7 @@ fun ScheduleSettingScreen(
                 item {
                     ScheduleSection(
                         title = "목표",
+                        guideText = "체크하면 우선순위가 자동 상승해요",
                         items = goalItems,
                         subtitleBuilder = {
                             "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"

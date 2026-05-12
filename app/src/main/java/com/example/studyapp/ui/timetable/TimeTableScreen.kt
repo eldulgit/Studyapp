@@ -1,10 +1,17 @@
 package com.example.studyapp.ui.timetable
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
 import com.example.studyapp.ui.settings.schedule.ScheduleCategory
+import com.example.studyapp.ui.settings.schedule.goalColors
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -27,6 +35,11 @@ fun TimeTableScreen(
     // 자동 스케줄링된 결과 + 고정 스케줄 중 실제 시간이 있는 항목만 사용
     val scheduleItems = fixedScheduleList.filter {
         it.startTime != null && it.endTime != null
+    }
+
+    // 목표 항목만 라벨로 표시
+    val goalItems = fixedScheduleList.filter {
+        it.category == ScheduleCategory.GOAL
     }
 
     val startHour = scheduleItems
@@ -53,6 +66,11 @@ fun TimeTableScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        if (goalItems.isNotEmpty()) {
+            GoalLabelRow(goalItems = goalItems)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -61,6 +79,7 @@ fun TimeTableScreen(
                 HourSlice(
                     hour = hour,
                     schedules = scheduleItems,
+                    goals = goalItems,
                     subjectViewModel = subjectViewModel
                 )
             }
@@ -78,4 +97,33 @@ private fun String?.toMinutesOrNull(): Int? {
     val minute = parts[1].toIntOrNull() ?: return null
 
     return hour * 60 + minute
+}
+
+@Composable
+fun GoalLabelRow(
+    goalItems: List<FixedScheduleItem>
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        goalItems.forEachIndexed { index, goal ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(goalColors[index % goalColors.size])
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = goal.title,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
 }
