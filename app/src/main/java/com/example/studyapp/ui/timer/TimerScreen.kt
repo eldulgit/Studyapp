@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,11 +49,13 @@ import com.example.studyapp.ui.timer.pomodoro.CircularTimer
 import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
 import com.example.studyapp.ui.timer.pomodoro.formatCountdown
 import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
+import com.example.studyapp.ui.settings.SettingsViewModel
 
 @Composable
 fun TimerScreen(
     subjectViewModel: SubjectViewModel,
-    timerViewModel: TimerViewModel
+    timerViewModel: TimerViewModel,
+    settingsViewModel: SettingsViewModel
 ) {
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
@@ -92,22 +93,21 @@ fun TimerScreen(
         if (isGranted) {
             showCamera()
         } else {
+            timerViewModel.pause()
             pauseIconTaskId = null
         }
     }
 
     fun openCamera() {
-        if (timerViewModel.selectedTaskId == null) {
+        if (timerViewModel.selectedTaskId == null || pauseIconTaskId == null) {
             Toast.makeText(
                 context,
-                "먼저 과목을 선택해주세요.",
+                "타이머를 먼저 시작해주세요.",
                 Toast.LENGTH_SHORT
             ).show()
             return
         }
 
-        // 카메라에 들어가기 전에는 항상 시간만 정지
-        // selectedTaskId는 유지해야 카메라 인식 시 resumeByCamera()가 다시 시작할 수 있음
         timerViewModel.pauseByCamera()
 
         when {
@@ -301,7 +301,8 @@ fun TimerScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 CameraScreen(
-                    timerViewModel = timerViewModel
+                    timerViewModel = timerViewModel,
+                    drowsinessAlertEnabled = settingsViewModel.drowsinessAlertEnabled
                 )
             }
         }

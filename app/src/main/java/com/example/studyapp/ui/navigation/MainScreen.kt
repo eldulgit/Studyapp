@@ -86,7 +86,8 @@ fun MainScreen(
             composable(BottomNavItem.Timer.route) {
                 TimerScreen(
                     timerViewModel = timerViewModel,
-                    subjectViewModel = subjectViewModel
+                    subjectViewModel = subjectViewModel,
+                    settingsViewModel = settingsViewModel
                 )
             }
 

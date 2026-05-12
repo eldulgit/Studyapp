@@ -35,6 +35,17 @@ class SettingsRepository(context: Context) {
         it[booleanPreferencesKey("goal_alert_enabled")] ?: false
     }
 
+    // 졸음 감지 알림 on/off
+    suspend fun saveDrowsinessAlertEnabled(enabled: Boolean) {
+        dataStore.edit {
+            it[booleanPreferencesKey("drowsiness_alert_enabled")] = enabled
+        }
+    }
+
+    val drowsinessAlertEnabledFlow = dataStore.data.map {
+        it[booleanPreferencesKey("drowsiness_alert_enabled")] ?: true
+    }
+
     // 알림 시간
     suspend fun saveNotificationTime(hour: String, minute: String) {
         dataStore.edit {

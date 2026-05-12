@@ -12,6 +12,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private val repo = SettingsRepository(application)
 
+
+    var drowsinessAlertEnabled by mutableStateOf(true)
+        private set
     var selectedTheme by mutableStateOf("light")
         private set
 
@@ -32,6 +35,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     init {
         viewModelScope.launch {
+            launch {
+                repo.drowsinessAlertEnabledFlow.collect {
+                    drowsinessAlertEnabled = it
+                }
+            }
             launch { repo.themeFlow.collect { selectedTheme = it } }
             launch { repo.notificationEnabledFlow.collect { notificationEnabled = it } }
             launch { repo.goalAlertEnabledFlow.collect { goalAlertEnabled = it } }
@@ -49,6 +57,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun updateNotificationEnabled(enabled: Boolean) {
         notificationEnabled = enabled
         viewModelScope.launch { repo.saveNotificationEnabled(enabled) }
+    }
+
+    fun updateDrowsinessAlertEnabled(enabled: Boolean) {
+        drowsinessAlertEnabled = enabled
+
+        viewModelScope.launch {
+            repo.saveDrowsinessAlertEnabled(enabled)
+        }
     }
 
     fun updateGoalAlertEnabled(enabled: Boolean) {

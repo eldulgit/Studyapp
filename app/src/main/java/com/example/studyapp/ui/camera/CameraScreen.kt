@@ -29,7 +29,10 @@ import android.media.ToneGenerator
 import kotlinx.coroutines.delay
 
 @Composable
-fun CameraScreen(timerViewModel: TimerViewModel) {
+fun CameraScreen(
+    timerViewModel: TimerViewModel,
+    drowsinessAlertEnabled: Boolean = true
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -84,20 +87,21 @@ fun CameraScreen(timerViewModel: TimerViewModel) {
     }
 
     // 새로운 상태(노란색, 멍때림)에 맞춘 타이머 제어
-    LaunchedEffect(focusStatus) {
+    LaunchedEffect(focusStatus, drowsinessAlertEnabled) {
         when (focusStatus) {
-            FocusStatus.UNKNOWN,
-            FocusStatus.ABSENT -> {
+            FocusStatus.UNKNOWN, FocusStatus.ABSENT -> {
                 timerViewModel.pauseByCamera()
             }
 
             FocusStatus.DROWSY -> {
                 timerViewModel.pauseByCamera()
 
-                // 졸음이 감지되면 짧은 부저음 재생
-                while (true) {
-                    toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP, 300)
-                    delay(1500)
+                // 설정에서 졸음 감지 알림이 켜져 있을 때만 부저음 재생
+                if (drowsinessAlertEnabled) {
+                    toneGenerator.startTone(
+                        ToneGenerator.TONE_PROP_BEEP,
+                        300
+                    )
                 }
             }
 
