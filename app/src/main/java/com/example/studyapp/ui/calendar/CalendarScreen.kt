@@ -208,7 +208,9 @@ fun CalendarScreen(
                 .fillMaxWidth()
                 .weight(1f),
             selectedDate = selectedDate,
-            schedules = generatedSchedules
+            schedules = generatedSchedules,
+            wakeTime = generatedScheduleViewModel.wakeTime,
+            sleepTime = generatedScheduleViewModel.sleepTime
         )
     }
 }

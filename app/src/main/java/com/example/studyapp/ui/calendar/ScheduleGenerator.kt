@@ -5,8 +5,13 @@ import androidx.annotation.RequiresApi
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.ui.settings.schedule.ScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectItem
+import com.example.studyapp.ui.settings.schedule.GoalItem
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlin.compareTo
+import kotlin.div
+import kotlin.text.toInt
+import kotlin.times
 
 private data class TimeRange(
     val start: Int,
@@ -18,7 +23,8 @@ private data class TimeRange(
 
 private data class SubjectAllocation(
     val subject: SubjectItem,
-    var remainingMinutes: Int
+    var remainingMinutes: Int,
+    val priorityScore: Int = 0 //추가
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -26,6 +32,7 @@ fun generatePriorityStudySchedule(
     date: LocalDate,
     subjects: List<SubjectItem>,
     fixedSchedules: List<ScheduleItem>,
+    goals: List<GoalItem>, // 추가
     wakeTime: String,
     sleepTime: String,
     lunchStartTime: String,
@@ -89,16 +96,33 @@ fun generatePriorityStudySchedule(
         subject.priority.coerceAtLeast(1)
     }
 
-    val allocations = subjects
-        .sortedByDescending { it.priority }
-        .map { subject ->
-            val minutes = (totalFreeMinutes * subject.priority.coerceAtLeast(1) / totalPriority / 10) * 10
+    val allocations = subjects.map { subject ->
+        val goal = goals.find { it.title == subject.name }
 
-            SubjectAllocation(
-                subject = subject,
-                remainingMinutes = minutes
-            )
-        }.toMutableList()
+        if (goal != null) {
+            if (!goal.increasePriorityOverTime) {
+                // 체크표시가 없으면 30분 고정
+                SubjectAllocation(subject, 30)
+            } else {
+                // 체크표시가 있으면 가중치 적용
+                val weight = calculateStageWeight(goal.startDate, goal.endDate, date)
+                val adjustedPriority = (subject.priority * weight).toInt().coerceAtLeast(1)
+                SubjectAllocation(subject, -1, adjustedPriority)
+            }
+        } else {
+            // 목표가 없는 과목은 기본 우선순위 사용
+            SubjectAllocation(subject, -1, subject.priority)
+        }
+    }
+
+    val fixedMinutes = allocations.filter { it.remainingMinutes > 0 }.sumOf { it.remainingMinutes }
+    val remainingFreeMinutes = (totalFreeMinutes - fixedMinutes).coerceAtLeast(0)
+
+    val weightSum = allocations.filter { it.remainingMinutes == -1 }.sumOf { it.priorityScore }
+    allocations.filter { it.remainingMinutes == -1 }.forEach { alloc ->
+        val portion = if (weightSum > 0) (remainingFreeMinutes * alloc.priorityScore / weightSum / 10) * 10 else 0
+        alloc.remainingMinutes = portion
+    }
 
     val generatedSchedules = mutableListOf<GeneratedScheduleItem>()
 
@@ -154,9 +178,28 @@ fun generatePriorityStudySchedule(
             }
         }
     }
-    return generatedSchedules.sortedBy { it.startTime }
+    return generatedSchedules
 }
+@RequiresApi(Build.VERSION_CODES.O)
+private fun calculateStageWeight(startDate: String, endDate: String, today: LocalDate): Float {
+    return try {
+        val start = LocalDate.parse(startDate)
+        val end = LocalDate.parse(endDate)
 
+        val totalDays = java.time.temporal.ChronoUnit.DAYS.between(start, end).toFloat().coerceAtLeast(1f)
+        val elapsedDays = java.time.temporal.ChronoUnit.DAYS.between(start, today).toFloat()
+
+        val progress = elapsedDays / totalDays
+
+        when {
+            progress < 0.33f -> 1.0f // 1단계: 초기 (가중치 그대로)
+            progress < 0.66f -> 1.5f // 2단계: 중기 (가중치 1.5배)
+            else -> 2.0f             // 3단계: 말기 (가중치 2배)
+        }
+    } catch (e: Exception) {
+        1.0f
+    }
+}
 private fun parseTimeToMinutes(time: String): Int? {
     val parts = time.split(":")
     if (parts.size != 2) return null
@@ -172,9 +215,9 @@ private fun parseTimeToMinutes(time: String): Int? {
 }
 
 private fun formatMinutesToTime(minutes: Int): String {
-    val fixedMinutes = minutes.coerceIn(0, 24 * 60 - 1)
-    val hour = fixedMinutes / 60
-    val minute = fixedMinutes % 60
+    val totalMinutes = minutes % (24 * 60)
+    val hour = totalMinutes / 60
+    val minute = totalMinutes % 60
 
     return "%02d:%02d".format(hour, minute)
 }
@@ -189,8 +232,8 @@ private fun createAwakeRanges(
         )
     } else {
         listOf(
-            TimeRange(0, sleepMinutes),
-            TimeRange(wakeMinutes, 24 * 60)
+            TimeRange(wakeMinutes, 24 * 60),
+            TimeRange(0, sleepMinutes)
         )
     }
 }
@@ -248,3 +291,4 @@ private fun LocalDate.toKoreanDayOfWeek(): String {
         DayOfWeek.SUNDAY -> "일"
     }
 }
+

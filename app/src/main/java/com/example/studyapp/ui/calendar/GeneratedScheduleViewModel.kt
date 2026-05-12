@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.data.repository.AuthRepository
 import com.example.studyapp.data.repository.GeneratedScheduleRepository
+import com.example.studyapp.data.repository.GoalRepository
 import com.example.studyapp.data.repository.ScheduleRepository
 import com.example.studyapp.data.repository.SubjectRepository
 import com.example.studyapp.data.repository.UserRepository
@@ -34,6 +35,11 @@ class GeneratedScheduleViewModel : ViewModel() {
     var message by mutableStateOf<String?>(null)
         private set
 
+    var wakeTime by mutableStateOf("07:00")
+        private set
+    var sleepTime by mutableStateOf("23:00")
+        private set
+
     private suspend fun getOrCreateUid(): String {
         val uid = authRepository.getCurrentUid()
             ?: authRepository.signInAnonymouslyIfNeeded()
@@ -54,6 +60,12 @@ class GeneratedScheduleViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
+
+                val profile = userRepository.getUserProfile(uid)
+                profile?.let {
+                    if (it.wakeTime.isNotBlank()) wakeTime = it.wakeTime
+                    if (it.sleepTime.isNotBlank()) sleepTime = it.sleepTime
+                }
                 loadSchedulesInternal(uid, date)
             } catch (e: Exception) {
                 message = e.message ?: "시간표를 불러오지 못했습니다."
@@ -61,6 +73,7 @@ class GeneratedScheduleViewModel : ViewModel() {
         }
     }
 
+    private val goalRepository = GoalRepository()
     fun generateAndSaveSchedule(date: LocalDate) {
         if (isGenerating) return
 
@@ -70,6 +83,7 @@ class GeneratedScheduleViewModel : ViewModel() {
 
             try {
                 val uid = getOrCreateUid()
+                val goals = goalRepository.getGoals(uid)
 
                 val profile = userRepository.getUserProfile(uid)
                     ?: throw IllegalStateException("사용자 생활패턴 정보가 없습니다.")
@@ -92,6 +106,7 @@ class GeneratedScheduleViewModel : ViewModel() {
                     date = date,
                     subjects = subjects,
                     fixedSchedules = fixedSchedules,
+                    goals = goals,
                     wakeTime = profile.wakeTime,
                     sleepTime = profile.sleepTime,
                     lunchStartTime = profile.lunchStartTime, // 점심 시작
