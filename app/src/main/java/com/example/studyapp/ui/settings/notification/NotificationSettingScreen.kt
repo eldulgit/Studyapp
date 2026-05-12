@@ -28,6 +28,7 @@ fun NotificationSettingScreen(
 ) {
     val notificationEnabled = settingsViewModel.notificationEnabled
     val goalAlertEnabled = settingsViewModel.goalAlertEnabled
+    val drowsinessAlertEnabled = settingsViewModel.drowsinessAlertEnabled
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -81,9 +82,12 @@ fun NotificationSettingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("졸음 감지 알림")
+
                 Switch(
-                    checked = notificationEnabled,
-                    onCheckedChange = { settingsViewModel.updateNotificationEnabled(it) }
+                    checked = drowsinessAlertEnabled,
+                    onCheckedChange = {
+                        settingsViewModel.updateDrowsinessAlertEnabled(it)
+                    }
                 )
             }
         }
