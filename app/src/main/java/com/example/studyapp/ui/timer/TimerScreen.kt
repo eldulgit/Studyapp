@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -175,7 +176,9 @@ fun TimerScreen(
         contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showSubjectDialog = true }
+                onClick = { showSubjectDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
