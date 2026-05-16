@@ -113,7 +113,7 @@ fun LifestyleInputScreen(
                 errorMessage = null
             },
             label = { Text("취침 시간") },
-            placeholder = { Text("예: 23, 23:30") },
+            placeholder = { Text("예: 23, 23:00") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
