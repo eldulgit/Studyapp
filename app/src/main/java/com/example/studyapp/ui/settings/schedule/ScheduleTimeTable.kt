@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.ceil
@@ -236,9 +235,7 @@ private fun DayColumn(
                             Text(
                                 text = item.title,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = color.text,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
+                                color = color.text
                             )
                         }
                     }
@@ -267,38 +264,38 @@ private data class TimetableColorSet(
 
 private val timetableColors = listOf(
     TimetableColorSet(
-        container = Color(0xFFE8B6C1),
-        border = Color(0xFFD59AA8),
-        text = Color(0xFF5C3A42)
+        container = Color(0xFFEAF4FF),
+        border = Color(0xFF93C5FD),
+        text = Color(0xFF1E3A5F)
     ),
     TimetableColorSet(
-        container = Color(0xFFF1C8A8),
-        border = Color(0xFFE0B18C),
-        text = Color(0xFF6A4936)
+        container = Color(0xFFEFF6FF),
+        border = Color(0xFFBFDBFE),
+        text = Color(0xFF25476F)
     ),
     TimetableColorSet(
-        container = Color(0xFFE89B93),
-        border = Color(0xFFD9857C),
-        text = Color(0xFF633733)
+        container = Color(0xFFE9F7F5),
+        border = Color(0xFFA8DADC),
+        text = Color(0xFF24535A)
     ),
     TimetableColorSet(
-        container = Color(0xFFD99595),
-        border = Color(0xFFC97D7D),
-        text = Color(0xFF5A3131)
+        container = Color(0xFFF3F0FF),
+        border = Color(0xFFC7BDF2),
+        text = Color(0xFF44396A)
     ),
     TimetableColorSet(
-        container = Color(0xFFE6AAA0),
-        border = Color(0xFFD69286),
-        text = Color(0xFF613B34)
+        container = Color(0xFFF0F9FF),
+        border = Color(0xFFBAE6FD),
+        text = Color(0xFF23546E)
     ),
     TimetableColorSet(
-        container = Color(0xFFCFC7F6),
-        border = Color(0xFFB9AEEF),
-        text = Color(0xFF433C69)
+        container = Color(0xFFF1FAF4),
+        border = Color(0xFFB7E4C7),
+        text = Color(0xFF2D5A42)
     ),
     TimetableColorSet(
-        container = Color(0xFFBFE3DC),
-        border = Color(0xFF9FD0C6),
-        text = Color(0xFF2F5B53)
+        container = Color(0xFFF6F3FF),
+        border = Color(0xFFD8CCF6),
+        text = Color(0xFF51436D)
     )
 )

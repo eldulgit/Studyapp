@@ -2,8 +2,10 @@ package com.example.studyapp.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +31,7 @@ fun StatsFilterRow(
     ) {
         Text(
             text = "누적 공부시간",
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier.padding(bottom = 6.dp),
             style = MaterialTheme.typography.titleSmall
         )
 
@@ -43,10 +45,16 @@ fun StatsFilterRow(
                 OutlinedButton(
                     onClick = { onSelect(period) },
                     shape = CircleShape,
-                    modifier = Modifier.weight(1f),
-                    enabled = !isSelected
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(34.dp),
+                    enabled = !isSelected,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text(label)
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
         }

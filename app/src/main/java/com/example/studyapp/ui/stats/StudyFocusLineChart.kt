@@ -15,12 +15,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun StudyFocusLineChart(
     points: List<HourlyFocusPoint>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    chartHeight: Dp = 150.dp
 ) {
     val safePoints = if (points.isEmpty()) {
         listOf(
@@ -56,14 +58,14 @@ fun StudyFocusLineChart(
     ) {
         Text(
             text = "시간대별 집중도",
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier.padding(bottom = 6.dp),
             style = MaterialTheme.typography.titleSmall
         )
 
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(chartHeight)
         ) {
             val leftPadding = 20.dp.toPx()
             val rightPadding = 20.dp.toPx()
@@ -133,10 +135,14 @@ fun StudyFocusLineChart(
                 .padding(top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            safePoints.forEach { point ->
+            safePoints.forEachIndexed { index, point ->
+                val showLabel = index == 0 ||
+                        index == safePoints.lastIndex ||
+                        point.hour % 2 == 0
+
                 Text(
-                    text = "${point.hour}",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = if (showLabel) "${point.hour}" else "",
+                    style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )

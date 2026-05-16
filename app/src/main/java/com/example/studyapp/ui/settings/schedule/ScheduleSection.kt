@@ -12,18 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 // 목표화면
 
-val goalColors = listOf(
-    Color(0xFFBDE0FE),
-    Color(0xFFD0E6FF),
-    Color(0xFFBFCBFF),
-    Color(0xFFD9C2F0),
-    Color(0xFFEADCF8)
-)
 @Composable
 fun ScheduleSection(
     title: String,
@@ -69,9 +61,7 @@ fun ScheduleSection(
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items.forEachIndexed { index, item ->
-                    val goalColor = goalColors[index % goalColors.size]
-
+                items.forEach { item ->
                     SubjectSettingCard(
                         title = item.title,
                         subtitle = subtitleBuilder(item),
@@ -81,8 +71,7 @@ fun ScheduleSection(
                         },
                         onEditClick = {
                             onEditClick(item)
-                        },
-                        containerColor = goalColor
+                        }
                     )
                 }
             }

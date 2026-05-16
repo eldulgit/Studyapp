@@ -68,8 +68,8 @@ fun ScheduleSettingScreen(
 
     val showFab by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
+            val visibleItems = listState.layoutInfo.visibleItemsInfo
+            visibleItems.isEmpty() || visibleItems.none { it.index >= 1 }
         }
     }
     var title by remember { mutableStateOf("") }

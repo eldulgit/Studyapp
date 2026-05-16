@@ -144,64 +144,79 @@ fun CalendarScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .padding(vertical = 0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(48.dp))
+            // 왼쪽 빈 공간: 높이까지 48로 만들지 말고 width만 유지
+            Box(modifier = Modifier.width(48.dp))
 
+            // 중앙 날짜
             Box(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "${selectedDate.year}년 ${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Button(
-                        onClick = {
-                            generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
-                        },
-                        enabled = !isGenerating
-                    ) {
-                        if (isGenerating) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(text = "시간표 생성")
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    SubjectColorLegend(
-                        schedules = scheduledSubjects
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-                }
+                Text(
+                    text = "${selectedDate.year}년 ${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
 
-            IconButton(
-                onClick = {
-                    showCalendarDialog = true
-                }
+            // 오른쪽 달력 버튼
+            Box(
+                modifier = Modifier.width(48.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = "날짜 선택"
-                )
+                IconButton(
+                    onClick = {
+                        showCalendarDialog = true
+                    },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "날짜 선택",
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(0.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = {
+                        generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
+                    },
+                    enabled = !isGenerating
+                ) {
+                    if (isGenerating) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = "시간표 생성")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                SubjectColorLegend(
+                    schedules = scheduledSubjects
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(2.dp))
 
         DayScheduleTimeline(
             modifier = Modifier

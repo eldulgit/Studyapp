@@ -19,10 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
 import com.example.studyapp.ui.settings.schedule.ScheduleCategory
-import com.example.studyapp.ui.settings.schedule.goalColors
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -116,7 +116,7 @@ fun GoalLabelRow(
                 Box(
                     modifier = Modifier
                         .size(10.dp)
-                        .background(goalColors[index % goalColors.size])
+                        .background(timetableGoalColors[index % timetableGoalColors.size])
                 )
 
                 Spacer(modifier = Modifier.width(4.dp))
@@ -129,3 +129,11 @@ fun GoalLabelRow(
         }
     }
 }
+
+private val timetableGoalColors = listOf(
+    Color(0xFFEAF4FF),
+    Color(0xFFE9F7F5),
+    Color(0xFFF3F0FF),
+    Color(0xFFF0F9FF),
+    Color(0xFFF1FAF4)
+)

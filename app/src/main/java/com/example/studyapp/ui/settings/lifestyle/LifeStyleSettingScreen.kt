@@ -1,5 +1,7 @@
 package com.example.studyapp.ui.settings.lifestyle
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -81,240 +83,252 @@ fun LifeStyleSettingScreen(
         dinnerEndTime = initialDinnerEndTime
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        val isCompactHeight = maxHeight < 720.dp
+        val topGap = if (isCompactHeight) 20.dp else 40.dp
+        val introGap = if (isCompactHeight) 18.dp else 32.dp
+        val fieldGap = if (isCompactHeight) 10.dp else 16.dp
+        val sectionGap = if (isCompactHeight) 14.dp else 24.dp
+        val sectionTitleGap = if (isCompactHeight) 8.dp else 12.dp
+        val beforeErrorGap = if (isCompactHeight) 10.dp else 20.dp
+        val beforeButtonGap = if (isCompactHeight) 12.dp else 37.dp
+        val bottomGap = if (isCompactHeight) 12.dp else 32.dp
 
-        Text(
-            text = "생활패턴 설정",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "학습 계획에 반영될 생활패턴을 수정할 수 있어요.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = wakeTime,
-            onValueChange = {
-                wakeTime = it
-                errorMessage = null
-            },
-            label = { Text("기상 시간") },
-            placeholder = { Text("예: 07:00") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = { sleepFocusRequester.requestFocus() }
-            ),
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(wakeFocusRequester)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = sleepTime,
-            onValueChange = {
-                sleepTime = it
-                errorMessage = null
-            },
-            label = { Text("취침 시간") },
-            placeholder = { Text("예: 23:30") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = { lunchStartFocusRequester.requestFocus() }
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(sleepFocusRequester)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "점심 시간",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
         ) {
-            OutlinedTextField(
-                value = lunchStartTime,
-                onValueChange = {
-                    lunchStartTime = it
-                    errorMessage = null
-                },
-                label = { Text("시작") },
-                placeholder = { Text("12:00") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { lunchEndFocusRequester.requestFocus() }
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(lunchStartFocusRequester)
-            )
-
-            Spacer(modifier = Modifier.padding(horizontal = 6.dp))
-
-            OutlinedTextField(
-                value = lunchEndTime,
-                onValueChange = {
-                    lunchEndTime = it
-                    errorMessage = null
-                },
-                label = { Text("끝") },
-                placeholder = { Text("13:00") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { dinnerStartFocusRequester.requestFocus() }
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(lunchEndFocusRequester)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "저녁 시간",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = dinnerStartTime,
-                onValueChange = {
-                    dinnerStartTime = it
-                    errorMessage = null
-                },
-                label = { Text("시작") },
-                placeholder = { Text("18:00") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { dinnerEndFocusRequester.requestFocus() }
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(dinnerStartFocusRequester)
-            )
-
-            Spacer(modifier = Modifier.padding(horizontal = 6.dp))
-
-            OutlinedTextField(
-                value = dinnerEndTime,
-                onValueChange = {
-                    dinnerEndTime = it
-                    errorMessage = null
-                },
-                label = { Text("끝") },
-                placeholder = { Text("19:00") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(dinnerEndFocusRequester)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(topGap))
 
             Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
+                text = "생활패턴 설정",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
             )
-        }
 
-        Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = {
-                val normalizedWakeTime = normalizeTimeInput(wakeTime)
-                val normalizedSleepTime = normalizeTimeInput(sleepTime)
-                val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
-                val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
-                val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
-                val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
+            Text(
+                text = "학습 계획에 반영될 생활패턴을 수정할 수 있어요.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-                if (
-                    normalizedWakeTime == null ||
-                    normalizedSleepTime == null ||
-                    normalizedLunchStartTime == null ||
-                    normalizedLunchEndTime == null ||
-                    normalizedDinnerStartTime == null ||
-                    normalizedDinnerEndTime == null
-                ) {
-                    errorMessage = "시간은 7, 700, 730, 07:00 형식으로 입력해주세요."
-                    return@Button
-                }
+            Spacer(modifier = Modifier.height(introGap))
 
-                wakeTime = normalizedWakeTime
-                sleepTime = normalizedSleepTime
-                lunchStartTime = normalizedLunchStartTime
-                lunchEndTime = normalizedLunchEndTime
-                dinnerStartTime = normalizedDinnerStartTime
-                dinnerEndTime = normalizedDinnerEndTime
+            OutlinedTextField(
+                value = wakeTime,
+                onValueChange = {
+                    wakeTime = it
+                    errorMessage = null
+                },
+                label = { Text("기상 시간") },
+                placeholder = { Text("예: 07:00") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { sleepFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(wakeFocusRequester)
+            )
 
-                onSaveClick(
-                    normalizedWakeTime,
-                    normalizedSleepTime,
-                    normalizedLunchStartTime,
-                    normalizedLunchEndTime,
-                    normalizedDinnerStartTime,
-                    normalizedDinnerEndTime
+            Spacer(modifier = Modifier.height(fieldGap))
+
+            OutlinedTextField(
+                value = sleepTime,
+                onValueChange = {
+                    sleepTime = it
+                    errorMessage = null
+                },
+                label = { Text("취침 시간") },
+                placeholder = { Text("예: 23:30") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { lunchStartFocusRequester.requestFocus() }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(sleepFocusRequester)
+            )
+
+            Spacer(modifier = Modifier.height(sectionGap))
+
+            Text(
+                text = "점심 시간",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(sectionTitleGap))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = lunchStartTime,
+                    onValueChange = {
+                        lunchStartTime = it
+                        errorMessage = null
+                    },
+                    label = { Text("시작") },
+                    placeholder = { Text("12:00") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { lunchEndFocusRequester.requestFocus() }
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(lunchStartFocusRequester)
                 )
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "저장")
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+                OutlinedTextField(
+                    value = lunchEndTime,
+                    onValueChange = {
+                        lunchEndTime = it
+                        errorMessage = null
+                    },
+                    label = { Text("끝") },
+                    placeholder = { Text("13:00") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { dinnerStartFocusRequester.requestFocus() }
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(lunchEndFocusRequester)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(sectionGap))
+
+            Text(
+                text = "저녁 시간",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(sectionTitleGap))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = dinnerStartTime,
+                    onValueChange = {
+                        dinnerStartTime = it
+                        errorMessage = null
+                    },
+                    label = { Text("시작") },
+                    placeholder = { Text("18:00") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { dinnerEndFocusRequester.requestFocus() }
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(dinnerStartFocusRequester)
+                )
+
+                OutlinedTextField(
+                    value = dinnerEndTime,
+                    onValueChange = {
+                        dinnerEndTime = it
+                        errorMessage = null
+                    },
+                    label = { Text("끝") },
+                    placeholder = { Text("19:00") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(dinnerEndFocusRequester)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(beforeErrorGap))
+
+            errorMessage?.let {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(modifier = Modifier.height(beforeButtonGap))
+
+            Button(
+                onClick = {
+                    val normalizedWakeTime = normalizeTimeInput(wakeTime)
+                    val normalizedSleepTime = normalizeTimeInput(sleepTime)
+                    val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
+                    val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
+                    val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
+                    val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
+
+                    if (
+                        normalizedWakeTime == null ||
+                        normalizedSleepTime == null ||
+                        normalizedLunchStartTime == null ||
+                        normalizedLunchEndTime == null ||
+                        normalizedDinnerStartTime == null ||
+                        normalizedDinnerEndTime == null
+                    ) {
+                        errorMessage = "시간은 7, 700, 730, 0730 형식으로 입력해주세요."
+                        return@Button
+                    }
+
+                    wakeTime = normalizedWakeTime
+                    sleepTime = normalizedSleepTime
+                    lunchStartTime = normalizedLunchStartTime
+                    lunchEndTime = normalizedLunchEndTime
+                    dinnerStartTime = normalizedDinnerStartTime
+                    dinnerEndTime = normalizedDinnerEndTime
+
+                    onSaveClick(
+                        normalizedWakeTime,
+                        normalizedSleepTime,
+                        normalizedLunchStartTime,
+                        normalizedLunchEndTime,
+                        normalizedDinnerStartTime,
+                        normalizedDinnerEndTime
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "저장")
+            }
+
+            Spacer(modifier = Modifier.height(bottomGap))
+        }
     }
 }

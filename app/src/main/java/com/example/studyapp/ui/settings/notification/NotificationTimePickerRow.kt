@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +66,8 @@ fun NotificationTimePickerRow(
 
                 ExposedDropdownMenu(
                     expanded = hourExpanded,
-                    onDismissRequest = { hourExpanded = false }
+                    onDismissRequest = { hourExpanded = false },
+                    containerColor = Color.White
                 ) {
                     hours.forEach { hour ->
                         DropdownMenuItem(
@@ -101,7 +103,8 @@ fun NotificationTimePickerRow(
 
                 ExposedDropdownMenu(
                     expanded = minuteExpanded,
-                    onDismissRequest = { minuteExpanded = false }
+                    onDismissRequest = { minuteExpanded = false },
+                    containerColor = Color.White
                 ) {
                     minutes.forEach { min ->
                         DropdownMenuItem(
