@@ -81,7 +81,7 @@ fun ScheduleTimetable(
                     color = MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(20.dp)
                 )
-                .background(MaterialTheme.colorScheme.surface)
+                .background(Color.White)
         ) {
             Row(
                 modifier = Modifier

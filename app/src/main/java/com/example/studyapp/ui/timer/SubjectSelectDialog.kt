@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,7 +47,11 @@ fun SubjectSelectDialog(
                             checked = checkedSubjects.contains(subject.name),
                             onCheckedChange = { checked ->
                                 onCheckedChange(subject.name, checked == true)
-                            }
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = MaterialTheme.colorScheme.primary
+                            )
                         )
 
                         androidx.compose.foundation.layout.Box(
@@ -71,6 +77,7 @@ fun SubjectSelectDialog(
             TextButton(onClick = onDismiss) {
                 Text("취소")
             }
-        }
+        },
+        containerColor = Color.White
     )
 }

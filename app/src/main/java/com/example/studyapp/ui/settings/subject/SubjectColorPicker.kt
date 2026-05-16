@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +51,7 @@ fun SubjectColorPicker(
                     .border(
                         width = if (isSelected) 3.dp else 1.dp,
                         color = when {
-                            isSelected -> MaterialTheme.colorScheme.primary
+                            isSelected -> Color.White
                             isDisabled -> Color.Gray
                             else -> Color.Transparent
                         },

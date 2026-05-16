@@ -26,6 +26,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.util.normalizeTimeInput
 
@@ -85,13 +86,14 @@ fun LifestyleInputScreen(
         OutlinedTextField(
             value = wakeTime,
             onValueChange = {
-                wakeTime = it
+                wakeTime = it.filter(Char::isDigit)
                 errorMessage = null
             },
             label = { Text("기상 시간") },
-            placeholder = { Text("예: 7, 700, 07:00") },
+            placeholder = { Text("예: 7, 700, 0730") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
@@ -107,13 +109,14 @@ fun LifestyleInputScreen(
         OutlinedTextField(
             value = sleepTime,
             onValueChange = {
-                sleepTime = it
+                sleepTime = it.filter(Char::isDigit)
                 errorMessage = null
             },
             label = { Text("취침 시간") },
-            placeholder = { Text("예: 2330, 23:30") },
+            placeholder = { Text("예: 23, 2330") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
@@ -140,13 +143,14 @@ fun LifestyleInputScreen(
             OutlinedTextField(
                 value = lunchStartTime,
                 onValueChange = {
-                    lunchStartTime = it
+                    lunchStartTime = it.filter(Char::isDigit)
                     errorMessage = null
                 },
                 label = { Text("시작") },
-                placeholder = { Text("예 : 12, 1200, 12:00") },
+                placeholder = { Text("예 : 12, 1200") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -162,13 +166,14 @@ fun LifestyleInputScreen(
             OutlinedTextField(
                 value = lunchEndTime,
                 onValueChange = {
-                    lunchEndTime = it
+                    lunchEndTime = it.filter(Char::isDigit)
                     errorMessage = null
                 },
                 label = { Text("끝") },
-                placeholder = { Text("예 : 13, 1300, 13:00") },
+                placeholder = { Text("예 : 13, 1300") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -196,13 +201,14 @@ fun LifestyleInputScreen(
             OutlinedTextField(
                 value = dinnerStartTime,
                 onValueChange = {
-                    dinnerStartTime = it
+                    dinnerStartTime = it.filter(Char::isDigit)
                     errorMessage = null
                 },
                 label = { Text("시작") },
-                placeholder = { Text("예 : 18, 1800, 18:00") },
+                placeholder = { Text("예 : 18, 1800") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -218,13 +224,14 @@ fun LifestyleInputScreen(
             OutlinedTextField(
                 value = dinnerEndTime,
                 onValueChange = {
-                    dinnerEndTime = it
+                    dinnerEndTime = it.filter(Char::isDigit)
                     errorMessage = null
                 },
                 label = { Text("끝") },
-                placeholder = { Text("예 : 19, 1900, 19:00") },
+                placeholder = { Text("예 : 19, 1900") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
@@ -267,7 +274,7 @@ fun LifestyleInputScreen(
                     normalizedDinnerStartTime == null ||
                     normalizedDinnerEndTime == null
                 ) {
-                    errorMessage = "시간은 7, 700, 730, 07:00 형식으로 입력해주세요."
+                    errorMessage = "시간은 7, 700, 730, 0730 형식으로 입력해주세요."
                     return@Button
                 }
 
