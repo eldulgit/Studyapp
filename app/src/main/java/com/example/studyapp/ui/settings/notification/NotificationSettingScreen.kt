@@ -13,12 +13,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.studyapp.ui.settings.SettingsViewModel
@@ -29,6 +27,7 @@ fun NotificationSettingScreen(
     settingsViewModel: SettingsViewModel
 ) {
     val notificationEnabled = settingsViewModel.notificationEnabled
+    val goalAlertEnabled = settingsViewModel.goalAlertEnabled
     val drowsinessAlertEnabled = settingsViewModel.drowsinessAlertEnabled
 
     Column(
@@ -61,10 +60,7 @@ fun NotificationSettingScreen(
                 Text("공부 알림 받기")
                 Switch(
                     checked = notificationEnabled,
-                    onCheckedChange = { settingsViewModel.updateNotificationEnabled(it) },
-                    colors = SwitchDefaults.colors(
-                        uncheckedTrackColor = Color.White
-                    )
+                    onCheckedChange = { settingsViewModel.updateNotificationEnabled(it) }
                 )
             }
 
@@ -91,10 +87,7 @@ fun NotificationSettingScreen(
                     checked = drowsinessAlertEnabled,
                     onCheckedChange = {
                         settingsViewModel.updateDrowsinessAlertEnabled(it)
-                    },
-                    colors = SwitchDefaults.colors(
-                        uncheckedTrackColor = Color.White
-                    )
+                    }
                 )
             }
         }

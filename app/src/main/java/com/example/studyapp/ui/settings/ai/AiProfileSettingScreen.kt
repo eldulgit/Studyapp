@@ -1,6 +1,5 @@
 package com.example.studyapp.ui.settings.ai
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,11 +66,7 @@ fun AiProfileSettingScreen(
             Spacer(modifier = Modifier.size(20.dp))
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        settingsViewModel.updateCommentOption("오늘의 명언")
-                    },
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
@@ -87,11 +82,7 @@ fun AiProfileSettingScreen(
             Spacer(modifier = Modifier.size(12.dp))
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        settingsViewModel.updateCommentOption("AI 코멘트")
-                    },
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(

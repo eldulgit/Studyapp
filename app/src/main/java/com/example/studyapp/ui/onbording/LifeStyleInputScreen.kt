@@ -90,7 +90,7 @@ fun LifestyleInputScreen(
                 errorMessage = null
             },
             label = { Text("기상 시간") },
-            placeholder = { Text("예: 7, 700, 0730") },
+            placeholder = { Text("예: 7, 07:30") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -113,7 +113,7 @@ fun LifestyleInputScreen(
                 errorMessage = null
             },
             label = { Text("취침 시간") },
-            placeholder = { Text("예: 23, 2330") },
+            placeholder = { Text("예: 23, 23:00") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -147,7 +147,7 @@ fun LifestyleInputScreen(
                     errorMessage = null
                 },
                 label = { Text("시작") },
-                placeholder = { Text("예 : 12, 1200") },
+                placeholder = { Text("예 : 12, 12:00") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -170,7 +170,7 @@ fun LifestyleInputScreen(
                     errorMessage = null
                 },
                 label = { Text("끝") },
-                placeholder = { Text("예 : 13, 1300") },
+                placeholder = { Text("예 : 13, 13:00") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -205,7 +205,7 @@ fun LifestyleInputScreen(
                     errorMessage = null
                 },
                 label = { Text("시작") },
-                placeholder = { Text("예 : 18, 1800") },
+                placeholder = { Text("예 : 18, 18:00") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -228,7 +228,7 @@ fun LifestyleInputScreen(
                     errorMessage = null
                 },
                 label = { Text("끝") },
-                placeholder = { Text("예 : 19, 1900") },
+                placeholder = { Text("예 : 19, 19:00") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
