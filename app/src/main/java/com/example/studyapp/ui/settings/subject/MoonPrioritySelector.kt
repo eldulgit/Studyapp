@@ -1,6 +1,5 @@
 package com.example.studyapp.ui.settings.subject
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -31,12 +29,12 @@ fun MoonPrioritySelector(
             Button(
                 onClick = { onPrioritySelected(priority) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                border = BorderStroke(
-                    width = if (isSelected) 2.dp else 1.dp,
-                    color = MaterialTheme.colorScheme.primary
+                    containerColor = if (isSelected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text(

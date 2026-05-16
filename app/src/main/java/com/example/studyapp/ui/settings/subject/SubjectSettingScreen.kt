@@ -55,12 +55,7 @@ fun SubjectSettingScreen(
         Color(0xFFE2F0CB),
         Color(0xFFCDEAC0),
         Color(0xFFD6F5E3),
-        Color(0xFFA8E6E1),
-        Color(0xFFBDE0FE),
-        Color(0xFFD0E6FF),
-        Color(0xFFBFCBFF),
-        Color(0xFFD9C2F0),
-        Color(0xFFEADCF8)
+        Color(0xFFA8E6E1)
     )
 
     var selectedColorArgb by remember {
