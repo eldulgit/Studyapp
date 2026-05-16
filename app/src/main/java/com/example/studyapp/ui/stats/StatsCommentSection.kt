@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -24,13 +25,16 @@ fun StatsCommentSection(
     title: String,
     comment: String
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
         Image(
             painter = painterResource(id = R.drawable.blueberry_coach),
             contentDescription = "코치 이미지",
             modifier = Modifier
-                .size(56.dp)
+                .size(44.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
@@ -40,12 +44,13 @@ fun StatsCommentSection(
         Column {
             Text(
                 text = title,
-                color = Color.Gray
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelMedium
             )
 
             Text(
                 text = comment,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

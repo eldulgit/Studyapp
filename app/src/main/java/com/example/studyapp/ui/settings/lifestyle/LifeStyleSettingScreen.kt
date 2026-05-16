@@ -1,5 +1,6 @@
 package com.example.studyapp.ui.settings.lifestyle
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -82,31 +83,45 @@ fun LifeStyleSettingScreen(
         dinnerEndTime = initialDinnerEndTime
     }
 
-    Column(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        val isCompactHeight = maxHeight < 720.dp
+        val topGap = if (isCompactHeight) 20.dp else 40.dp
+        val introGap = if (isCompactHeight) 18.dp else 32.dp
+        val fieldGap = if (isCompactHeight) 10.dp else 16.dp
+        val sectionGap = if (isCompactHeight) 14.dp else 24.dp
+        val sectionTitleGap = if (isCompactHeight) 8.dp else 12.dp
+        val beforeErrorGap = if (isCompactHeight) 10.dp else 20.dp
+        val beforeButtonGap = if (isCompactHeight) 12.dp else 37.dp
+        val bottomGap = if (isCompactHeight) 12.dp else 32.dp
 
-        Text(
-            text = "생활패턴 설정",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(topGap))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "생활패턴 설정",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-        Text(
-            text = "학습 계획에 반영될 생활패턴을 수정할 수 있어요.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "학습 계획에 반영될 생활패턴을 수정할 수 있어요.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-        OutlinedTextField(
+            Spacer(modifier = Modifier.height(introGap))
+
+            OutlinedTextField(
             value = wakeTime,
             onValueChange = {
                 wakeTime = it.filter(Char::isDigit)
@@ -125,11 +140,11 @@ fun LifeStyleSettingScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(wakeFocusRequester)
-        )
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(fieldGap))
 
-        OutlinedTextField(
+            OutlinedTextField(
             value = sleepTime,
             onValueChange = {
                 sleepTime = it.filter(Char::isDigit)
@@ -148,22 +163,22 @@ fun LifeStyleSettingScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(sleepFocusRequester)
-        )
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(sectionGap))
 
-        Text(
+            Text(
             text = "점심 시간",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
-        )
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(sectionTitleGap))
 
-        Row(
+            Row(
             modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
+            ) {
+                OutlinedTextField(
                 value = lunchStartTime,
                 onValueChange = {
                     lunchStartTime = it.filter(Char::isDigit)
@@ -182,11 +197,11 @@ fun LifeStyleSettingScreen(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(lunchStartFocusRequester)
-            )
+                )
 
-            Spacer(modifier = Modifier.padding(horizontal = 6.dp))
+                Spacer(modifier = Modifier.padding(horizontal = 6.dp))
 
-            OutlinedTextField(
+                OutlinedTextField(
                 value = lunchEndTime,
                 onValueChange = {
                     lunchEndTime = it.filter(Char::isDigit)
@@ -205,23 +220,23 @@ fun LifeStyleSettingScreen(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(lunchEndFocusRequester)
-            )
-        }
+                )
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(sectionGap))
 
-        Text(
+            Text(
             text = "저녁 시간",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
-        )
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(sectionTitleGap))
 
-        Row(
+            Row(
             modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
+            ) {
+                OutlinedTextField(
                 value = dinnerStartTime,
                 onValueChange = {
                     dinnerStartTime = it.filter(Char::isDigit)
@@ -240,11 +255,11 @@ fun LifeStyleSettingScreen(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(dinnerStartFocusRequester)
-            )
+                )
 
-            Spacer(modifier = Modifier.padding(horizontal = 6.dp))
+                Spacer(modifier = Modifier.padding(horizontal = 6.dp))
 
-            OutlinedTextField(
+                OutlinedTextField(
                 value = dinnerEndTime,
                 onValueChange = {
                     dinnerEndTime = it.filter(Char::isDigit)
@@ -263,65 +278,66 @@ fun LifeStyleSettingScreen(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(dinnerEndFocusRequester)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        Spacer(modifier = Modifier.height(37.dp))
-
-        Button(
-            onClick = {
-                val normalizedWakeTime = normalizeTimeInput(wakeTime)
-                val normalizedSleepTime = normalizeTimeInput(sleepTime)
-                val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
-                val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
-                val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
-                val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
-
-                if (
-                    normalizedWakeTime == null ||
-                    normalizedSleepTime == null ||
-                    normalizedLunchStartTime == null ||
-                    normalizedLunchEndTime == null ||
-                    normalizedDinnerStartTime == null ||
-                    normalizedDinnerEndTime == null
-                ) {
-                    errorMessage = "시간은 7, 700, 730, 0730 형식으로 입력해주세요."
-                    return@Button
-                }
-
-                wakeTime = normalizedWakeTime
-                sleepTime = normalizedSleepTime
-                lunchStartTime = normalizedLunchStartTime
-                lunchEndTime = normalizedLunchEndTime
-                dinnerStartTime = normalizedDinnerStartTime
-                dinnerEndTime = normalizedDinnerEndTime
-
-                onSaveClick(
-                    normalizedWakeTime,
-                    normalizedSleepTime,
-                    normalizedLunchStartTime,
-                    normalizedLunchEndTime,
-                    normalizedDinnerStartTime,
-                    normalizedDinnerEndTime
                 )
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "저장")
-        }
+            }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(beforeErrorGap))
+
+            errorMessage?.let {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(modifier = Modifier.height(beforeButtonGap))
+
+            Button(
+                onClick = {
+                    val normalizedWakeTime = normalizeTimeInput(wakeTime)
+                    val normalizedSleepTime = normalizeTimeInput(sleepTime)
+                    val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
+                    val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
+                    val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
+                    val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
+
+                    if (
+                        normalizedWakeTime == null ||
+                        normalizedSleepTime == null ||
+                        normalizedLunchStartTime == null ||
+                        normalizedLunchEndTime == null ||
+                        normalizedDinnerStartTime == null ||
+                        normalizedDinnerEndTime == null
+                    ) {
+                        errorMessage = "시간은 7, 700, 730, 0730 형식으로 입력해주세요."
+                        return@Button
+                    }
+
+                    wakeTime = normalizedWakeTime
+                    sleepTime = normalizedSleepTime
+                    lunchStartTime = normalizedLunchStartTime
+                    lunchEndTime = normalizedLunchEndTime
+                    dinnerStartTime = normalizedDinnerStartTime
+                    dinnerEndTime = normalizedDinnerEndTime
+
+                    onSaveClick(
+                        normalizedWakeTime,
+                        normalizedSleepTime,
+                        normalizedLunchStartTime,
+                        normalizedLunchEndTime,
+                        normalizedDinnerStartTime,
+                        normalizedDinnerEndTime
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "저장")
+            }
+
+            Spacer(modifier = Modifier.height(bottomGap))
+        }
     }
 }

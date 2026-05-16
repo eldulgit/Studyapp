@@ -2,19 +2,21 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -94,42 +96,77 @@ fun StatsScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
     ) {
+        val horizontalPadding = 16.dp
+        val topPadding = 8.dp
+        val bottomPadding = 8.dp
+        val chartGap = 12.dp
+        val commentGap = 2.dp
+
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    top = topPadding,
+                    bottom = bottomPadding
+                )
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.45f)
+            ) {
+                StatsFilterRow(
+                    selected = selectedPeriod,
+                    onSelect = { selectedPeriod = it }
+                )
 
-            StatsFilterRow(
-                selected = selectedPeriod,
-                onSelect = { selectedPeriod = it }
-            )
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    StatsBarChart(
+                        period = selectedPeriod,
+                        records = records,
+                        chartHeight = maxHeight,
+                        maxBarHeight = (maxHeight - 46.dp).coerceAtLeast(24.dp)
+                    )
+                }
+            }
 
-            StatsBarChart(
-                period = selectedPeriod,
-                records = records
-            )
+            Spacer(modifier = Modifier.height(chartGap))
 
-            Spacer(modifier = Modifier.height(32.dp))
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.45f)
+            ) {
+                StudyFocusLineChart(
+                    points = hourlyFocusPoints,
+                    chartHeight = (maxHeight - 48.dp).coerceAtLeast(48.dp)
+                )
+            }
 
-            StudyFocusLineChart(
-                points = hourlyFocusPoints
-            )
+            Spacer(modifier = Modifier.height(commentGap))
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            StatsCommentSection(
-                title = commentTitle,
-                comment = comment
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.1f),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                StatsCommentSection(
+                    title = commentTitle,
+                    comment = comment
+                )
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -27,7 +28,10 @@ import java.time.temporal.TemporalAdjusters
 @Composable
 fun StatsBarChart(
     period: StatsPeriod,
-    records: List<StudySessionRecord>
+    records: List<StudySessionRecord>,
+    modifier: Modifier = Modifier,
+    chartHeight: Dp = 150.dp,
+    maxBarHeight: Dp = 104.dp
 ) {
     val labels = generateLabels(period)
 
@@ -37,12 +41,12 @@ fun StatsBarChart(
         labelCount = labels.size
     )
 
-    val maxValue = values.maxOrNull()?.coerceAtLeast(1) ?: 1
+    val scaleMaxValue = values.maxOrNull()?.coerceAtLeast(1) ?: 1
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(220.dp)
+            .height(chartHeight)
     ) {
         Row(
             modifier = Modifier
@@ -52,7 +56,8 @@ fun StatsBarChart(
             verticalAlignment = Alignment.Bottom
         ) {
             values.forEach { value ->
-                val barHeight = ((value.toFloat() / maxValue.toFloat()) * 160).dp
+                val ratio = (value.toFloat() / scaleMaxValue.toFloat()).coerceIn(0f, 1f)
+                val barHeight = (ratio * maxBarHeight.value).dp
 
                 Box(
                     modifier = Modifier
@@ -77,7 +82,7 @@ fun StatsBarChart(
             labels.forEach { label ->
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
         }

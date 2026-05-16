@@ -7,13 +7,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.studyapp.ui.settings.profile.UserViewModel
@@ -153,31 +156,37 @@ fun SettingHeader() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Box(
-            modifier = Modifier.fillMaxWidth(),
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 40.dp),
             contentAlignment = Alignment.Center
         ) {
+            val maxNameWidth = (maxWidth - 28.dp).coerceAtLeast(48.dp)
 
-            // 이름은 항상 중앙 고정
-            Text(
-                text = userViewModel.userName,
-                style = MaterialTheme.typography.titleLarge
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = userViewModel.userName,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = maxNameWidth)
+                )
 
-            // 아이콘은 이름 오른쪽에만 위치
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit",
-                modifier = Modifier
-                    .padding(start = 4.dp)
-                    .align(Alignment.CenterEnd)
-                    .offset(x = (-120).dp)   // 이미지 중심 기준 위치 보정
-                    .size(20.dp)
-                    .clickable {
-                        tempName = userViewModel.userName
-                        showNameDialog = true
-                    }
-            )
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .size(20.dp)
+                        .clickable {
+                            tempName = userViewModel.userName
+                            showNameDialog = true
+                        }
+                )
+            }
         }
 
 

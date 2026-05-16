@@ -17,9 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.studyapp.ai.toMinutes
 import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
-import com.example.studyapp.ui.settings.schedule.goalColors
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 
 @Composable
@@ -70,7 +68,9 @@ fun HourSlice(
 
                     when {
                         matchedSubject != null -> Color(matchedSubject.colorArgb)
-                        matchedGoalIndex != -1 -> goalColors[matchedGoalIndex % goalColors.size]
+                        matchedGoalIndex != -1 -> timetableGoalColors[
+                            matchedGoalIndex % timetableGoalColors.size
+                        ]
                         else -> Color.LightGray
                     }
                 } ?: Color(0xFFF1F1F1)
@@ -95,3 +95,11 @@ private fun String.toMinutes(): Int? {
 
     return hour * 60 + minute
 }
+
+private val timetableGoalColors = listOf(
+    Color(0xFFEAF4FF),
+    Color(0xFFE9F7F5),
+    Color(0xFFF3F0FF),
+    Color(0xFFF0F9FF),
+    Color(0xFFF1FAF4)
+)

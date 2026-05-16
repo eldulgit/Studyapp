@@ -1,5 +1,6 @@
 package com.example.studyapp.ui.settings.schedule
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,17 +26,19 @@ fun SubjectSettingCard(
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    onEditClick: () -> Unit,
-    containerColor: Color = MaterialTheme.colorScheme.surface
+    onEditClick: () -> Unit
 ) {
+    val accentColor = MaterialTheme.colorScheme.primary
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEditClick() },
         colors = CardDefaults.cardColors(
-            containerColor = containerColor
+            containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        border = BorderStroke(1.dp, accentColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -61,7 +65,12 @@ fun SubjectSettingCard(
 
             Checkbox(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = onCheckedChange,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = accentColor,
+                    uncheckedColor = accentColor,
+                    checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         }
     }
