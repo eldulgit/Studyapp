@@ -104,7 +104,6 @@ fun CameraScreen(
                     )
                 }
             }
-
             FocusStatus.ACTIVE,
             FocusStatus.INACTIVE_STARE,
             FocusStatus.DROWSY_WARNING -> {

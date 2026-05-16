@@ -40,7 +40,7 @@ fun generatePriorityStudySchedule(
     dinnerStartTime: String,
     dinnerEndTime: String
 ): List<GeneratedScheduleItem> {
-    if (subjects.isEmpty()) return emptyList()
+    if (subjects.isEmpty() && goals.isEmpty()) return emptyList()
 
     val wakeMinutes = parseTimeToMinutes(wakeTime)
     val sleepMinutes = parseTimeToMinutes(sleepTime)
@@ -98,20 +98,36 @@ fun generatePriorityStudySchedule(
 
     val allocations = subjects.map { subject ->
         val goal = goals.find { it.title == subject.name }
-
         if (goal != null) {
             if (!goal.increasePriorityOverTime) {
-                // 체크표시가 없으면 30분 고정
-                SubjectAllocation(subject, 30)
-            } else {
-                // 체크표시가 있으면 가중치 적용
-                val weight = calculateStageWeight(goal.startDate, goal.endDate, date)
-                val adjustedPriority = (subject.priority * weight).toInt().coerceAtLeast(1)
-                SubjectAllocation(subject, -1, adjustedPriority)
-            }
+            SubjectAllocation(subject, 30)
         } else {
-            // 목표가 없는 과목은 기본 우선순위 사용
+            val weight = calculateStageWeight(goal.startDate, goal.endDate, date)
+            val adjustedPriority = (subject.priority * weight).toInt().coerceAtLeast(1)
+            SubjectAllocation(subject, -1, adjustedPriority)
+        }
+        } else {
             SubjectAllocation(subject, -1, subject.priority)
+        }
+    }.toMutableList()
+
+    val subjectNames = subjects.map { it.name }.toSet()
+    val unmatchedGoals = goals.filter { it.title !in subjectNames }
+
+    unmatchedGoals.forEach { goal ->
+        // 과목은 없지만 목표가 있으므로, 목표 정보를 기반으로 가짜 과목 생성
+        val dummySubject = SubjectItem(
+        id = goal.id,        // 목표 ID를 사용
+        name = goal.title,   // 목표 제목을 과목명으로 사용
+        priority = 1,        // 기본 우선순위
+        colorArgb = -7829368 // 기본 회색 (Color.Gray.toArgb() 값)
+        )
+        if (!goal.increasePriorityOverTime) {
+            allocations.add(SubjectAllocation(dummySubject, 30))
+        } else {
+            val weight = calculateStageWeight(goal.startDate, goal.endDate, date)
+            val adjustedPriority = (1 * weight).toInt().coerceAtLeast(1) // 기본 우선순위 1에 가중치 적용
+            allocations.add(SubjectAllocation(dummySubject, -1, adjustedPriority))
         }
     }
 
@@ -125,7 +141,6 @@ fun generatePriorityStudySchedule(
     }
 
     val generatedSchedules = mutableListOf<GeneratedScheduleItem>()
-
 
     var allocationIndex = 0
 

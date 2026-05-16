@@ -16,6 +16,7 @@ import com.example.studyapp.data.repository.GoalRepository
 import com.example.studyapp.data.repository.ScheduleRepository
 import com.example.studyapp.data.repository.SubjectRepository
 import com.example.studyapp.data.repository.UserRepository
+import com.example.studyapp.ui.settings.schedule.GoalItem // 추가
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -96,8 +97,8 @@ class GeneratedScheduleViewModel : ViewModel() {
 
                 val subjects = subjectRepository.getSubjects(uid)
 
-                if (subjects.isEmpty()) {
-                    throw IllegalStateException("과목을 먼저 추가해주세요.")
+                if (subjects.isEmpty()  && goals.isEmpty()) {
+                    throw IllegalStateException("과목 또는 목표 먼저 추가해주세요.")
                 }
 
                 val fixedSchedules = fixedScheduleRepository.getSchedules(uid)
