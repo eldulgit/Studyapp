@@ -80,7 +80,7 @@ fun ScheduleTimetable(
                     color = MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(20.dp)
                 )
-                .background(MaterialTheme.colorScheme.surface)
+                .background(Color.White)
         ) {
             Row(
                 modifier = Modifier
@@ -211,9 +211,8 @@ private fun DayColumn(
                     val topOffset = ((startMinutes - baseMinutes) / 60f) * hourHeight.value
                     val blockHeight = ((endMinutes - startMinutes) / 60f) * hourHeight.value
 
-                    val globalIndex = items.indexOfFirst { it.id == item.id }
                     val color = timetableColors[
-                        globalIndex.coerceAtLeast(0) % timetableColors.size
+                        item.stableColorIndex(timetableColors.size)
                     ]
                     Box(
                         modifier = Modifier
@@ -262,40 +261,45 @@ private data class TimetableColorSet(
     val text: Color
 )
 
+private fun FixedScheduleItem.stableColorIndex(colorCount: Int): Int {
+    val seed = firestoreId ?: "$id-$title-$dayOfWeek-$startTime-$endTime"
+    return kotlin.math.abs(seed.hashCode()) % colorCount
+}
+
 private val timetableColors = listOf(
     TimetableColorSet(
-        container = Color(0xFFBDE0FE),
-        border = Color(0xFF8EC5F8),
-        text = Color(0xFF17324D)
+        container = Color(0xFFE3F2FD),
+        border = Color(0xFFBBDEFB),
+        text = Color(0xFF254866)
     ),
     TimetableColorSet(
-        container = Color(0xFFD0E6FF),
-        border = Color(0xFFA8CBF2),
-        text = Color(0xFF244363)
+        container = Color(0xFFE8F5E9),
+        border = Color(0xFFC8E6C9),
+        text = Color(0xFF2F5637)
     ),
     TimetableColorSet(
-        container = Color(0xFFBFCBFF),
-        border = Color(0xFF9DACEF),
-        text = Color(0xFF313D72)
+        container = Color(0xFFFFF8E1),
+        border = Color(0xFFFFECB3),
+        text = Color(0xFF66542A)
     ),
     TimetableColorSet(
-        container = Color(0xFFD9C2F0),
-        border = Color(0xFFBFA4DF),
-        text = Color(0xFF3F315A)
+        container = Color(0xFFF3E5F5),
+        border = Color(0xFFE1BEE7),
+        text = Color(0xFF5A3E63)
     ),
     TimetableColorSet(
-        container = Color(0xFFEADCF8),
-        border = Color(0xFFD0B8EA),
-        text = Color(0xFF4C3A65)
+        container = Color(0xFFFFEBEE),
+        border = Color(0xFFFFCDD2),
+        text = Color(0xFF6A3D42)
     ),
     TimetableColorSet(
-        container = Color(0xFFC7E9F1),
-        border = Color(0xFFA0D2DE),
-        text = Color(0xFF245565)
+        container = Color(0xFFE0F7FA),
+        border = Color(0xFFB2EBF2),
+        text = Color(0xFF2F5D65)
     ),
     TimetableColorSet(
-        container = Color(0xFFE0D4FF),
-        border = Color(0xFFC3B1F0),
-        text = Color(0xFF433467)
+        container = Color(0xFFFFF3E0),
+        border = Color(0xFFFFE0B2),
+        text = Color(0xFF6A4B2F)
     )
 )

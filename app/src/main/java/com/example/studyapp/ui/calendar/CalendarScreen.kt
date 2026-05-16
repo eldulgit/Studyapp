@@ -68,18 +68,26 @@ fun CalendarScreen(
     val scheduleMessage = generatedScheduleViewModel.message
     val scheduleSnapshot = generatedSchedules.toList()
 
-    val scheduledSubjects = remember(scheduleSnapshot) {
+    var selectedDate by remember {
+        mutableStateOf(LocalDate.now())
+    }
+
+    val scheduledSubjects = remember(
+        scheduleSnapshot,
+        selectedDate,
+        generatedScheduleViewModel.wakeTime
+    ) {
+        val wakeStartMinute = generatedScheduleViewModel.wakeTime.toMinutesOrNull() ?: 0
+
         scheduleSnapshot
+            .filter { it.date == selectedDate }
             .sortedWith(
-                compareBy<DayScheduleBlock> { it.startHour }
-                    .thenBy { it.startMinute }
+                compareBy<DayScheduleBlock> {
+                    it.startMinuteOfDay().normalizeFrom(wakeStartMinute)
+                }
                     .thenBy { it.subject }
             )
             .distinctBy { it.subject }
-    }
-
-    var selectedDate by remember {
-        mutableStateOf(LocalDate.now())
     }
 
     var showCalendarDialog by remember {
@@ -324,6 +332,31 @@ private fun formatScheduleDate(date: String): String {
         date
     }
 }
+
+private fun DayScheduleBlock.startMinuteOfDay(): Int {
+    return startHour * 60 + startMinute
+}
+
+private fun String.toMinutesOrNull(): Int? {
+    val parts = split(":")
+    if (parts.size != 2) return null
+
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+
+    if (hour !in 0..23 || minute !in 0..59) return null
+
+    return hour * 60 + minute
+}
+
+private fun Int.normalizeFrom(baseStartMinute: Int): Int {
+    return if (this < baseStartMinute) {
+        this + 24 * 60
+    } else {
+        this
+    }
+}
+
 @Composable
 private fun SubjectColorLegend(
     schedules: List<DayScheduleBlock>
