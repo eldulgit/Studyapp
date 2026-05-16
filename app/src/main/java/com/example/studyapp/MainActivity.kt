@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import com.example.studyapp.ui.StudyApp
+import com.example.studyapp.ui.theme.StudyappTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -14,7 +15,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            StudyApp()
+            StudyappTheme(dynamicColor = false) {
+                StudyApp()
+            }
         }
     }
 }

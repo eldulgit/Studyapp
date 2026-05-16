@@ -18,7 +18,8 @@ fun SettingItem(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.background
     ) {
         Row(
             modifier = Modifier
@@ -29,6 +30,7 @@ fun SettingItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.weight(1f)
             )
         }

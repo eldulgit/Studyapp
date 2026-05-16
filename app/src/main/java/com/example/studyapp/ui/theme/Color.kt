@@ -2,10 +2,17 @@ package com.example.studyapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Light Theme
+val StudyBlue = Color(0xFF2563EB)        // 메인 파란색
+val StudyBlueDark = Color(0xFF1E40AF)    // 진한 파란색
+val StudyYellow = Color(0xFFFACC15)      // 포인트 노란색
+val StudyBackground = Color(0xFFFFFFFF)  // 기본 흰색
+val StudySurface = Color(0xFFF8FAFC)     // 카드/박스 배경
+val StudyText = Color(0xFF0F172A)        // 기본 글자색
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Dark Theme
+val StudyBlueDarkTheme = Color(0xFF60A5FA)
+val StudyYellowDarkTheme = Color(0xFFFDE047)
+val StudyDarkBackground = Color(0xFF0F172A)
+val StudyDarkSurface = Color(0xFF1E293B)
+val StudyDarkText = Color(0xFFF8FAFC)
