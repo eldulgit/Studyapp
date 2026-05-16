@@ -4,6 +4,8 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,11 +18,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,13 +50,7 @@ import androidx.navigation.NavController
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import java.time.LocalDate
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
-import com.example.studyapp.ui.settings.subject.SubjectItem
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -64,16 +66,16 @@ fun CalendarScreen(
     val generatedSchedules = generatedScheduleViewModel.schedules
     val isGenerating = generatedScheduleViewModel.isGenerating
     val scheduleMessage = generatedScheduleViewModel.message
+    val scheduleSnapshot = generatedSchedules.toList()
 
-    val scheduledSubjects = remember(
-        generatedSchedules.size,
-        subjectViewModel.subjects.size
-    ) {
-        subjectViewModel.subjects
-            .mapNotNull { subject ->
-                generatedSchedules
-                    .firstOrNull { it.subject == subject.name }
-            }
+    val scheduledSubjects = remember(scheduleSnapshot) {
+        scheduleSnapshot
+            .sortedWith(
+                compareBy<DayScheduleBlock> { it.startHour }
+                    .thenBy { it.startMinute }
+                    .thenBy { it.subject }
+            )
+            .distinctBy { it.subject }
     }
 
     var selectedDate by remember {
@@ -175,7 +177,7 @@ fun CalendarScreen(
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
                         contentDescription = "날짜 선택",
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -194,7 +196,21 @@ fun CalendarScreen(
                     onClick = {
                         generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
                     },
-                    enabled = !isGenerating
+                    enabled = !isGenerating,
+                    modifier = Modifier
+                        .width(132.dp)
+                        .height(44.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = Color.White,
+                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
+                    )
                 ) {
                     if (isGenerating) {
                         CircularProgressIndicator(

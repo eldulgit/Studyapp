@@ -92,7 +92,8 @@ class TimerViewModel : ViewModel() {
                         id = subject.id.hashCode().toLong(),
                         name = subject.name,
                         allocatedSeconds = 0,
-                        remainingSeconds = 0
+                        remainingSeconds = 0,
+                        colorArgb = subject.colorArgb
                     )
                 }
 
@@ -329,9 +330,16 @@ class TimerViewModel : ViewModel() {
                     date = today
                 )
 
+                val wakeStartMinute = userRepository
+                    .getUserProfile(uid)
+                    ?.wakeTime
+                    ?.toMinutesOrNull()
+                    ?: 0
+
                 val firestoreSubjects = subjectRepository.getSubjects(uid)
 
                 val mergedTimerMap = linkedMapOf<String, SubjectTimer>()
+                val firstStartMinuteByKey = mutableMapOf<String, Int>()
 
                 generatedSchedules
                     .filter { schedule ->
@@ -345,8 +353,9 @@ class TimerViewModel : ViewModel() {
                             startTime = schedule.startTime,
                             endTime = schedule.endTime
                         )
+                        val startMinute = schedule.startTime.toMinutesOrNull()
 
-                        if (durationSeconds <= 0) {
+                        if (durationSeconds <= 0 || startMinute == null) {
                             return@forEach
                         }
 
@@ -368,13 +377,21 @@ class TimerViewModel : ViewModel() {
                         val subjectKey = matchedSubject?.id ?: subjectName
 
                         val existingTimer = mergedTimerMap[subjectKey]
+                        val timelineStartMinute = startMinute.normalizeFrom(wakeStartMinute)
+
+                        firstStartMinuteByKey[subjectKey] = minOf(
+                            firstStartMinuteByKey[subjectKey] ?: timelineStartMinute,
+                            timelineStartMinute
+                        )
 
                         if (existingTimer == null) {
                             mergedTimerMap[subjectKey] = SubjectTimer(
                                 id = subjectKey.hashCode().toLong(),
                                 name = subjectName,
                                 allocatedSeconds = durationSeconds,
-                                remainingSeconds = durationSeconds
+                                remainingSeconds = durationSeconds,
+                                colorArgb = schedule.colorArgb.takeIf { it != 0 }
+                                    ?: matchedSubject?.colorArgb
                             )
                         } else {
                             val totalSeconds = existingTimer.allocatedSeconds + durationSeconds
@@ -386,18 +403,25 @@ class TimerViewModel : ViewModel() {
                         }
                     }
 
-                subjects = mergedTimerMap.values.map { timer ->
-                    val override = timerOverrides[timer.id]
+                subjects = mergedTimerMap
+                    .entries
+                    .sortedWith(
+                        compareBy<Map.Entry<String, SubjectTimer>> {
+                            firstStartMinuteByKey[it.key] ?: Int.MAX_VALUE
+                        }.thenBy { it.value.name }
+                    )
+                    .map { (_, timer) ->
+                        val override = timerOverrides[timer.id]
 
-                    if (override != null) {
-                        timer.copy(
-                            allocatedSeconds = override.allocatedSeconds,
-                            remainingSeconds = override.remainingSeconds
-                        )
-                    } else {
-                        timer
+                        if (override != null) {
+                            timer.copy(
+                                allocatedSeconds = override.allocatedSeconds,
+                                remainingSeconds = override.remainingSeconds
+                            )
+                        } else {
+                            timer
+                        }
                     }
-                }
 
                 nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
             } catch (e: Exception) {
@@ -433,4 +457,12 @@ private fun String.toMinutesOrNull(): Int? {
     if (minute !in 0..59) return null
 
     return hour * 60 + minute
+}
+
+private fun Int.normalizeFrom(baseStartMinute: Int): Int {
+    return if (this < baseStartMinute) {
+        this + 24 * 60
+    } else {
+        this
+    }
 }

@@ -41,7 +41,7 @@ fun StatsBarChart(
         labelCount = labels.size
     )
 
-    val scaleMaxValue = values.maxOrNull()?.coerceAtLeast(1) ?: 1
+    val scaleMaxValue = values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
 
     Column(
         modifier = modifier
@@ -56,7 +56,7 @@ fun StatsBarChart(
             verticalAlignment = Alignment.Bottom
         ) {
             values.forEach { value ->
-                val ratio = (value.toFloat() / scaleMaxValue.toFloat()).coerceIn(0f, 1f)
+                val ratio = (value / scaleMaxValue).coerceIn(0f, 1f)
                 val barHeight = (ratio * maxBarHeight.value).dp
 
                 Box(
@@ -94,7 +94,7 @@ private fun generateBarValues(
     records: List<StudySessionRecord>,
     period: StatsPeriod,
     labelCount: Int
-): List<Int> {
+): List<Float> {
     val today = LocalDate.now()
 
     return when (period) {
@@ -104,11 +104,10 @@ private fun generateBarValues(
             List(labelCount) { index ->
                 val date = startDate.plusDays(index.toLong()).toString()
 
-                secondsToChartValue(
-                    records
-                        .filter { it.sessionDate == date }
-                        .sumOf { it.studiedSeconds }
-                )
+                records
+                    .filter { it.sessionDate == date }
+                    .sumOf { it.studiedSeconds }
+                    .toChartValue()
             }
         }
 
@@ -123,16 +122,15 @@ private fun generateBarValues(
                 val weekStart = startWeek.plusWeeks(index.toLong())
                 val weekEnd = weekStart.plusDays(6)
 
-                secondsToChartValue(
-                    records
-                        .filter { record ->
-                            val recordDate = LocalDate.parse(record.sessionDate)
+                records
+                    .filter { record ->
+                        val recordDate = LocalDate.parse(record.sessionDate)
 
-                            !recordDate.isBefore(weekStart) &&
-                                    !recordDate.isAfter(weekEnd)
-                        }
-                        .sumOf { it.studiedSeconds }
-                )
+                        !recordDate.isBefore(weekStart) &&
+                                !recordDate.isAfter(weekEnd)
+                    }
+                    .sumOf { it.studiedSeconds }
+                    .toChartValue()
             }
         }
 
@@ -144,25 +142,24 @@ private fun generateBarValues(
             List(labelCount) { index ->
                 val targetMonth = startMonth.plusMonths(index.toLong())
 
-                secondsToChartValue(
-                    records
-                        .filter { record ->
-                            val recordDate = LocalDate.parse(record.sessionDate)
+                records
+                    .filter { record ->
+                        val recordDate = LocalDate.parse(record.sessionDate)
 
-                            recordDate.year == targetMonth.year &&
-                                    recordDate.monthValue == targetMonth.monthValue
-                        }
-                        .sumOf { it.studiedSeconds }
-                )
+                        recordDate.year == targetMonth.year &&
+                                recordDate.monthValue == targetMonth.monthValue
+                    }
+                    .sumOf { it.studiedSeconds }
+                    .toChartValue()
             }
         }
     }
 }
 
-private fun secondsToChartValue(seconds: Int): Int {
-    return if (seconds > 0 && seconds < 60) {
-        1
+private fun Int.toChartValue(): Float {
+    return if (this > 0 && this < 60) {
+        1f
     } else {
-        seconds / 60
+        this / 60f
     }
 }

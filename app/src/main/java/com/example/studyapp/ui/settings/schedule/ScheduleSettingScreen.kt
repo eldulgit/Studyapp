@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,8 +43,6 @@ import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.derivedStateOf
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -69,7 +66,10 @@ fun ScheduleSettingScreen(
     val showFab by remember {
         derivedStateOf {
             val visibleItems = listState.layoutInfo.visibleItemsInfo
-            visibleItems.isEmpty() || visibleItems.none { it.index >= 1 }
+            val isAtTop = listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
+
+            isAtTop || visibleItems.isEmpty() || visibleItems.none { it.index >= 1 }
         }
     }
     var title by remember { mutableStateOf("") }
@@ -244,7 +244,9 @@ fun ScheduleSettingScreen(
                         isSelectingStartTime = true
                         pendingStartTime = null
                         showAddDialog = true
-                    }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,

@@ -2,13 +2,17 @@ package com.example.studyapp.ui.timer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +35,7 @@ fun SubjectSelectDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.White,
         title = { Text("과목 선택") },
         text = {
             androidx.compose.foundation.layout.Column(
@@ -45,18 +50,25 @@ fun SubjectSelectDialog(
                             checked = checkedSubjects.contains(subject.name),
                             onCheckedChange = { checked ->
                                 onCheckedChange(subject.name, checked == true)
-                            }
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = MaterialTheme.colorScheme.primary,
+                                checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                            )
                         )
+
+                        Text(
+                            text = subject.name,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         androidx.compose.foundation.layout.Box(
                             modifier = Modifier
                                 .size(10.dp)
                                 .background(Color(subject.colorArgb), CircleShape)
-                        )
-
-                        Text(
-                            text = " ${subject.name}",
-                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
                 }

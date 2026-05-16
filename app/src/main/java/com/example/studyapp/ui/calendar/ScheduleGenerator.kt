@@ -120,7 +120,7 @@ fun generatePriorityStudySchedule(
         id = goal.id,        // 목표 ID를 사용
         name = goal.title,   // 목표 제목을 과목명으로 사용
         priority = 1,        // 기본 우선순위
-        colorArgb = -7829368 // 기본 회색 (Color.Gray.toArgb() 값)
+        colorArgb = goalScheduleColorArgb(goal.id)
         )
         if (!goal.increasePriorityOverTime) {
             allocations.add(SubjectAllocation(dummySubject, 30))
@@ -195,6 +195,20 @@ fun generatePriorityStudySchedule(
     }
     return generatedSchedules
 }
+
+private fun goalScheduleColorArgb(seed: String): Int {
+    val index = kotlin.math.abs(seed.hashCode()) % goalScheduleColorPalette.size
+    return goalScheduleColorPalette[index]
+}
+
+private val goalScheduleColorPalette = listOf(
+    0xFFBDE0FE.toInt(),
+    0xFFD0E6FF.toInt(),
+    0xFFBFCBFF.toInt(),
+    0xFFD9C2F0.toInt(),
+    0xFFEADCF8.toInt(),
+    0xFFC7E9F1.toInt()
+)
 @RequiresApi(Build.VERSION_CODES.O)
 private fun calculateStageWeight(startDate: String, endDate: String, today: LocalDate): Float {
     return try {

@@ -172,6 +172,26 @@ private fun GeneratedScheduleItem.toDayScheduleBlockOrNull(date: LocalDate): Day
         endHour = endHour,
         endMinute = endMinute,
         subject = title,
-        color = if (colorArgb != 0) Color(colorArgb) else Color(0xFFBBDEFB)
+        color = Color(resolveScheduleColorArgb(title, colorArgb))
     )
 }
+
+private fun resolveScheduleColorArgb(title: String, colorArgb: Int): Int {
+    val grayArgb = -7829368
+
+    if (colorArgb != 0 && colorArgb != grayArgb) {
+        return colorArgb
+    }
+
+    val index = kotlin.math.abs(title.hashCode()) % fallbackScheduleColorPalette.size
+    return fallbackScheduleColorPalette[index]
+}
+
+private val fallbackScheduleColorPalette = listOf(
+    0xFFBDE0FE.toInt(),
+    0xFFD0E6FF.toInt(),
+    0xFFBFCBFF.toInt(),
+    0xFFD9C2F0.toInt(),
+    0xFFEADCF8.toInt(),
+    0xFFC7E9F1.toInt()
+)

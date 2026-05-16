@@ -5,4 +5,5 @@ data class SubjectTimer(
     val name: String,
     val allocatedSeconds: Int,
     val remainingSeconds: Int,
+    val colorArgb: Int? = null
 )

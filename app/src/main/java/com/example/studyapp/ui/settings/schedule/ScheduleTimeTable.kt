@@ -264,38 +264,38 @@ private data class TimetableColorSet(
 
 private val timetableColors = listOf(
     TimetableColorSet(
-        container = Color(0xFFEAF4FF),
-        border = Color(0xFF93C5FD),
-        text = Color(0xFF1E3A5F)
+        container = Color(0xFFBDE0FE),
+        border = Color(0xFF8EC5F8),
+        text = Color(0xFF17324D)
     ),
     TimetableColorSet(
-        container = Color(0xFFEFF6FF),
-        border = Color(0xFFBFDBFE),
-        text = Color(0xFF25476F)
+        container = Color(0xFFD0E6FF),
+        border = Color(0xFFA8CBF2),
+        text = Color(0xFF244363)
     ),
     TimetableColorSet(
-        container = Color(0xFFE9F7F5),
-        border = Color(0xFFA8DADC),
-        text = Color(0xFF24535A)
+        container = Color(0xFFBFCBFF),
+        border = Color(0xFF9DACEF),
+        text = Color(0xFF313D72)
     ),
     TimetableColorSet(
-        container = Color(0xFFF3F0FF),
-        border = Color(0xFFC7BDF2),
-        text = Color(0xFF44396A)
+        container = Color(0xFFD9C2F0),
+        border = Color(0xFFBFA4DF),
+        text = Color(0xFF3F315A)
     ),
     TimetableColorSet(
-        container = Color(0xFFF0F9FF),
-        border = Color(0xFFBAE6FD),
-        text = Color(0xFF23546E)
+        container = Color(0xFFEADCF8),
+        border = Color(0xFFD0B8EA),
+        text = Color(0xFF4C3A65)
     ),
     TimetableColorSet(
-        container = Color(0xFFF1FAF4),
-        border = Color(0xFFB7E4C7),
-        text = Color(0xFF2D5A42)
+        container = Color(0xFFC7E9F1),
+        border = Color(0xFFA0D2DE),
+        text = Color(0xFF245565)
     ),
     TimetableColorSet(
-        container = Color(0xFFF6F3FF),
-        border = Color(0xFFD8CCF6),
-        text = Color(0xFF51436D)
+        container = Color(0xFFE0D4FF),
+        border = Color(0xFFC3B1F0),
+        text = Color(0xFF433467)
     )
 )

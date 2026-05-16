@@ -60,6 +60,12 @@ fun MainScreen(
         BottomNavItem.Setting.route
     )
 
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == BottomNavItem.Timer.route && timerViewModel.runningTaskId == null) {
+            timerViewModel.loadTodayGeneratedScheduleTimersFromDb()
+        }
+    }
+
     var lastBackPressedTime by remember { mutableLongStateOf(0L) }
 
     Scaffold(

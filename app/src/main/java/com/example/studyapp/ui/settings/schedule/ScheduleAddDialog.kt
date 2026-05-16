@@ -30,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
@@ -95,6 +96,7 @@ fun ScheduleAddDialog(
     ) {
         Surface(
             shape = MaterialTheme.shapes.large,
+            color = Color.White,
             tonalElevation = 6.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -127,29 +129,33 @@ fun ScheduleAddDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = selectedCategory == ScheduleCategory.GOAL,
-                        onClick = { onCategoryChange(ScheduleCategory.GOAL) }
-                    )
-                    Text(
-                        text = "목표",
+                    Row(
                         modifier = Modifier.clickable {
                             onCategoryChange(ScheduleCategory.GOAL)
-                        }
-                    )
+                        },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selectedCategory == ScheduleCategory.GOAL,
+                            onClick = { onCategoryChange(ScheduleCategory.GOAL) }
+                        )
+                        Text(text = "목표")
+                    }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    RadioButton(
-                        selected = selectedCategory == ScheduleCategory.SCHEDULE,
-                        onClick = { onCategoryChange(ScheduleCategory.SCHEDULE) }
-                    )
-                    Text(
-                        text = "스케줄",
+                    Row(
                         modifier = Modifier.clickable {
                             onCategoryChange(ScheduleCategory.SCHEDULE)
-                        }
-                    )
+                        },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selectedCategory == ScheduleCategory.SCHEDULE,
+                            onClick = { onCategoryChange(ScheduleCategory.SCHEDULE) }
+                        )
+                        Text(text = "스케줄")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -245,7 +251,8 @@ fun ScheduleAddDialog(
 
                         DropdownMenu(
                             expanded = isDayDropdownExpanded,
-                            onDismissRequest = { onDayDropdownExpandedChange(false) }
+                            onDismissRequest = { onDayDropdownExpandedChange(false) },
+                            containerColor = Color.White
                         ) {
                             dayOptions.forEach { day ->
                                 DropdownMenuItem(

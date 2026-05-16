@@ -26,8 +26,10 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -43,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.example.studyapp.ui.camera.CameraScreen
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.timer.pomodoro.CircularTimer
@@ -57,12 +62,33 @@ fun TimerScreen(
     timerViewModel: TimerViewModel,
     settingsViewModel: SettingsViewModel
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = context as? LifecycleOwner
+
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
         timerViewModel.loadTodayGeneratedScheduleTimersFromDb()
     }
 
-    val context = LocalContext.current
+    DisposableEffect(lifecycleOwner) {
+        val owner = lifecycleOwner
+
+        if (owner != null) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME && timerViewModel.runningTaskId == null) {
+                    timerViewModel.loadTodayGeneratedScheduleTimersFromDb()
+                }
+            }
+
+            owner.lifecycle.addObserver(observer)
+
+            onDispose {
+                owner.lifecycle.removeObserver(observer)
+            }
+        } else {
+            onDispose { }
+        }
+    }
 
     var showCameraPreview by remember { mutableStateOf(false) }
 
@@ -168,14 +194,17 @@ fun TimerScreen(
     val runningTaskColor = availableSubjects
         .firstOrNull { it.name == selectedTask?.name }
         ?.let { Color(it.colorArgb) }
-        ?: Color(0xFF4CAF50)
+        ?: selectedTask?.colorArgb?.let { Color(it) }
+        ?: MaterialTheme.colorScheme.primary
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showSubjectDialog = true }
+                onClick = { showSubjectDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -236,7 +265,8 @@ fun TimerScreen(
                     val subjectColorArgb = availableSubjects
                         .firstOrNull { it.name == item.name }
                         ?.colorArgb
-                        ?: Color.Gray.toArgb()
+                        ?: item.colorArgb
+                        ?: MaterialTheme.colorScheme.primary.toArgb()
 
                     TimerTaskRow(
                         subject = item.name,
