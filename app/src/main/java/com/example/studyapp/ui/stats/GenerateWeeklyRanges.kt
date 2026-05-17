@@ -26,5 +26,5 @@ private fun formatWeeklyRange(
     start: LocalDate,
     end: LocalDate
 ): String {
-    return "${start.dayOfMonth}~${end.dayOfMonth}일";
+    return "${start.dayOfMonth}일-${end.dayOfMonth}일"
 }
