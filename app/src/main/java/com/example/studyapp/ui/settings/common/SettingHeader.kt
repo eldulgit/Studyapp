@@ -56,6 +56,7 @@ fun SettingHeader() {
     }
 
     var showPicker by remember { mutableStateOf(false) }
+    var pendingCropUri by remember { mutableStateOf<Uri?>(null) }
 
     var showNameDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
@@ -64,7 +65,7 @@ fun SettingHeader() {
         rememberLauncherForActivityResult(
             ActivityResultContracts.GetContent()
         ) { uri ->
-            uri?.let { userViewModel.uploadProfileImage(it) }
+            pendingCropUri = uri
             showPicker = false
         }
 
@@ -75,9 +76,7 @@ fun SettingHeader() {
             ActivityResultContracts.TakePicture()
         ) { success ->
             if (success) {
-                cameraImageUri?.let {
-                    userViewModel.uploadProfileImage(it)
-                }
+                pendingCropUri = cameraImageUri
             }
             showPicker = false
         }
@@ -150,6 +149,19 @@ fun SettingHeader() {
                     TextButton(onClick = { showPicker = false }) {
                         Text("취소")
                     }
+                }
+            )
+        }
+
+        pendingCropUri?.let { uri ->
+            ProfileImageCropDialog(
+                imageUri = uri,
+                onDismiss = {
+                    pendingCropUri = null
+                },
+                onCropComplete = { croppedUri ->
+                    userViewModel.uploadProfileImage(croppedUri)
+                    pendingCropUri = null
                 }
             )
         }

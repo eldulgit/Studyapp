@@ -130,7 +130,8 @@ fun MainScreen(
                     initialLunchEndTime = lifeStyleViewModel.lunchEndTime,
                     initialDinnerStartTime = lifeStyleViewModel.dinnerStartTime,
                     initialDinnerEndTime = lifeStyleViewModel.dinnerEndTime,
-                    onSaveClick = lifeStyleViewModel::saveLifestyle
+                    onSaveClick = lifeStyleViewModel::saveLifestyle,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 

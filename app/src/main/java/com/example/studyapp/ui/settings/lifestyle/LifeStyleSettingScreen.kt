@@ -9,11 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -23,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -48,6 +54,7 @@ fun LifeStyleSettingScreen(
         dinnerStartTime: String,
         dinnerEndTime: String
     ) -> Unit,
+    onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var wakeTime by remember { mutableStateOf(initialWakeTime) }
@@ -87,8 +94,7 @@ fun LifeStyleSettingScreen(
         modifier = modifier.fillMaxSize()
     ) {
         val isCompactHeight = maxHeight < 720.dp
-        val topGap = if (isCompactHeight) 20.dp else 40.dp
-        val introGap = if (isCompactHeight) 18.dp else 32.dp
+        val introGap = if (isCompactHeight) 14.dp else 24.dp
         val fieldGap = if (isCompactHeight) 10.dp else 16.dp
         val sectionGap = if (isCompactHeight) 14.dp else 24.dp
         val sectionTitleGap = if (isCompactHeight) 8.dp else 12.dp
@@ -102,21 +108,27 @@ fun LifeStyleSettingScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(topGap))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
 
-            Text(
-                text = "생활패턴 설정",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+                Text(
+                    text = "생활패턴 설정",
+                    style = MaterialTheme.typography.titleMedium
+                )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "학습 계획에 반영될 생활패턴을 수정할 수 있어요.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Spacer(modifier = Modifier.size(48.dp))
+            }
 
             Spacer(modifier = Modifier.height(introGap))
 
