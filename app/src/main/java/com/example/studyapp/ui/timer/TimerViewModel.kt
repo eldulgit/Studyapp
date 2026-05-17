@@ -106,6 +106,7 @@ class TimerViewModel : ViewModel() {
 
     fun addSubjectTimer(subjectName: String) {
         val alreadyExists = subjects.any { it.name == subjectName }
+
         if (alreadyExists) return
 
         val newSubject = SubjectTimer(
@@ -116,6 +117,24 @@ class TimerViewModel : ViewModel() {
         )
 
         subjects = subjects + newSubject
+
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val today = makeSessionDate(System.currentTimeMillis())
+
+                generatedScheduleRepository.saveTimerTimeOverride(
+                    userId = uid,
+                    date = today,
+                    timerId = newSubject.id,
+                    subjectName = newSubject.name,
+                    allocatedSeconds = newSubject.allocatedSeconds,
+                    remainingSeconds = newSubject.remainingSeconds
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "직접 추가한 타이머 과목 저장 실패", e)
+            }
+        }
     }
 
     fun updateSubjectTime(subjectId: Long, hour: String, minute: String) {
@@ -403,7 +422,7 @@ class TimerViewModel : ViewModel() {
                         }
                     }
 
-                subjects = mergedTimerMap
+                val scheduleTimers = mergedTimerMap
                     .entries
                     .sortedWith(
                         compareBy<Map.Entry<String, SubjectTimer>> {
@@ -422,6 +441,39 @@ class TimerViewModel : ViewModel() {
                             timer
                         }
                     }
+
+                val validSubjectNames = firestoreSubjects
+                    .map { it.name.trim() }
+                    .toSet()
+
+                val manualTimers = timerOverrides.values
+                    .filter { override ->
+                        val overrideSubjectName = override.subjectName.trim()
+
+                        overrideSubjectName.isNotBlank() &&
+                                validSubjectNames.contains(overrideSubjectName) &&
+                                scheduleTimers.none { timer ->
+                                    timer.id == override.timerId || timer.name == overrideSubjectName
+                                }
+                    }
+                    .map { override ->
+                        val overrideSubjectName = override.subjectName.trim()
+
+                        val matchedSubject = firestoreSubjects.firstOrNull { subject ->
+                            subject.name.trim() == overrideSubjectName
+                        }
+
+                        SubjectTimer(
+                            id = override.timerId,
+                            name = overrideSubjectName,
+                            allocatedSeconds = override.allocatedSeconds,
+                            remainingSeconds = override.remainingSeconds,
+                            colorArgb = matchedSubject?.colorArgb
+                        )
+                    }
+                    .sortedBy { it.name }
+
+                subjects = scheduleTimers + manualTimers
 
                 nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
             } catch (e: Exception) {

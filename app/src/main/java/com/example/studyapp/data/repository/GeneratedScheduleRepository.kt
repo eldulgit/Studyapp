@@ -139,6 +139,41 @@ class GeneratedScheduleRepository {
             .await()
     }
 
+    suspend fun deleteTimerOverridesBySubjectName(
+        userId: String,
+        subjectName: String
+    ) {
+        val trimmedName = subjectName.trim()
+
+        if (trimmedName.isBlank()) return
+
+        val dateDocuments = db.collection("users")
+            .document(userId)
+            .collection("generated_schedules")
+            .get()
+            .await()
+
+        val batch = db.batch()
+        var deleteCount = 0
+
+        dateDocuments.documents.forEach { dateDocument ->
+            val overrideDocuments = dateDocument.reference
+                .collection("timer_overrides")
+                .whereEqualTo("subjectName", trimmedName)
+                .get()
+                .await()
+
+            overrideDocuments.documents.forEach { overrideDocument ->
+                batch.delete(overrideDocument.reference)
+                deleteCount++
+            }
+        }
+
+        if (deleteCount > 0) {
+            batch.commit().await()
+        }
+    }
+
     suspend fun getTimerTimeOverrides(
         userId: String,
         date: String

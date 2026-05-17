@@ -296,7 +296,11 @@ fun SubjectSettingScreen(
                     },
                     onDelete = {
                         subjectViewModel.removeSubject(subject.id)
-                        subjectViewModel.removeSubjectFromFirestore(subject.id)
+
+                        subjectViewModel.removeSubjectFromFirestore(
+                            id = subject.id,
+                            subjectName = subject.name
+                        )
 
                         if (editingSubjectId == subject.id) {
                             resetInput()

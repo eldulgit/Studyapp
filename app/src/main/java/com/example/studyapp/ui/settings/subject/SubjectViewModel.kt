@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import com.example.studyapp.data.repository.AuthRepository
 import com.example.studyapp.data.repository.UserRepository
+import com.example.studyapp.data.repository.GeneratedScheduleRepository
 
 class SubjectViewModel : ViewModel() {
     private val authRepository = AuthRepository()
@@ -18,14 +19,23 @@ class SubjectViewModel : ViewModel() {
         return uid
     }
     private val repository = SubjectRepository()
+    private val generatedScheduleRepository = GeneratedScheduleRepository()
     val subjects = mutableStateListOf<SubjectItem>()
 
-    fun removeSubjectFromFirestore(id: String) {
+    fun removeSubjectFromFirestore(id: String, subjectName: String) {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
+
                 repository.deleteSubject(uid, id)
+
+                generatedScheduleRepository.deleteTimerOverridesBySubjectName(
+                    userId = uid,
+                    subjectName = subjectName
+                )
+
                 loadSubjectsFromFirestore()
+
             } catch (e: Exception) {
                 android.util.Log.e("SubjectFirestore", "삭제 실패", e)
             }
