@@ -31,11 +31,15 @@ fun MoonPrioritySelector(
             Button(
                 onClick = { onPrioritySelected(priority) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
+                    containerColor = if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        Color.White
+                    },
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 border = BorderStroke(
-                    width = if (isSelected) 2.dp else 1.dp,
+                    width = 1.dp,
                     color = MaterialTheme.colorScheme.primary
                 )
             ) {

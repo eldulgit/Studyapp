@@ -65,6 +65,7 @@ fun ScheduleTimetable(
     val headerHeight = 34.dp
     val timeColumnWidth = 34.dp
     val timetableHeight = hourHeight * totalHours
+    val lineColor = Color(0xFFEAEAEA)
 
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth()
@@ -77,7 +78,7 @@ fun ScheduleTimetable(
                 .clip(RoundedCornerShape(20.dp))
                 .border(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
+                    color = lineColor,
                     shape = RoundedCornerShape(20.dp)
                 )
                 .background(Color.White)
@@ -91,7 +92,7 @@ fun ScheduleTimetable(
                     modifier = Modifier
                         .width(timeColumnWidth)
                         .height(headerHeight)
-                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                        .border(0.5.dp, lineColor)
                 )
 
                 days.forEach { day ->
@@ -99,7 +100,7 @@ fun ScheduleTimetable(
                         modifier = Modifier
                             .width(dayColumnWidth)
                             .height(headerHeight)
-                            .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                            .border(0.5.dp, lineColor),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -120,7 +121,8 @@ fun ScheduleTimetable(
                     startHour = startHour,
                     totalHours = totalHours,
                     hourHeight = hourHeight,
-                    width = timeColumnWidth
+                    width = timeColumnWidth,
+                    lineColor = lineColor
                 )
 
                 days.forEach { day ->
@@ -131,6 +133,7 @@ fun ScheduleTimetable(
                         totalHours = totalHours,
                         hourHeight = hourHeight,
                         width = dayColumnWidth,
+                        lineColor = lineColor,
                         onItemClick = onItemClick
                     )
                 }
@@ -144,7 +147,8 @@ private fun TimeColumn(
     startHour: Int,
     totalHours: Int,
     hourHeight: Dp,
-    width: Dp
+    width: Dp,
+    lineColor: Color
 ) {
     Column(
         modifier = Modifier.width(width)
@@ -154,7 +158,7 @@ private fun TimeColumn(
                 modifier = Modifier
                     .width(width)
                     .height(hourHeight)
-                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                    .border(0.5.dp, lineColor),
                 contentAlignment = Alignment.TopCenter
             ) {
                 Text(
@@ -176,13 +180,14 @@ private fun DayColumn(
     totalHours: Int,
     hourHeight: Dp,
     width: Dp,
+    lineColor: Color,
     onItemClick: (FixedScheduleItem) -> Unit
 ) {
     Box(
         modifier = Modifier
             .width(width)
             .height(hourHeight * totalHours)
-            .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+            .border(0.5.dp, lineColor)
     ) {
         Column(
             modifier = Modifier.matchParentSize()
@@ -192,7 +197,7 @@ private fun DayColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(hourHeight)
-                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                        .border(0.5.dp, lineColor)
                 )
             }
         }
@@ -268,38 +273,38 @@ private fun FixedScheduleItem.stableColorIndex(colorCount: Int): Int {
 
 private val timetableColors = listOf(
     TimetableColorSet(
-        container = Color(0xFFE3F2FD),
-        border = Color(0xFFBBDEFB),
-        text = Color(0xFF254866)
+        container = Color(0xFFFBE2E2),
+        border = Color(0xFFEAB8B8),
+        text = Color(0xFF6A3D3D)
     ),
     TimetableColorSet(
-        container = Color(0xFFE8F5E9),
-        border = Color(0xFFC8E6C9),
-        text = Color(0xFF2F5637)
+        container = Color(0xFFFBEAD5),
+        border = Color(0xFFE8C79C),
+        text = Color(0xFF6A4B2C)
     ),
     TimetableColorSet(
-        container = Color(0xFFFFF8E1),
-        border = Color(0xFFFFECB3),
-        text = Color(0xFF66542A)
+        container = Color(0xFFF8F0C9),
+        border = Color(0xFFE0D38F),
+        text = Color(0xFF665C2C)
     ),
     TimetableColorSet(
-        container = Color(0xFFF3E5F5),
-        border = Color(0xFFE1BEE7),
-        text = Color(0xFF5A3E63)
+        container = Color(0xFFE4F2DB),
+        border = Color(0xFFBCD8AE),
+        text = Color(0xFF3F6137)
     ),
     TimetableColorSet(
-        container = Color(0xFFFFEBEE),
-        border = Color(0xFFFFCDD2),
-        text = Color(0xFF6A3D42)
+        container = Color(0xFFDDF2EC),
+        border = Color(0xFFA9D8CB),
+        text = Color(0xFF315E54)
     ),
     TimetableColorSet(
-        container = Color(0xFFE0F7FA),
-        border = Color(0xFFB2EBF2),
-        text = Color(0xFF2F5D65)
+        container = Color(0xFFE2EBFA),
+        border = Color(0xFFB3C7E9),
+        text = Color(0xFF354B68)
     ),
     TimetableColorSet(
-        container = Color(0xFFFFF3E0),
-        border = Color(0xFFFFE0B2),
-        text = Color(0xFF6A4B2F)
+        container = Color(0xFFF0E3F8),
+        border = Color(0xFFD1B8E5),
+        text = Color(0xFF543D67)
     )
 )

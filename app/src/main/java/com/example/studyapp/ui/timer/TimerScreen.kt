@@ -162,7 +162,7 @@ fun TimerScreen(
     var showTimeEditDialog by remember { mutableStateOf(false) }
     var editTargetId by remember { mutableLongStateOf(-1L) }
 
-    val timerWidth = 270.dp
+    val timerWidth = 340.dp
 
     val currentEditTarget = timerSubjects.firstOrNull { it.id == editTargetId }
 

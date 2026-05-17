@@ -191,53 +191,70 @@ fun CalendarScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(0.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = {
-                        generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
-                    },
-                    enabled = !isGenerating,
-                    modifier = Modifier
-                        .width(132.dp)
-                        .height(44.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    ),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = Color.White,
-                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-                    )
-                ) {
-                    if (isGenerating) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(text = "시간표 생성")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                SubjectColorLegend(
-                    schedules = scheduledSubjects
+            Button(
+                onClick = {
+                    generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
+                },
+                enabled = !isGenerating,
+                modifier = Modifier
+                    .width(96.dp)
+                    .height(34.dp),
+                shape = RoundedCornerShape(17.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary
+                ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = Color.White,
+                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
+                ),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    horizontal = 8.dp,
+                    vertical = 0.dp
                 )
-
-                Spacer(modifier = Modifier.height(6.dp))
+            ) {
+                if (isGenerating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "시간표 생성",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SubjectColorLegend(
+                        schedules = scheduledSubjects
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
         }
 
         Spacer(modifier = Modifier.height(2.dp))
@@ -359,11 +376,13 @@ private fun Int.normalizeFrom(baseStartMinute: Int): Int {
 
 @Composable
 private fun SubjectColorLegend(
+    modifier: Modifier = Modifier,
     schedules: List<DayScheduleBlock>
 ) {
     if (schedules.isEmpty()) return
 
     LazyRow(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
