@@ -1,0 +1,15 @@
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GenerateHourlyFocusDate.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GenerateHourlyFocusDate.kt[m[36m:[m    zoneId: ZoneId = [1;31mAppTimeZone[m.zoneId
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GenerateLabels.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GenerateLabels.kt[m[36m:[m    val today = LocalDate.now([1;31mAppTimeZone[m.zoneId)
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GenerateWeeklyRanges.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GenerateWeeklyRanges.kt[m[36m:[m    val today = LocalDate.now([1;31mAppTimeZone[m.zoneId)
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GetTodayQuote.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/GetTodayQuote.kt[m[36m:[m    val dayOfYear = LocalDate.now([1;31mAppTimeZone[m.zoneId).dayOfYear
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/StatsBarChart.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/StatsBarChart.kt[m[36m:[m    val today = LocalDate.now([1;31mAppTimeZone[m.zoneId)
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/StudyStatsCalculator.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/StudyStatsCalculator.kt[m[36m:[m    val today = LocalDate.now([1;31mAppTimeZone[m.zoneId)
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/stats/StudyStatsCalculator.kt[m[36m:[m    val today = LocalDate.now([1;31mAppTimeZone[m.zoneId)
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/timer/TimerViewModel.kt[m[36m:[mimport com.example.studyapp.util.[1;31mAppTimeZone[m
+[35morigin/feature/DB:app/src/main/java/com/example/studyapp/ui/timer/TimerViewModel.kt[m[36m:[m        formatter.timeZone = [1;31mAppTimeZone[m.timeZone

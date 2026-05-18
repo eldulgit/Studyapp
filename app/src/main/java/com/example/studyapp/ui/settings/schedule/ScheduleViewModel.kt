@@ -58,6 +58,31 @@ class ScheduleViewModel : ViewModel() {
         }
     }
 
+    fun addSchedules(
+        inputs: List<ScheduleTimeInput>,
+        title: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+
+                inputs.forEach { input ->
+                    repository.addSchedule(
+                        userId = uid,
+                        title = title,
+                        dayOfWeek = input.dayOfWeek,
+                        startTime = input.startTime,
+                        endTime = input.endTime
+                    )
+                }
+
+                loadSchedulesFromFirestore()
+            } catch (e: Exception) {
+                android.util.Log.e("ScheduleFirestore", "여러 스케줄 저장 실패", e)
+            }
+        }
+    }
+
     fun deleteSchedule(id: String) {
         viewModelScope.launch {
             try {

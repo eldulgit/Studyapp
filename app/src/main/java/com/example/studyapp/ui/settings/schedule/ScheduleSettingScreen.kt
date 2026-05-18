@@ -202,6 +202,11 @@ fun ScheduleSettingScreen(
         }
     }
 
+    fun nextDayAfter(day: String): String {
+        val currentIndex = dayOptions.indexOf(day).takeIf { it >= 0 } ?: 0
+        return dayOptions[(currentIndex + 1) % dayOptions.size]
+    }
+
     val goalItems = goalViewModel.goals.map { goal ->
         FixedScheduleItem(
             id = goal.id.hashCode().toLong(),
@@ -436,7 +441,9 @@ fun ScheduleSettingScreen(
                     onAddScheduleTime = {
                         val last = scheduleTimeInputs.lastOrNull()
                             ?: ScheduleTimeInput("월", "09:00", "10:00")
-                        scheduleTimeInputs = scheduleTimeInputs + last
+                        scheduleTimeInputs = scheduleTimeInputs + last.copy(
+                            dayOfWeek = nextDayAfter(last.dayOfWeek)
+                        )
                     },
                     onRemoveScheduleTime = { index ->
                         scheduleTimeInputs = scheduleTimeInputs
@@ -538,14 +545,10 @@ fun ScheduleSettingScreen(
                                     val firstScheduleInput = scheduleTimeInputs.first()
 
                                     if (editingItemId == null) {
-                                        scheduleTimeInputs.forEach { input ->
-                                            scheduleViewModel.addSchedule(
-                                                title = title.trim(),
-                                                dayOfWeek = input.dayOfWeek,
-                                                startTime = input.startTime,
-                                                endTime = input.endTime
-                                            )
-                                        }
+                                        scheduleViewModel.addSchedules(
+                                            title = title.trim(),
+                                            inputs = scheduleTimeInputs
+                                        )
                                     } else {
                                         val firestoreId = scheduleViewModel.schedules
                                             .firstOrNull {
