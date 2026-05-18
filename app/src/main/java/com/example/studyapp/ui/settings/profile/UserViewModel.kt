@@ -1,5 +1,6 @@
 package com.example.studyapp.ui.settings.profile
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -11,8 +12,9 @@ import com.example.studyapp.data.model.UserProfile
 import com.example.studyapp.data.repository.AuthRepository
 import com.example.studyapp.data.repository.ProfileImageRepository
 import com.example.studyapp.data.repository.UserRepository
-import com.google.firebase.storage.StorageException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UserViewModel : ViewModel() {
 
@@ -29,10 +31,6 @@ class UserViewModel : ViewModel() {
     var profileImageUrl by mutableStateOf("")
         private set
 
-    private fun getUidOrNull(): String? {
-        return authRepository.getCurrentUid()
-    }
-
     fun onUserNameChanged(newValue: String) {
         userName = newValue
     }
@@ -43,17 +41,19 @@ class UserViewModel : ViewModel() {
         return uid
     }
 
-    fun loadUserProfile() {
+    fun loadUserProfile(context: Context) {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
                 val profile = userRepository.getUserProfile(uid)
                 userProfile = profile
-                userName = profile?.name ?: ""
-                profileImageUrl = profile?.profileImageUrl ?: ""
-                Log.d("UserVM", "loadUserProfile success / uid=$uid / imageUrl=$profileImageUrl")
+                userName = profile?.name.orEmpty()
+                profileImageUrl = profileImageRepository.getSavedProfileImageUri(
+                    context.applicationContext
+                )
+                Log.d("UserVM", "loadUserProfile success / uid=$uid")
             } catch (e: Exception) {
-                Log.e("UserVM", "loadUserProfile 실패", e)
+                Log.e("UserVM", "loadUserProfile failed", e)
             }
         }
     }
@@ -66,37 +66,27 @@ class UserViewModel : ViewModel() {
                 if (trimmed.isEmpty()) return@launch
 
                 userRepository.updateUserName(uid, trimmed)
-                loadUserProfile()
+                userName = trimmed
                 Log.d("UserVM", "saveUserName success / uid=$uid")
             } catch (e: Exception) {
-                Log.e("UserVM", "saveUserName 실패", e)
+                Log.e("UserVM", "saveUserName failed", e)
             }
         }
     }
 
-    fun uploadProfileImage(imageUri: Uri) {
+    fun uploadProfileImage(context: Context, imageUri: Uri) {
         viewModelScope.launch {
             try {
-                val uid = getOrCreateUid()
-                Log.d("UserVM", "업로드 시작 / uid=$uid / uri=$imageUri")
-
-                val downloadUrl = profileImageRepository.uploadProfileImage(uid, imageUri)
-                Log.d("UserVM", "Storage 업로드 성공 / downloadUrl=$downloadUrl")
-
-                userRepository.updateProfileImageUrl(uid, downloadUrl)
-                Log.d("UserVM", "Firestore URL 저장 성공")
-
-                loadUserProfile()
-            } catch (e: Exception) {
-                if (e is StorageException) {
-                    Log.e(
-                        "UserVM",
-                        "uploadProfileImage 실패 / code=${e.errorCode} / message=${e.message}",
-                        e
+                val savedUri = withContext(Dispatchers.IO) {
+                    profileImageRepository.saveProfileImage(
+                        context.applicationContext,
+                        imageUri
                     )
-                } else {
-                    Log.e("UserVM", "uploadProfileImage 실패 / ${e.message}", e)
                 }
+                profileImageUrl = savedUri
+                Log.d("UserVM", "save local profile image success / uri=$savedUri")
+            } catch (e: Exception) {
+                Log.e("UserVM", "save local profile image failed", e)
             }
         }
     }
