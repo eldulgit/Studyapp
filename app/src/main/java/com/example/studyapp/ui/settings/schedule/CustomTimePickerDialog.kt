@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -116,6 +117,7 @@ fun CustomTimePicker(
     ) {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
+            color = Color.White,
             modifier = Modifier
                 .width(320.dp)
                 .padding(horizontal = 20.dp)

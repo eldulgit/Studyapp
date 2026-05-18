@@ -202,11 +202,6 @@ fun ScheduleSettingScreen(
         }
     }
 
-    fun nextDayAfter(day: String): String {
-        val currentIndex = dayOptions.indexOf(day).takeIf { it >= 0 } ?: 0
-        return dayOptions[(currentIndex + 1) % dayOptions.size]
-    }
-
     val goalItems = goalViewModel.goals.map { goal ->
         FixedScheduleItem(
             id = goal.id.hashCode().toLong(),
@@ -439,11 +434,9 @@ fun ScheduleSettingScreen(
                         selectedDay = day
                     },
                     onAddScheduleTime = {
-                        val last = scheduleTimeInputs.lastOrNull()
-                            ?: ScheduleTimeInput("월", "09:00", "10:00")
-                        scheduleTimeInputs = scheduleTimeInputs + last.copy(
-                            dayOfWeek = nextDayAfter(last.dayOfWeek)
-                        )
+                        val defaultDay = scheduleTimeInputs.firstOrNull()?.dayOfWeek ?: "월"
+                        scheduleTimeInputs = scheduleTimeInputs +
+                                ScheduleTimeInput(defaultDay, "09:00", "10:00")
                     },
                     onRemoveScheduleTime = { index ->
                         scheduleTimeInputs = scheduleTimeInputs
@@ -499,7 +492,6 @@ fun ScheduleSettingScreen(
                             }
 
                             selectedCategory == ScheduleCategory.SCHEDULE &&
-                                    editingItemId == null &&
                                     scheduleInputsHaveInternalConflict(scheduleTimeInputs) -> {
                                 errorMessage = "추가하려는 스케줄끼리 시간이 겹칩니다."
                             }
@@ -564,6 +556,15 @@ fun ScheduleSettingScreen(
                                                 startTime = firstScheduleInput.startTime,
                                                 endTime = firstScheduleInput.endTime
                                             )
+
+                                            val additionalScheduleInputs =
+                                                scheduleTimeInputs.drop(1)
+                                            if (additionalScheduleInputs.isNotEmpty()) {
+                                                scheduleViewModel.addSchedules(
+                                                    title = title.trim(),
+                                                    inputs = additionalScheduleInputs
+                                                )
+                                            }
                                         }
                                     }
                                 }

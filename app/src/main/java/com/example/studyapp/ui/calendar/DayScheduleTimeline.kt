@@ -65,7 +65,6 @@ fun DayScheduleTimeline(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .background(Color.White)
         ) {
             val minuteCellWidth: Dp = (maxWidth - timeLabelWidth) / 6
 
@@ -91,6 +90,7 @@ fun DayScheduleTimeline(
                             modifier = Modifier
                                 .width(timeLabelWidth)
                                 .height(rowHeight)
+                                .background(Color.White)
                                 .border(lineWidth, lineColor),
                             contentAlignment = Alignment.Center
                         ) {
@@ -128,8 +128,8 @@ fun DayScheduleTimeline(
                                 modifier = Modifier
                                     .width(minuteCellWidth)
                                     .height(rowHeight)
-                                    .border(lineWidth, lineColor)
-                                    .background(matched?.color ?: Color.White),
+                                    .background(matched?.color ?: Color.White)
+                                    .border(lineWidth, lineColor),
                                 contentAlignment = Alignment.Center
                             ) {}
                         }

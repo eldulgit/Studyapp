@@ -7,6 +7,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,24 +18,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
@@ -98,14 +104,14 @@ fun ScheduleAddDialog(
             }
         } else {
             null
-        }
+    }
 
     val displayErrorMessage = dateValidationError ?: errorMessage
-    val density = LocalDensity.current
-    var dayDropdownWidth by remember { mutableStateOf(0.dp) }
+    var dropdownWidth by remember { mutableStateOf(0.dp) }
     var expandedScheduleIndex by remember {
         mutableStateOf<Int?>(null)
     }
+    val scheduleInputScrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -159,7 +165,10 @@ fun ScheduleAddDialog(
                             selected = selectedCategory == ScheduleCategory.GOAL,
                             onClick = { onCategoryChange(ScheduleCategory.GOAL) }
                         )
-                        Text(text = "목표")
+                        Text(
+                            text = "목표",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
@@ -174,66 +183,56 @@ fun ScheduleAddDialog(
                             selected = selectedCategory == ScheduleCategory.SCHEDULE,
                             onClick = { onCategoryChange(ScheduleCategory.SCHEDULE) }
                         )
-                        Text(text = "스케줄")
+                        Text(
+                            text = "스케줄",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Text(
-                    text = "설정",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                OutlinedTextField(
+                TextField(
                     value = title,
                     onValueChange = onTitleChange,
-                    label = { Text("제목") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    placeholder = { Text("제목") },
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .align(Alignment.CenterHorizontally),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        disabledContainerColor = Color.White,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (selectedCategory == ScheduleCategory.GOAL) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            OutlinedTextField(
-                                value = startDate,
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("시작 날짜") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true
-                            )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .align(Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        InlineScheduleValue(
+                            text = formatMonthDayOrPlaceholder(startDate, "시작 날짜"),
+                            modifier = Modifier.width(108.dp),
+                            onClick = onStartDateClick
+                        )
 
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .clickable { onStartDateClick() }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Box(modifier = Modifier.weight(1f)) {
-                            OutlinedTextField(
-                                value = endDate,
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("마감 날짜") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .clickable { onEndDateClick() }
-                            )
-                        }
+                        InlineScheduleValue(
+                            text = formatMonthDayOrPlaceholder(endDate, "마감 날짜"),
+                            modifier = Modifier.width(108.dp),
+                            onClick = onEndDateClick
+                        )
                     }
                 }
 
@@ -243,138 +242,125 @@ fun ScheduleAddDialog(
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        scheduleTimeInputs.forEachIndexed { index, input ->
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(0.72f)
-                                            .onGloballyPositioned { coordinates ->
-                                                dayDropdownWidth = with(density) {
-                                                    coordinates.size.width.toDp()
-                                                }
-                                            }
-                                    ) {
-                                        OutlinedTextField(
-                                            value = input.dayOfWeek,
-                                            onValueChange = {},
-                                            readOnly = true,
-                                            label = { Text("요일") },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true
-                                        )
+                        Column(
+                            modifier = Modifier
+                                .heightIn(max = 156.dp)
+                                .verticalScroll(scheduleInputScrollState),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            scheduleTimeInputs.forEachIndexed { index, input ->
+                                val canRemoveScheduleTime =
+                                    scheduleTimeInputs.size > 1
 
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .align(Alignment.CenterHorizontally)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterStart)
+                                            .padding(start = 28.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Start
+                                    ) {
                                         Box(
-                                            modifier = Modifier
-                                                .matchParentSize()
-                                                .clickable {
+                                            modifier = Modifier.width(62.dp),
+                                            contentAlignment = Alignment.CenterStart
+                                        ) {
+                                            InlineScheduleValue(
+                                                text = input.dayOfWeek,
+                                                modifier = Modifier.width(62.dp),
+                                                onClick = {
                                                     expandedScheduleIndex = index
                                                     onDayDropdownExpandedChange(true)
+                                                },
+                                                onWidthChanged = { dropdownWidth = it }
+                                            )
+
+                                            DropdownMenu(
+                                                expanded = isDayDropdownExpanded &&
+                                                        expandedScheduleIndex == index,
+                                                modifier = Modifier.width(dropdownWidth),
+                                                onDismissRequest = {
+                                                    expandedScheduleIndex = null
+                                                    onDayDropdownExpandedChange(false)
+                                                },
+                                                containerColor = Color.White
+                                            ) {
+                                                dayOptions.forEach { day ->
+                                                    DropdownMenuItem(
+                                                        text = { Text(day) },
+                                                        onClick = {
+                                                            onSelectedDayChange(day)
+                                                            onScheduleTimeDayChange(index, day)
+                                                            expandedScheduleIndex = null
+                                                            onDayDropdownExpandedChange(false)
+                                                        }
+                                                    )
                                                 }
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.width(16.dp))
+
+                                        InlineScheduleValue(
+                                            text = input.startTime,
+                                            modifier = Modifier.width(68.dp),
+                                            onClick = { onScheduleStartTimeClick(index) }
                                         )
 
-                                        DropdownMenu(
-                                            expanded = isDayDropdownExpanded &&
-                                                    expandedScheduleIndex == index,
-                                            modifier = Modifier.width(dayDropdownWidth),
-                                            onDismissRequest = {
-                                                expandedScheduleIndex = null
-                                                onDayDropdownExpandedChange(false)
-                                            },
-                                            containerColor = Color.White
+                                        Spacer(modifier = Modifier.width(12.dp))
+
+                                        InlineScheduleValue(
+                                            text = input.endTime,
+                                            modifier = Modifier.width(68.dp),
+                                            onClick = { onScheduleEndTimeClick(index) }
+                                        )
+                                    }
+
+                                    if (canRemoveScheduleTime) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(44.dp)
+                                                .align(Alignment.CenterEnd),
+                                            contentAlignment = Alignment.CenterEnd,
                                         ) {
-                                            dayOptions.forEach { day ->
-                                                DropdownMenuItem(
-                                                    text = { Text(day) },
-                                                    onClick = {
-                                                        onSelectedDayChange(day)
-                                                        onScheduleTimeDayChange(index, day)
-                                                        expandedScheduleIndex = null
-                                                        onDayDropdownExpandedChange(false)
-                                                    }
+                                            IconButton(
+                                                onClick = { onRemoveScheduleTime(index) },
+                                                modifier = Modifier.size(40.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "시간 삭제"
                                                 )
                                             }
                                         }
                                     }
-
-                                    Spacer(modifier = Modifier.width(6.dp))
-
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        OutlinedTextField(
-                                            value = input.startTime,
-                                            onValueChange = {},
-                                            readOnly = true,
-                                            label = { Text("시작") },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .matchParentSize()
-                                                .clickable { onScheduleStartTimeClick(index) }
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.width(6.dp))
-
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        OutlinedTextField(
-                                            value = input.endTime,
-                                            onValueChange = {},
-                                            readOnly = true,
-                                            label = { Text("종료") },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .matchParentSize()
-                                                .clickable { onScheduleEndTimeClick(index) }
-                                        )
-                                    }
-                                }
-
-                                if (!isEditingSchedule && scheduleTimeInputs.size > 1) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        IconButton(onClick = { onRemoveScheduleTime(index) }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Remove,
-                                                contentDescription = "시간 삭제"
-                                            )
-                                        }
-                                    }
                                 }
                             }
                         }
 
-                        if (!isEditingSchedule) {
-                            OutlinedButton(
-                                onClick = onAddScheduleTime,
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = Color.White,
-                                    contentColor = MaterialTheme.colorScheme.primary
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = null
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("요일/시간 추가")
-                            }
+                        OutlinedButton(
+                            onClick = onAddScheduleTime,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary
+                            ),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "요일/시간 추가",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                     }
                 }
-
                 if (displayErrorMessage != null) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
@@ -408,5 +394,47 @@ fun ScheduleAddDialog(
                 }
             }
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun formatMonthDayOrPlaceholder(date: String, placeholder: String): String {
+    if (date.isBlank()) return placeholder
+
+    val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull() ?: return date
+    return "${parsedDate.monthValue}-${parsedDate.dayOfMonth}"
+}
+
+@Composable
+private fun InlineScheduleValue(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onWidthChanged: ((Dp) -> Unit)? = null
+) {
+    val density = LocalDensity.current
+
+    Row(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .onGloballyPositioned { coordinates ->
+                onWidthChanged?.invoke(
+                    with(density) { coordinates.size.width.toDp() }
+                )
+            }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = null,
+            tint = Color(0xFFE53935),
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

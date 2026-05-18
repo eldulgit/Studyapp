@@ -21,9 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -156,9 +154,6 @@ fun TimerScreen(
     // val timerSubjects = timerViewModel.todayScheduleTimers
     val timerSubjects = timerViewModel.subjects
 
-    var showSubjectDialog by remember { mutableStateOf(false) }
-    var checkedSubjects by remember { mutableStateOf(setOf<String>()) }
-
     var showTimeEditDialog by remember { mutableStateOf(false) }
     var editTargetId by remember { mutableLongStateOf(-1L) }
 
@@ -199,21 +194,7 @@ fun TimerScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets(0.dp),
-        floatingActionButton = {
-            if (!showSubjectDialog) {
-                FloatingActionButton(
-                    onClick = { showSubjectDialog = true },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "과목 추가"
-                    )
-                }
-            }
-        }
+        contentWindowInsets = WindowInsets(0.dp)
     ) { padding ->
         Column(
             modifier = Modifier
@@ -358,25 +339,4 @@ fun TimerScreen(
         }
     )
 
-    SubjectSelectDialog(
-        show = showSubjectDialog,
-        availableSubjects = availableSubjects,
-        checkedSubjects = checkedSubjects,
-        onCheckedChange = { subjectName, checked ->
-            checkedSubjects =
-                if (checked) checkedSubjects + subjectName
-                else checkedSubjects - subjectName
-        },
-        onDismiss = {
-            checkedSubjects = emptySet()
-            showSubjectDialog = false
-        },
-        onConfirm = {
-            checkedSubjects.forEach { subjectName ->
-                timerViewModel.addSubjectTimer(subjectName)
-            }
-            checkedSubjects = emptySet()
-            showSubjectDialog = false
-        }
-    )
 }
