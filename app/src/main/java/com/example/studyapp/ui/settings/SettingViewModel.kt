@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.studyapp.notification.StudyNotificationScheduler
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -41,10 +43,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 }
             }
             launch { repo.themeFlow.collect { selectedTheme = it } }
-            launch { repo.notificationEnabledFlow.collect { notificationEnabled = it } }
+            launch {
+                combine(
+                    repo.notificationEnabledFlow,
+                    repo.notificationHourFlow,
+                    repo.notificationMinuteFlow
+                ) { enabled, hour, minute ->
+                    Triple(enabled, hour, minute)
+                }.collect { (enabled, hour, minute) ->
+                    notificationEnabled = enabled
+                    notificationHour = hour
+                    notificationMinute = minute
+                    updateScheduledStudyReminder()
+                }
+            }
             launch { repo.goalAlertEnabledFlow.collect { goalAlertEnabled = it } }
-            launch { repo.notificationHourFlow.collect { notificationHour = it } }
-            launch { repo.notificationMinuteFlow.collect { notificationMinute = it } }
             launch { repo.commentOptionFlow.collect { commentOption = it } }
         }
     }
@@ -56,6 +69,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateNotificationEnabled(enabled: Boolean) {
         notificationEnabled = enabled
+        updateScheduledStudyReminder()
         viewModelScope.launch { repo.saveNotificationEnabled(enabled) }
     }
 
@@ -75,11 +89,24 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun updateNotificationTime(hour: String, minute: String) {
         notificationHour = hour
         notificationMinute = minute
+        updateScheduledStudyReminder()
         viewModelScope.launch { repo.saveNotificationTime(hour, minute) }
     }
 
     fun updateCommentOption(option: String) {
         commentOption = option
         viewModelScope.launch { repo.saveCommentOption(option) }
+    }
+
+    private fun updateScheduledStudyReminder() {
+        if (notificationEnabled) {
+            StudyNotificationScheduler.scheduleDailyStudyReminder(
+                context = getApplication(),
+                hour = notificationHour,
+                minute = notificationMinute
+            )
+        } else {
+            StudyNotificationScheduler.cancelDailyStudyReminder(getApplication())
+        }
     }
 }

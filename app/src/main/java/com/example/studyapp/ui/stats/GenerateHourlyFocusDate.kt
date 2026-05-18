@@ -2,6 +2,7 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.studyapp.util.AppTimeZone
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -13,7 +14,7 @@ fun generateHourlyFocusDataForLast30Days(
     records: List<StudySessionRecord>,
     startHour: Int,
     endHourExclusive: Int,
-    zoneId: ZoneId = ZoneId.systemDefault()
+    zoneId: ZoneId = AppTimeZone.zoneId
 ): List<HourlyFocusPoint> {
     val now = Instant.now()
     val from = now.minus(30, ChronoUnit.DAYS)

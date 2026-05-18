@@ -2,11 +2,12 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.studyapp.util.AppTimeZone
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun generateLabels(period: StatsPeriod): List<String> {
-    val today = LocalDate.now()
+    val today = LocalDate.now(AppTimeZone.zoneId)
 
     return when (period) {
         StatsPeriod.DAILY -> (0..3).map {

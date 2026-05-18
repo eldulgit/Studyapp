@@ -2,6 +2,7 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.studyapp.util.AppTimeZone
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -11,7 +12,7 @@ fun getCurrentPeriodStudySeconds(
     records: List<StudySessionRecord>,
     period: StatsPeriod
 ): Int {
-    val today = LocalDate.now()
+    val today = LocalDate.now(AppTimeZone.zoneId)
 
     return records.filter { record ->
         val date = record.sessionDate.toLocalDateOrNull() ?: return@filter false
@@ -42,7 +43,7 @@ fun getPreviousPeriodStudySeconds(
     records: List<StudySessionRecord>,
     period: StatsPeriod
 ): Int {
-    val today = LocalDate.now()
+    val today = LocalDate.now(AppTimeZone.zoneId)
 
     return records.filter { record ->
         val date = record.sessionDate.toLocalDateOrNull() ?: return@filter false
