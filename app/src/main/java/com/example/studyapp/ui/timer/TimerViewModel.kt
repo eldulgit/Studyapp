@@ -473,7 +473,7 @@ class TimerViewModel : ViewModel() {
                     }
                     .sortedBy { it.name }
 
-                subjects = scheduleTimers + manualTimers
+                subjects = (scheduleTimers + manualTimers).sortedByDescending { it.allocatedSeconds }
 
                 nextId = (subjects.maxOfOrNull { it.id } ?: 0L) + 1L
             } catch (e: Exception) {
