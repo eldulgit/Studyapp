@@ -44,6 +44,12 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+data class ScheduleTimeInput(
+    val dayOfWeek: String,
+    val startTime: String,
+    val endTime: String
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleSettingScreen(
@@ -75,7 +81,6 @@ fun ScheduleSettingScreen(
     var title by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
-    var pageCount by remember { mutableStateOf("") }
 
     val dayOptions = listOf("월", "화", "수", "목", "금", "토", "일")
 
@@ -83,12 +88,16 @@ fun ScheduleSettingScreen(
     var isDayDropdownExpanded by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf("09:00") }
     var endTime by remember { mutableStateOf("10:00") }
+    var scheduleTimeInputs by remember {
+        mutableStateOf(listOf(ScheduleTimeInput("월", "09:00", "10:00")))
+    }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var editingItemId by remember { mutableStateOf<Long?>(null) }
 
     var showTimePickerDialog by remember { mutableStateOf(false) }
     var isSelectingStartTime by remember { mutableStateOf(true) }
     var pendingStartTime by remember { mutableStateOf<String?>(null) }
+    var editingTimeInputIndex by remember { mutableStateOf(0) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -173,6 +182,26 @@ fun ScheduleSettingScreen(
         }
     }
 
+    fun updateScheduleTimeInput(
+        index: Int,
+        transform: (ScheduleTimeInput) -> ScheduleTimeInput
+    ) {
+        scheduleTimeInputs = scheduleTimeInputs.mapIndexed { itemIndex, item ->
+            if (itemIndex == index) transform(item) else item
+        }
+    }
+
+    fun scheduleInputsHaveInternalConflict(inputs: List<ScheduleTimeInput>): Boolean {
+        return inputs.withIndex().any { (index, input) ->
+            inputs.withIndex().any { (otherIndex, other) ->
+                index < otherIndex &&
+                        input.dayOfWeek == other.dayOfWeek &&
+                        parseTimeToMinutes(input.startTime) < parseTimeToMinutes(other.endTime) &&
+                        parseTimeToMinutes(input.endTime) > parseTimeToMinutes(other.startTime)
+            }
+        }
+    }
+
     val goalItems = goalViewModel.goals.map { goal ->
         FixedScheduleItem(
             id = goal.id.hashCode().toLong(),
@@ -181,7 +210,6 @@ fun ScheduleSettingScreen(
             title = goal.title,
             startDate = goal.startDate,
             endDate = goal.endDate,
-            pageCount = goal.pageCount,
             increasePriorityOverTime = goal.increasePriorityOverTime
         )
     }
@@ -226,7 +254,7 @@ fun ScheduleSettingScreen(
             }
         },
         floatingActionButton = {
-            if (showFab) {
+            if (showFab && !showAddDialog && !showTimePickerDialog) {
                 FloatingActionButton(
                     onClick = {
                         editingItemId = null
@@ -234,10 +262,10 @@ fun ScheduleSettingScreen(
                         title = ""
                         startDate = ""
                         endDate = ""
-                        pageCount = ""
                         selectedDay = "월"
                         startTime = "09:00"
                         endTime = "10:00"
+                        scheduleTimeInputs = listOf(ScheduleTimeInput("월", "09:00", "10:00"))
                         isDayDropdownExpanded = false
                         errorMessage = null
                         showTimePickerDialog = false
@@ -286,10 +314,16 @@ fun ScheduleSettingScreen(
                                 title = item.title
                                 startDate = item.startDate.orEmpty()
                                 endDate = item.endDate.orEmpty()
-                                pageCount = item.pageCount?.toString() ?: ""
                                 selectedDay = item.dayOfWeek ?: "월"
                                 startTime = item.startTime ?: "09:00"
                                 endTime = item.endTime ?: "10:00"
+                                scheduleTimeInputs = listOf(
+                                    ScheduleTimeInput(
+                                        dayOfWeek = item.dayOfWeek ?: "월",
+                                        startTime = item.startTime ?: "09:00",
+                                        endTime = item.endTime ?: "10:00"
+                                    )
+                                )
                                 isDayDropdownExpanded = false
                                 errorMessage = null
 
@@ -309,7 +343,7 @@ fun ScheduleSettingScreen(
                         guideText = "체크하면 우선순위가 자동 상승해요",
                         items = goalItems,
                         subtitleBuilder = {
-                            "${it.startDate} ~ ${it.endDate} · ${it.pageCount ?: 0}p"
+                            "${it.startDate} ~ ${it.endDate}"
                         },
                         onCheckedChange = { item, checked ->
                             val goalId = item.firestoreId
@@ -326,10 +360,16 @@ fun ScheduleSettingScreen(
                             title = item.title
                             startDate = item.startDate.orEmpty()
                             endDate = item.endDate.orEmpty()
-                            pageCount = item.pageCount?.toString() ?: ""
                             selectedDay = item.dayOfWeek ?: "월"
                             startTime = item.startTime ?: "09:00"
                             endTime = item.endTime ?: "10:00"
+                            scheduleTimeInputs = listOf(
+                                ScheduleTimeInput(
+                                    dayOfWeek = item.dayOfWeek ?: "월",
+                                    startTime = item.startTime ?: "09:00",
+                                    endTime = item.endTime ?: "10:00"
+                                )
+                            )
                             isDayDropdownExpanded = false
                             errorMessage = null
 
@@ -379,8 +419,6 @@ fun ScheduleSettingScreen(
                             errorMessage = null
                         }
                     },
-                    pageCount = pageCount,
-                    onPageCountChange = { pageCount = it },
                     dayOptions = dayOptions,
                     selectedDay = selectedDay,
                     onSelectedDayChange = { selectedDay = it },
@@ -388,14 +426,33 @@ fun ScheduleSettingScreen(
                     onDayDropdownExpandedChange = { isDayDropdownExpanded = it },
                     startTime = startTime,
                     endTime = endTime,
-                    onStartTimeClick = {
+                    scheduleTimeInputs = scheduleTimeInputs,
+                    isEditingSchedule = editingItemId != null &&
+                            selectedCategory == ScheduleCategory.SCHEDULE,
+                    onScheduleTimeDayChange = { index, day ->
+                        updateScheduleTimeInput(index) { it.copy(dayOfWeek = day) }
+                        selectedDay = day
+                    },
+                    onAddScheduleTime = {
+                        val last = scheduleTimeInputs.lastOrNull()
+                            ?: ScheduleTimeInput("월", "09:00", "10:00")
+                        scheduleTimeInputs = scheduleTimeInputs + last
+                    },
+                    onRemoveScheduleTime = { index ->
+                        scheduleTimeInputs = scheduleTimeInputs
+                            .filterIndexed { itemIndex, _ -> itemIndex != index }
+                            .ifEmpty { listOf(ScheduleTimeInput("월", "09:00", "10:00")) }
+                    },
+                    onScheduleStartTimeClick = { index ->
                         errorMessage = null
+                        editingTimeInputIndex = index
                         isSelectingStartTime = true
                         pendingStartTime = null
                         showTimePickerDialog = true
                     },
-                    onEndTimeClick = {
+                    onScheduleEndTimeClick = { index ->
                         errorMessage = null
+                        editingTimeInputIndex = index
                         isSelectingStartTime = false
                         pendingStartTime = null
                         showTimePickerDialog = true
@@ -428,31 +485,38 @@ fun ScheduleSettingScreen(
                             }
 
                             selectedCategory == ScheduleCategory.SCHEDULE &&
-                                    parseTimeToMinutes(startTime) >= parseTimeToMinutes(endTime) -> {
+                                    scheduleTimeInputs.any {
+                                        parseTimeToMinutes(it.startTime) >= parseTimeToMinutes(it.endTime)
+                                    } -> {
                                 errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
                             }
 
                             selectedCategory == ScheduleCategory.SCHEDULE &&
-                                    hasScheduleConflict(
-                                        items = scheduleItems,
-                                        editingId = editingItemId,
-                                        dayOfWeek = selectedDay,
-                                        startTime = startTime,
-                                        endTime = endTime
-                                    ) -> {
+                                    editingItemId == null &&
+                                    scheduleInputsHaveInternalConflict(scheduleTimeInputs) -> {
+                                errorMessage = "추가하려는 스케줄끼리 시간이 겹칩니다."
+                            }
+
+                            selectedCategory == ScheduleCategory.SCHEDULE &&
+                                    scheduleTimeInputs.any {
+                                        hasScheduleConflict(
+                                            items = scheduleItems,
+                                            editingId = editingItemId,
+                                            dayOfWeek = it.dayOfWeek,
+                                            startTime = it.startTime,
+                                            endTime = it.endTime
+                                        )
+                                    } -> {
                                 errorMessage = "같은 요일에 시간이 겹치는 스케줄이 있습니다."
                             }
 
                             else -> {
                                 if (selectedCategory == ScheduleCategory.GOAL) {
-                                    val parsedPageCount = pageCount.toIntOrNull() ?: 0
-
                                     if (editingItemId == null) {
                                         goalViewModel.addGoal(
                                             title = title.trim(),
                                             startDate = startDate,
-                                            endDate = endDate,
-                                            pageCount = parsedPageCount
+                                            endDate = endDate
                                         )
                                     } else {
                                         val firestoreId = goalViewModel.goals
@@ -466,19 +530,22 @@ fun ScheduleSettingScreen(
                                                 id = firestoreId,
                                                 title = title.trim(),
                                                 startDate = startDate,
-                                                endDate = endDate,
-                                                pageCount = parsedPageCount
+                                                endDate = endDate
                                             )
                                         }
                                     }
                                 } else {
+                                    val firstScheduleInput = scheduleTimeInputs.first()
+
                                     if (editingItemId == null) {
-                                        scheduleViewModel.addSchedule(
-                                            title = title.trim(),
-                                            dayOfWeek = selectedDay,
-                                            startTime = startTime,
-                                            endTime = endTime
-                                        )
+                                        scheduleTimeInputs.forEach { input ->
+                                            scheduleViewModel.addSchedule(
+                                                title = title.trim(),
+                                                dayOfWeek = input.dayOfWeek,
+                                                startTime = input.startTime,
+                                                endTime = input.endTime
+                                            )
+                                        }
                                     } else {
                                         val firestoreId = scheduleViewModel.schedules
                                             .firstOrNull {
@@ -490,9 +557,9 @@ fun ScheduleSettingScreen(
                                             scheduleViewModel.updateSchedule(
                                                 id = firestoreId,
                                                 title = title.trim(),
-                                                dayOfWeek = selectedDay,
-                                                startTime = startTime,
-                                                endTime = endTime
+                                                dayOfWeek = firstScheduleInput.dayOfWeek,
+                                                startTime = firstScheduleInput.startTime,
+                                                endTime = firstScheduleInput.endTime
                                             )
                                         }
                                     }
@@ -541,10 +608,12 @@ fun ScheduleSettingScreen(
             }
 
             if (showTimePickerDialog) {
+                val editingInput = scheduleTimeInputs.getOrNull(editingTimeInputIndex)
+                    ?: ScheduleTimeInput("월", "09:00", "10:00")
                 val initialTime = if (isSelectingStartTime) {
-                    startTime
+                    editingInput.startTime
                 } else {
-                    pendingStartTime ?: endTime
+                    pendingStartTime ?: editingInput.endTime
                 }
 
                 CustomTimePicker(
@@ -568,6 +637,9 @@ fun ScheduleSettingScreen(
                         if (isSelectingStartTime) {
                             startTime = selectedTime
                             endTime = selectedTime
+                            updateScheduleTimeInput(editingTimeInputIndex) {
+                                it.copy(startTime = selectedTime, endTime = selectedTime)
+                            }
                             pendingStartTime = selectedTime
                             errorMessage = null
 
@@ -578,13 +650,16 @@ fun ScheduleSettingScreen(
                                 showTimePickerDialog = true
                             }
                         } else {
-                            val baseStartTime = pendingStartTime ?: startTime
+                            val baseStartTime = pendingStartTime ?: editingInput.startTime
 
                             if (parseTimeToMinutes(selectedTime) <= parseTimeToMinutes(baseStartTime)) {
                                 errorMessage = "종료 시간은 시작 시간보다 늦어야 합니다."
                             } else {
                                 startTime = baseStartTime
                                 endTime = selectedTime
+                                updateScheduleTimeInput(editingTimeInputIndex) {
+                                    it.copy(startTime = baseStartTime, endTime = selectedTime)
+                                }
                                 errorMessage = null
                                 showTimePickerDialog = false
                                 pendingStartTime = null

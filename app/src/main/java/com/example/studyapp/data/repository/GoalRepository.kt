@@ -12,7 +12,6 @@ class GoalRepository {
         title: String,
         startDate: String,
         endDate: String,
-        pageCount: Int,
         increasePriorityOverTime: Boolean = false
     ) {
         val docRef = db.collection("users")
@@ -25,7 +24,7 @@ class GoalRepository {
             "title" to title,
             "startDate" to startDate,
             "endDate" to endDate,
-            "pageCount" to pageCount,
+            "pageCount" to 0,
             "increasePriorityOverTime" to increasePriorityOverTime
         )
 
@@ -43,7 +42,7 @@ class GoalRepository {
             val title = doc.getString("title") ?: return@mapNotNull null
             val startDate = doc.getString("startDate") ?: return@mapNotNull null
             val endDate = doc.getString("endDate") ?: return@mapNotNull null
-            val pageCount = doc.getLong("pageCount")?.toInt() ?: return@mapNotNull null
+            val pageCount = doc.getLong("pageCount")?.toInt() ?: 0
             val increasePriorityOverTime =
                 doc.getBoolean("increasePriorityOverTime") ?: false
 
@@ -63,8 +62,7 @@ class GoalRepository {
         id: String,
         title: String,
         startDate: String,
-        endDate: String,
-        pageCount: Int
+        endDate: String
     ) {
         db.collection("users")
             .document(userId)
@@ -75,7 +73,7 @@ class GoalRepository {
                     "title" to title,
                     "startDate" to startDate,
                     "endDate" to endDate,
-                    "pageCount" to pageCount
+                    "pageCount" to 0
                 )
             )
             .await()

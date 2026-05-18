@@ -150,6 +150,7 @@ class GeneratedScheduleViewModel : ViewModel() {
                 item.toDayScheduleBlockOrNull(date)
             }
         )
+
     }
 }
 
