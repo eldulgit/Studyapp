@@ -34,19 +34,6 @@ class UserRepository {
             .await()
     }
 
-    suspend fun updateProfileImageUrl(uid: String, imageUrl: String) {
-        db.collection("users")
-            .document(uid)
-            .set(
-                mapOf(
-                    "profileImageUrl" to imageUrl,
-                    "updatedAt" to FieldValue.serverTimestamp()
-                ),
-                SetOptions.merge()
-            )
-            .await()
-    }
-
     suspend fun ensureUserDocument(uid: String, isGuest: Boolean) {
         val userRef = db.collection("users").document(uid)
 
@@ -56,7 +43,6 @@ class UserRepository {
             val data = hashMapOf(
                 "uid" to uid,
                 "name" to "",
-                "profileImageUrl" to "",
                 "isGuest" to isGuest,
 
                 "wakeTime" to "",

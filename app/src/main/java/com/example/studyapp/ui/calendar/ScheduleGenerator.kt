@@ -140,6 +140,7 @@ fun generatePriorityStudySchedule(
         alloc.remainingMinutes = portion
     }
 
+    allocations.sortByDescending { it.priorityScore.coerceAtLeast(it.subject.priority) }
     val generatedSchedules = mutableListOf<GeneratedScheduleItem>()
 
     var allocationIndex = 0

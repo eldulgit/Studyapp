@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +44,7 @@ import androidx.core.content.FileProvider
 import coil.compose.rememberAsyncImagePainter
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 @Composable
@@ -57,12 +58,14 @@ fun ProfileImageCropDialog(
     val cropSizePx = with(androidx.compose.ui.platform.LocalDensity.current) {
         cropSize.toPx()
     }
+    val cropShape = RoundedCornerShape(8.dp)
 
     var scale by remember(imageUri) { mutableFloatStateOf(1f) }
     var offset by remember(imageUri) { mutableStateOf(Offset.Zero) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.White,
         title = {
             Text(text = "프로필 이미지 자르기")
         },
@@ -74,8 +77,13 @@ fun ProfileImageCropDialog(
                 Box(
                     modifier = Modifier
                         .size(cropSize)
-                        .clip(CircleShape)
-                        .background(Color(0xFFF1F5F9))
+                        .clip(cropShape)
+                        .background(Color.White)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                            shape = cropShape
+                        )
                         .pointerInput(imageUri) {
                             detectTransformGestures { _, pan, zoom, _ ->
                                 scale = (scale * zoom).coerceIn(1f, 4f)
@@ -87,7 +95,7 @@ fun ProfileImageCropDialog(
                     Image(
                         painter = rememberAsyncImagePainter(imageUri),
                         contentDescription = null,
-                        contentScale = ContentScale.Crop,
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .size(cropSize)
                             .graphicsLayer {
@@ -157,10 +165,13 @@ private fun cropProfileImageToUri(
     val imageLeft = (viewportSizePx - displayedWidth) / 2f + offset.x
     val imageTop = (viewportSizePx - displayedHeight) / 2f + offset.y
 
-    val cropLeft = ((0f - imageLeft) / imageScale)
+    val cropCenterX = (viewportSizePx / 2f - imageLeft) / imageScale
+    val cropCenterY = (viewportSizePx / 2f - imageTop) / imageScale
+
+    val cropLeft = (cropCenterX - cropSize / 2f)
         .coerceIn(0f, bitmap.width - cropSize)
         .roundToInt()
-    val cropTop = ((0f - imageTop) / imageScale)
+    val cropTop = (cropCenterY - cropSize / 2f)
         .coerceIn(0f, bitmap.height - cropSize)
         .roundToInt()
     val cropSizeInt = cropSize.roundToInt().coerceAtLeast(1)
@@ -191,7 +202,7 @@ private fun cropProfileImageToUri(
 }
 
 private fun baseCropScale(bitmap: Bitmap, viewportSizePx: Float): Float {
-    return max(
+    return min(
         viewportSizePx / bitmap.width.toFloat(),
         viewportSizePx / bitmap.height.toFloat()
     )
