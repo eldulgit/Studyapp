@@ -52,7 +52,7 @@ fun SettingHeader() {
         androidx.lifecycle.viewmodel.compose.viewModel()
 
     LaunchedEffect(Unit) {
-        userViewModel.loadUserProfile()
+        userViewModel.loadUserProfile(context)
     }
 
     var showPicker by remember { mutableStateOf(false) }
@@ -118,6 +118,7 @@ fun SettingHeader() {
         if (showPicker) {
             AlertDialog(
                 onDismissRequest = { showPicker = false },
+                containerColor = Color.White,
                 title = { Text("프로필 이미지 선택") },
                 text = {
                     Column {
@@ -160,7 +161,7 @@ fun SettingHeader() {
                     pendingCropUri = null
                 },
                 onCropComplete = { croppedUri ->
-                    userViewModel.uploadProfileImage(croppedUri)
+                    userViewModel.uploadProfileImage(context, croppedUri)
                     pendingCropUri = null
                 }
             )
@@ -206,6 +207,7 @@ fun SettingHeader() {
         if (showNameDialog) {
             AlertDialog(
                 onDismissRequest = { showNameDialog = false },
+                containerColor = Color.White,
                 title = { Text("이름 변경") },
                 text = {
                     OutlinedTextField(
