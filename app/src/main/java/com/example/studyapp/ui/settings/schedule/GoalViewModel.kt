@@ -38,8 +38,7 @@ class GoalViewModel : ViewModel() {
     fun addGoal(
         title: String,
         startDate: String,
-        endDate: String,
-        pageCount: Int
+        endDate: String
     ) {
         viewModelScope.launch {
             try {
@@ -49,7 +48,6 @@ class GoalViewModel : ViewModel() {
                     title = title,
                     startDate = startDate,
                     endDate = endDate,
-                    pageCount = pageCount,
                     increasePriorityOverTime = false
                 )
                 loadGoalsFromFirestore()
@@ -63,13 +61,12 @@ class GoalViewModel : ViewModel() {
         id: String,
         title: String,
         startDate: String,
-        endDate: String,
-        pageCount: Int
+        endDate: String
     ) {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
-                repository.updateGoal(uid, id, title, startDate, endDate, pageCount)
+                repository.updateGoal(uid, id, title, startDate, endDate)
                 loadGoalsFromFirestore()
             } catch (e: Exception) {
                 android.util.Log.e("GoalFirestore", "수정 실패", e)

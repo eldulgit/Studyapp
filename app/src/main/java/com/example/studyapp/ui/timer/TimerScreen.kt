@@ -201,15 +201,17 @@ fun TimerScreen(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showSubjectDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "과목 추가"
-                )
+            if (!showSubjectDialog) {
+                FloatingActionButton(
+                    onClick = { showSubjectDialog = true },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "과목 추가"
+                    )
+                }
             }
         }
     ) { padding ->
