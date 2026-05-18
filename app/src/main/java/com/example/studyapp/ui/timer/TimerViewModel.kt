@@ -11,6 +11,7 @@ import com.example.studyapp.data.repository.AuthRepository
 import com.example.studyapp.data.repository.GeneratedScheduleRepository
 import com.example.studyapp.data.repository.SubjectRepository
 import com.example.studyapp.data.repository.UserRepository
+import com.example.studyapp.util.AppTimeZone
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -210,6 +211,7 @@ class TimerViewModel : ViewModel() {
 
     private fun makeSessionDate(timeMillis: Long): String {
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        formatter.timeZone = AppTimeZone.timeZone
         return formatter.format(Date(timeMillis))
     }
 
@@ -316,7 +318,7 @@ class TimerViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val uid = getOrCreateUid()
+                val uid = authRepository.getStatsOwnerId()
 
                 studySessionRepository.addRecord(
                     userId = uid,

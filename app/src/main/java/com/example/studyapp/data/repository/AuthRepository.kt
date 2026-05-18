@@ -74,6 +74,16 @@ class AuthRepository {
             ?: throw IllegalStateException("Google 로그인 성공 후 uid가 없습니다.")
     }
 
+    suspend fun getStatsOwnerId(): String {
+        val currentUser = auth.currentUser
+
+        return if (currentUser != null) {
+            currentUser.uid
+        } else {
+            signInAnonymouslyIfNeeded()
+        }
+    }
+
     suspend fun signInAnonymouslyIfNeeded(): String {
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -94,6 +104,28 @@ class AuthRepository {
                     cont.resumeWithException(e)
                 }
         }
+    }
+
+    suspend fun getStudyOwnerId(): String {
+        val currentUser = auth.currentUser
+
+        // Google 로그인 사용자
+        if (currentUser != null && !currentUser.isAnonymous) {
+            val googleProviderUid = currentUser.providerData
+                .firstOrNull { it.providerId == GoogleAuthProvider.PROVIDER_ID }
+                ?.uid
+
+            if (!googleProviderUid.isNullOrBlank()) {
+                return "google_$googleProviderUid"
+            }
+
+            // 혹시 Google provider 정보를 못 가져오는 경우 대비
+            return "login_${currentUser.uid}"
+        }
+
+        // 비회원 사용자
+        val guestUid = signInAnonymouslyIfNeeded()
+        return "guest_$guestUid"
     }
 
     fun signOut() {

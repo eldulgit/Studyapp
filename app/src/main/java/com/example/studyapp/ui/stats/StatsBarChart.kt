@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.util.AppTimeZone
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -95,7 +96,7 @@ private fun generateBarValues(
     period: StatsPeriod,
     labelCount: Int
 ): List<Float> {
-    val today = LocalDate.now()
+    val today = LocalDate.now(AppTimeZone.zoneId)
 
     return when (period) {
         StatsPeriod.DAILY -> {

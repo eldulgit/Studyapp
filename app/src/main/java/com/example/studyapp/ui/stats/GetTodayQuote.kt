@@ -2,6 +2,7 @@ package com.example.studyapp.ui.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.studyapp.util.AppTimeZone
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -19,7 +20,7 @@ fun getTodayQuote(): String {
         "집중한 시간은 절대 배신하지 않습니다."
     )
 
-    val dayOfYear = LocalDate.now().dayOfYear
+    val dayOfYear = LocalDate.now(AppTimeZone.zoneId).dayOfYear
 
     return quotes[dayOfYear % quotes.size]
 }
