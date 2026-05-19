@@ -258,15 +258,15 @@ fun ScheduleAddDialog(
                                         .align(Alignment.CenterHorizontally)
                                 ) {
                                     Row(
-                                        modifier = Modifier
-                                            .align(Alignment.CenterStart)
-                                            .padding(start = 28.dp),
+                                        modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Start
                                     ) {
+                                        Spacer(modifier = Modifier.weight(1f))
+
                                         Box(
-                                            modifier = Modifier.width(62.dp),
-                                            contentAlignment = Alignment.CenterStart
+                                            modifier = Modifier.weight(2f),
+                                            contentAlignment = Alignment.Center
                                         ) {
                                             InlineScheduleValue(
                                                 text = input.dayOfWeek,
@@ -302,38 +302,42 @@ fun ScheduleAddDialog(
                                             }
                                         }
 
-                                        Spacer(modifier = Modifier.width(16.dp))
-
-                                        InlineScheduleValue(
-                                            text = input.startTime,
-                                            modifier = Modifier.width(68.dp),
-                                            onClick = { onScheduleStartTimeClick(index) }
-                                        )
-
-                                        Spacer(modifier = Modifier.width(12.dp))
-
-                                        InlineScheduleValue(
-                                            text = input.endTime,
-                                            modifier = Modifier.width(68.dp),
-                                            onClick = { onScheduleEndTimeClick(index) }
-                                        )
-                                    }
-
-                                    if (canRemoveScheduleTime) {
                                         Box(
-                                            modifier = Modifier
-                                                .width(44.dp)
-                                                .align(Alignment.CenterEnd),
-                                            contentAlignment = Alignment.CenterEnd,
+                                            modifier = Modifier.weight(3f),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            IconButton(
-                                                onClick = { onRemoveScheduleTime(index) },
-                                                modifier = Modifier.size(40.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Delete,
-                                                    contentDescription = "시간 삭제"
-                                                )
+                                            InlineScheduleValue(
+                                                text = input.startTime,
+                                                modifier = Modifier.width(68.dp),
+                                                onClick = { onScheduleStartTimeClick(index) }
+                                            )
+                                        }
+
+                                        Box(
+                                            modifier = Modifier.weight(3f),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            InlineScheduleValue(
+                                                text = input.endTime,
+                                                modifier = Modifier.width(68.dp),
+                                                onClick = { onScheduleEndTimeClick(index) }
+                                            )
+                                        }
+
+                                        Box(
+                                            modifier = Modifier.weight(1f),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (canRemoveScheduleTime) {
+                                                IconButton(
+                                                    onClick = { onRemoveScheduleTime(index) },
+                                                    modifier = Modifier.size(40.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Delete,
+                                                        contentDescription = "시간 삭제"
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -402,7 +406,7 @@ private fun formatMonthDayOrPlaceholder(date: String, placeholder: String): Stri
     if (date.isBlank()) return placeholder
 
     val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull() ?: return date
-    return "${parsedDate.monthValue}-${parsedDate.dayOfMonth}"
+    return "${parsedDate.monthValue}월${parsedDate.dayOfMonth}일"
 }
 
 @Composable
