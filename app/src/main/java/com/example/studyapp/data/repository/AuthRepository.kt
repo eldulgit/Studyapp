@@ -8,6 +8,7 @@ import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -65,7 +66,11 @@ class AuthRepository {
         val currentUser = auth.currentUser
 
         val authResult = if (currentUser != null && currentUser.isAnonymous) {
-            currentUser.linkWithCredential(firebaseCredential).await()
+            try {
+                currentUser.linkWithCredential(firebaseCredential).await()
+            } catch (e: FirebaseAuthUserCollisionException) {
+                auth.signInWithCredential(firebaseCredential).await()
+            }
         } else {
             auth.signInWithCredential(firebaseCredential).await()
         }
