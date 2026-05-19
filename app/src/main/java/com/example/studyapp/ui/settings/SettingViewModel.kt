@@ -98,6 +98,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch { repo.saveCommentOption(option) }
     }
 
+    fun refreshStudyReminderSchedule() {
+        updateScheduledStudyReminder()
+    }
+
     private fun updateScheduledStudyReminder() {
         if (notificationEnabled) {
             StudyNotificationScheduler.scheduleDailyStudyReminder(
