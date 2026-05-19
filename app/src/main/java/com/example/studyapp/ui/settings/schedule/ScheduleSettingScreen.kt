@@ -434,9 +434,8 @@ fun ScheduleSettingScreen(
                         selectedDay = day
                     },
                     onAddScheduleTime = {
-                        val defaultDay = scheduleTimeInputs.firstOrNull()?.dayOfWeek ?: "월"
                         scheduleTimeInputs = scheduleTimeInputs +
-                                ScheduleTimeInput(defaultDay, "09:00", "10:00")
+                                ScheduleTimeInput("월", "09:00", "10:00")
                     },
                     onRemoveScheduleTime = { index ->
                         scheduleTimeInputs = scheduleTimeInputs
