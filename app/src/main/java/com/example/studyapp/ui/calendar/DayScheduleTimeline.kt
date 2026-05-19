@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
@@ -55,7 +58,8 @@ fun DayScheduleTimeline(
     val lineColor = Color(0xFFBDBDBD).copy(alpha = 0.6f)
 
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
     ) {
         BoxWithConstraints(
             modifier = Modifier
@@ -70,6 +74,15 @@ fun DayScheduleTimeline(
                     .verticalScroll(verticalScroll)
             ) {
                 for (hour in startHour until endHour) {
+                    val hourStartMinute = hour * 60
+                    val hourEndMinute = hourStartMinute + 60
+                    val rowSchedule = displayedSchedules.firstOrNull { schedule ->
+                        val scheduleStart = schedule.startMinuteFrom(baseStartMinute)
+                        val scheduleEnd = schedule.endMinuteFrom(baseStartMinute)
+
+                        hourStartMinute < scheduleEnd && hourEndMinute > scheduleStart
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -77,14 +90,27 @@ fun DayScheduleTimeline(
                             modifier = Modifier
                                 .width(timeLabelWidth)
                                 .height(rowHeight)
+                                .background(Color.White)
                                 .border(lineWidth, lineColor),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = formatHourLabel(hour),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF8A8A8A)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(
+                                        color = rowSchedule?.color?.copy(alpha = 0.72f)
+                                            ?: Color.Transparent,
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = formatHourLabel(hour),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF111827)
+                                )
+                            }
                         }
 
                         for (slot in 0 until 6) {
@@ -92,17 +118,8 @@ fun DayScheduleTimeline(
                             val slotEndMinute = slotStartMinute + 10
 
                             val matched = displayedSchedules.find { schedule ->
-                                val scheduleStart = normalizeScheduleMinute(
-                                    hour = schedule.startHour,
-                                    minute = schedule.startMinute,
-                                    baseStartMinute = baseStartMinute
-                                )
-
-                                val scheduleEnd = normalizeScheduleMinute(
-                                    hour = schedule.endHour,
-                                    minute = schedule.endMinute,
-                                    baseStartMinute = baseStartMinute
-                                )
+                                val scheduleStart = schedule.startMinuteFrom(baseStartMinute)
+                                val scheduleEnd = schedule.endMinuteFrom(baseStartMinute)
 
                                 slotStartMinute < scheduleEnd && slotEndMinute > scheduleStart
                             }
@@ -111,18 +128,32 @@ fun DayScheduleTimeline(
                                 modifier = Modifier
                                     .width(minuteCellWidth)
                                     .height(rowHeight)
-                                    .border(lineWidth, lineColor)
-                                    .background(matched?.color ?: Color.Transparent),
+                                    .background(matched?.color ?: Color.White)
+                                    .border(lineWidth, lineColor),
                                 contentAlignment = Alignment.Center
-                            ){
-
-                            }
+                            ) {}
                         }
                     }
                 }
             }
         }
     }
+}
+
+private fun DayScheduleBlock.startMinuteFrom(baseStartMinute: Int): Int {
+    return normalizeScheduleMinute(
+        hour = startHour,
+        minute = startMinute,
+        baseStartMinute = baseStartMinute
+    )
+}
+
+private fun DayScheduleBlock.endMinuteFrom(baseStartMinute: Int): Int {
+    return normalizeScheduleMinute(
+        hour = endHour,
+        minute = endMinute,
+        baseStartMinute = baseStartMinute
+    )
 }
 
 private fun normalizeScheduleMinute(

@@ -86,7 +86,7 @@ fun generatePriorityStudySchedule(
     val freeRanges = subtractFixedSchedules(
         awakeRanges = studyRanges,
         fixedRanges = allUnavailableRanges
-    ).filter { it.duration >= 30 }
+    ).filter { it.duration > 30 }
 
     val totalFreeMinutes = freeRanges.sumOf { it.duration }
 
@@ -140,6 +140,16 @@ fun generatePriorityStudySchedule(
         alloc.remainingMinutes = portion
     }
 
+    // 루프가 끝난 후, 최종 확정된 멤버들에게 시간 꽉 채워서 배정
+    val finalFixedMins = allocations.filter { it.remainingMinutes > 0 }.sumOf { it.remainingMinutes }
+    val finalFreeMins = (totalFreeMinutes - finalFixedMins).coerceAtLeast(0)
+    val finalWeightSum = allocations.filter { it.remainingMinutes == -1 }.sumOf { it.priorityScore }
+    allocations.filter { it.remainingMinutes == -1 }.forEach { alloc ->
+        // 남은 시간을 우선순위에 따라 배분 (10분 단위 절삭)
+        val portion = if (finalWeightSum > 0) (finalFreeMins * alloc.priorityScore / finalWeightSum / 10) * 10 else 0
+        alloc.remainingMinutes = portion
+    }
+
     allocations.sortByDescending { it.priorityScore.coerceAtLeast(it.subject.priority) }
     val generatedSchedules = mutableListOf<GeneratedScheduleItem>()
 
@@ -162,10 +172,11 @@ fun generatePriorityStudySchedule(
 
             if (studyMinutes < 20) {
                 if (currentSubject.remainingMinutes < 20) {
+                    // 남은 시간이 적으면 소진 처리하고 다음 과목으로
                     currentSubject.remainingMinutes = 0
                     allocationIndex++
                 } else {
-                    // 현재 빈 칸이 너무 작으면 이 시간대는 건너뛰고 다음 freeRange로 이동
+                    // 과목 시간은 많이 남았지만 현재 빈칸이 너무 좁은 경우 -> 다음 빈칸으로 이동
                     current = freeRange.end
                 }
                 continue

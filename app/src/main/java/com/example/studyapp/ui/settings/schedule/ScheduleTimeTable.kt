@@ -221,17 +221,10 @@ private fun DayColumn(
                     ]
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 2.dp, vertical = 1.dp)
-                            .width(width - 4.dp)
-                            .height((blockHeight.dp - 2.dp).coerceAtLeast(24.dp))
+                            .width(width)
+                            .height(blockHeight.dp.coerceAtLeast(1.dp))
                             .offset(y = topOffset.dp)
-                            .clip(RoundedCornerShape(6.dp))
                             .background(color.container)
-                            .border(
-                                width = 1.dp,
-                                color = color.border,
-                                shape = RoundedCornerShape(6.dp)
-                            )
                             .clickable { onItemClick(item) }
                             .padding(horizontal = 6.dp, vertical = 6.dp)
                     ) {
@@ -262,7 +255,6 @@ private fun parseTimeToMinutes(time: String?): Int? {
 
 private data class TimetableColorSet(
     val container: Color,
-    val border: Color,
     val text: Color
 )
 
@@ -274,37 +266,30 @@ private fun FixedScheduleItem.stableColorIndex(colorCount: Int): Int {
 private val timetableColors = listOf(
     TimetableColorSet(
         container = Color(0xFFFBE2E2),
-        border = Color(0xFFEAB8B8),
         text = Color(0xFF6A3D3D)
     ),
     TimetableColorSet(
         container = Color(0xFFFBEAD5),
-        border = Color(0xFFE8C79C),
         text = Color(0xFF6A4B2C)
     ),
     TimetableColorSet(
         container = Color(0xFFF8F0C9),
-        border = Color(0xFFE0D38F),
         text = Color(0xFF665C2C)
     ),
     TimetableColorSet(
         container = Color(0xFFE4F2DB),
-        border = Color(0xFFBCD8AE),
         text = Color(0xFF3F6137)
     ),
     TimetableColorSet(
         container = Color(0xFFDDF2EC),
-        border = Color(0xFFA9D8CB),
         text = Color(0xFF315E54)
     ),
     TimetableColorSet(
         container = Color(0xFFE2EBFA),
-        border = Color(0xFFB3C7E9),
         text = Color(0xFF354B68)
     ),
     TimetableColorSet(
         container = Color(0xFFF0E3F8),
-        border = Color(0xFFD1B8E5),
         text = Color(0xFF543D67)
     )
 )

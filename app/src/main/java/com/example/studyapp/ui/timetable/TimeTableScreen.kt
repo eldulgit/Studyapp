@@ -123,7 +123,7 @@ fun GoalLabelRow(
 
                 Text(
                     text = goal.title,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }

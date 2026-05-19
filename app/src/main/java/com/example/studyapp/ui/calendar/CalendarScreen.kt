@@ -1,10 +1,9 @@
 package com.example.studyapp.ui.calendar
 
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,12 +22,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,14 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import java.time.LocalDate
 import androidx.compose.ui.graphics.Color
+
+private const val AI_GENERATE_ICON_URL = "https://img.icons8.com/color/96/ai-generated-text.png"
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -110,13 +110,6 @@ fun CalendarScreen(
     }
 
 
-    LaunchedEffect(holidays.size) {
-        Log.d("HolidayApi", "받아온 공휴일 개수: ${holidays.size}")
-        holidays.forEach { holiday ->
-            Log.d("HolidayApi", "${holiday.date} / ${holiday.localName}")
-        }
-    }
-
     LaunchedEffect(selectedDate) {
         generatedScheduleViewModel.loadSchedules(selectedDate)
     }
@@ -158,7 +151,7 @@ fun CalendarScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 왼쪽 빈 공간: 높이까지 48로 만들지 말고 width만 유지
-            Box(modifier = Modifier.width(48.dp))
+            Box(modifier = Modifier.width(80.dp))
 
             // 중앙 날짜
             Box(
@@ -173,67 +166,52 @@ fun CalendarScreen(
 
             // 오른쪽 달력 버튼
             Box(
-                modifier = Modifier.width(48.dp),
+                modifier = Modifier.width(80.dp),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(
-                    onClick = {
-                        showCalendarDialog = true
-                    },
-                    modifier = Modifier.size(32.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CalendarMonth,
-                        contentDescription = "날짜 선택",
-                        modifier = Modifier.size(20.dp)
-                    )
+                    IconButton(
+                        onClick = {
+                            generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
+                        },
+                        enabled = !isGenerating,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        if (isGenerating) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Image(
+                                painter = rememberAsyncImagePainter(AI_GENERATE_ICON_URL),
+                                contentDescription = "시간표 생성",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = {
+                            showCalendarDialog = true
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "날짜 선택",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(4.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Button(
-                onClick = {
-                    generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
-                },
-                enabled = !isGenerating,
-                modifier = Modifier
-                    .width(96.dp)
-                    .height(34.dp),
-                shape = RoundedCornerShape(17.dp),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = Color.White,
-                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-                ),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    horizontal = 8.dp,
-                    vertical = 0.dp
-                )
-            ) {
-                if (isGenerating) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "시간표 생성",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-        }
 
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -392,7 +370,7 @@ private fun SubjectColorLegend(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
+                        .size(10.dp)
                         .background(
                             color = schedule.color,
                             shape = CircleShape
@@ -403,7 +381,7 @@ private fun SubjectColorLegend(
 
                 Text(
                     text = schedule.subject,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }

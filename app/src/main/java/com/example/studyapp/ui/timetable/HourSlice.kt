@@ -57,23 +57,25 @@ fun HourSlice(
                     slotStartMinute < end && slotEndMinute > start
                 }
 
-                val cellColor = matchedSchedule?.let { schedule ->
-                    val matchedSubject = subjectViewModel.subjects.find { subject ->
-                        subject.name == schedule.title
-                    }
-
-                    val matchedGoalIndex = goals.indexOfFirst { goal ->
-                        goal.title == schedule.title
-                    }
+                val nearestSchedule = matchedSchedule ?: schedules.minByOrNull { schedule ->
+                    val start = schedule.startTime?.toMinutes() ?: return@minByOrNull Int.MAX_VALUE
+                    val end = schedule.endTime?.toMinutes() ?: return@minByOrNull Int.MAX_VALUE
+                    val slotMiddle = (slotStartMinute + slotEndMinute) / 2
 
                     when {
-                        matchedSubject != null -> Color(matchedSubject.colorArgb)
-                        matchedGoalIndex != -1 -> timetableGoalColors[
-                            matchedGoalIndex % timetableGoalColors.size
-                        ]
-                        else -> Color.LightGray
+                        slotMiddle < start -> start - slotMiddle
+                        slotMiddle > end -> slotMiddle - end
+                        else -> 0
                     }
-                } ?: Color(0xFFF1F1F1)
+                }
+
+                val cellColor = nearestSchedule
+                    ?.toScheduleColor(
+                        goals = goals,
+                        subjectViewModel = subjectViewModel
+                    )
+                    ?.copy(alpha = if (matchedSchedule != null) 1f else 0.32f)
+                    ?: Color(0xFFEAF6FF)
 
                 Box(
                     modifier = Modifier
@@ -83,6 +85,27 @@ fun HourSlice(
                 )
             }
         }
+    }
+}
+
+private fun FixedScheduleItem.toScheduleColor(
+    goals: List<FixedScheduleItem>,
+    subjectViewModel: SubjectViewModel
+): Color {
+    val matchedSubject = subjectViewModel.subjects.find { subject ->
+        subject.name == title
+    }
+
+    val matchedGoalIndex = goals.indexOfFirst { goal ->
+        goal.title == title
+    }
+
+    return when {
+        matchedSubject != null -> Color(matchedSubject.colorArgb)
+        matchedGoalIndex != -1 -> timetableGoalColors[
+            matchedGoalIndex % timetableGoalColors.size
+        ]
+        else -> Color(0xFFBFDFFF)
     }
 }
 
