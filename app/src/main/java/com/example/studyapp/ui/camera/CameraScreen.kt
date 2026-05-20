@@ -98,10 +98,13 @@ fun CameraScreen(
 
                 // 설정에서 졸음 감지 알림이 켜져 있을 때만 부저음 재생
                 if (drowsinessAlertEnabled) {
-                    toneGenerator.startTone(
-                        ToneGenerator.TONE_PROP_BEEP,
-                        300
-                    )
+                    while(true) {
+                        toneGenerator.startTone(
+                            ToneGenerator.TONE_PROP_BEEP,
+                            300
+                        )
+                        delay(1500);
+                    }
                 }
             }
             FocusStatus.ACTIVE,
