@@ -85,8 +85,12 @@ fun MainScreen(
         settingsViewModel.loadNotificationSettingsFromDb()
     }
 
-    LaunchedEffect(settingsViewModel.notificationEnabled) {
+    LaunchedEffect(
+        settingsViewModel.notificationSettingsLoaded,
+        settingsViewModel.notificationEnabled
+    ) {
         if (
+            settingsViewModel.notificationSettingsLoaded &&
             settingsViewModel.notificationEnabled &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(

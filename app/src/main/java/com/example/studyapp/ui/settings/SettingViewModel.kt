@@ -18,9 +18,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val authRepository = AuthRepository()
     private val userRepository = UserRepository()
 
-
     var drowsinessAlertEnabled by mutableStateOf(true)
         private set
+
     var selectedTheme by mutableStateOf("light")
         private set
 
@@ -36,6 +36,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     var notificationMinute by mutableStateOf("00")
         private set
 
+    var notificationSettingsLoaded by mutableStateOf(false)
+        private set
+
+    private var loadingNotificationSettings = false
+
     var commentOption by mutableStateOf("오늘의 명언")
         private set
 
@@ -46,7 +51,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     drowsinessAlertEnabled = it
                 }
             }
+
             launch { repo.themeFlow.collect { selectedTheme = it } }
+
             launch {
                 combine(
                     repo.notificationEnabledFlow,
@@ -55,12 +62,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 ) { enabled, hour, minute ->
                     Triple(enabled, hour, minute)
                 }.collect { (enabled, hour, minute) ->
-                    notificationEnabled = enabled
-                    notificationHour = hour
-                    notificationMinute = minute
-                    updateScheduledStudyReminder()
+                    if (!notificationSettingsLoaded && !loadingNotificationSettings) {
+                        notificationEnabled = enabled
+                        notificationHour = hour
+                        notificationMinute = minute
+                        updateScheduledStudyReminder()
+                    }
                 }
             }
+
             launch { repo.goalAlertEnabledFlow.collect { goalAlertEnabled = it } }
             launch { repo.commentOptionFlow.collect { commentOption = it } }
         }
@@ -112,6 +122,45 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         updateScheduledStudyReminder()
     }
 
+    fun loadNotificationSettingsFromDb() {
+        viewModelScope.launch {
+            try {
+                loadingNotificationSettings = true
+                notificationSettingsLoaded = false
+
+                val uid = authRepository.getCurrentUid() ?: return@launch
+                val settings = userRepository.getNotificationSettings(uid)
+
+                if (settings != null) {
+                    notificationEnabled = settings.enabled
+                    notificationHour = settings.hour
+                    notificationMinute = settings.minute
+                    android.util.Log.d(
+                        "SettingsFirestore",
+                        "알림 설정 DB 불러오기 성공 uid=$uid enabled=$notificationEnabled time=$notificationHour:$notificationMinute"
+                    )
+                } else {
+                    notificationEnabled = true
+                    notificationHour = "08"
+                    notificationMinute = "00"
+                    android.util.Log.d(
+                        "SettingsFirestore",
+                        "DB 알림 설정 없음 uid=$uid, 기본값 표시 time=$notificationHour:$notificationMinute"
+                    )
+                }
+
+                repo.saveNotificationEnabled(notificationEnabled)
+                repo.saveNotificationTime(notificationHour, notificationMinute)
+                updateScheduledStudyReminder()
+            } catch (e: Exception) {
+                android.util.Log.e("SettingsFirestore", "알림 설정 불러오기 실패", e)
+            } finally {
+                loadingNotificationSettings = false
+                notificationSettingsLoaded = true
+            }
+        }
+    }
+
     private fun updateScheduledStudyReminder() {
         if (notificationEnabled) {
             StudyNotificationScheduler.scheduleDailyStudyReminder(
@@ -124,32 +173,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun loadNotificationSettingsFromDb() {
-        viewModelScope.launch {
-            try {
-                val uid = authRepository.getCurrentUid() ?: return@launch
-                userRepository.ensureUserDocument(
-                    uid = uid,
-                    isGuest = authRepository.isCurrentUserAnonymous()
-                )
-
-                val profile = userRepository.getUserProfile(uid) ?: return@launch
-
-                notificationEnabled = profile.notificationEnabled
-                notificationHour = profile.notificationHour.ifBlank { "08" }
-                notificationMinute = profile.notificationMinute.ifBlank { "00" }
-
-                repo.saveNotificationEnabled(notificationEnabled)
-                repo.saveNotificationTime(notificationHour, notificationMinute)
-                updateScheduledStudyReminder()
-            } catch (e: Exception) {
-                android.util.Log.e("SettingsFirestore", "알림 설정 불러오기 실패", e)
-            }
-        }
-    }
-
     private suspend fun saveNotificationSettingsToDb() {
         try {
+            if (!notificationSettingsLoaded) return
+
             val uid = authRepository.getCurrentUid() ?: return
             userRepository.ensureUserDocument(
                 uid = uid,
@@ -161,6 +188,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 enabled = notificationEnabled,
                 hour = notificationHour,
                 minute = notificationMinute
+            )
+            android.util.Log.d(
+                "SettingsFirestore",
+                "알림 설정 DB 저장 성공 uid=$uid enabled=$notificationEnabled time=$notificationHour:$notificationMinute"
             )
         } catch (e: Exception) {
             android.util.Log.e("SettingsFirestore", "알림 설정 저장 실패", e)

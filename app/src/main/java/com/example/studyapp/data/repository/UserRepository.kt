@@ -52,9 +52,6 @@ class UserRepository {
                 "dinnerStartTime" to "",
                 "dinnerEndTime" to "",
                 "lifestyleCompleted" to false,
-                "notificationEnabled" to true,
-                "notificationHour" to "08",
-                "notificationMinute" to "00",
 
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp()
@@ -143,4 +140,61 @@ class UserRepository {
             )
             .await()
     }
+
+    suspend fun getNotificationSettings(uid: String): UserNotificationSettings? {
+        val snapshot = db.collection("users")
+            .document(uid)
+            .get()
+            .await()
+
+        if (!snapshot.exists()) return null
+
+        val hasNotificationSettings =
+            snapshot.contains("notificationHour") ||
+                    snapshot.contains("notificationMinute") ||
+                    snapshot.contains("notification_hour") ||
+                    snapshot.contains("notification_minute")
+
+        if (!hasNotificationSettings) return null
+
+        return UserNotificationSettings(
+            enabled = snapshot.getBoolean("notificationEnabled")
+                ?: snapshot.getBoolean("notification_enabled")
+                ?: true,
+            hour = snapshot.readTimePart(
+                primaryField = "notificationHour",
+                fallbackField = "notification_hour",
+                defaultValue = "08"
+            ),
+            minute = snapshot.readTimePart(
+                primaryField = "notificationMinute",
+                fallbackField = "notification_minute",
+                defaultValue = "00"
+            )
+        )
+    }
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.readTimePart(
+        primaryField: String,
+        fallbackField: String,
+        defaultValue: String
+    ): String {
+        val rawValue = get(primaryField) ?: get(fallbackField) ?: return defaultValue
+        val digits = rawValue.toString().filter { it.isDigit() }
+
+        if (digits.isBlank()) return defaultValue
+
+        return digits
+            .toIntOrNull()
+            ?.coerceAtLeast(0)
+            ?.toString()
+            ?.padStart(2, '0')
+            ?: defaultValue
+    }
 }
+
+data class UserNotificationSettings(
+    val enabled: Boolean,
+    val hour: String,
+    val minute: String
+)
