@@ -52,6 +52,9 @@ class UserRepository {
                 "dinnerStartTime" to "",
                 "dinnerEndTime" to "",
                 "lifestyleCompleted" to false,
+                "notificationEnabled" to true,
+                "notificationHour" to "08",
+                "notificationMinute" to "00",
 
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp()
@@ -114,6 +117,26 @@ class UserRepository {
                     "dinnerStartTime" to dinnerStartTime,
                     "dinnerEndTime" to dinnerEndTime,
                     "lifestyleCompleted" to true,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            )
+            .await()
+    }
+
+    suspend fun saveNotificationSettings(
+        uid: String,
+        enabled: Boolean,
+        hour: String,
+        minute: String
+    ) {
+        db.collection("users")
+            .document(uid)
+            .set(
+                mapOf(
+                    "notificationEnabled" to enabled,
+                    "notificationHour" to hour,
+                    "notificationMinute" to minute,
                     "updatedAt" to FieldValue.serverTimestamp()
                 ),
                 SetOptions.merge()

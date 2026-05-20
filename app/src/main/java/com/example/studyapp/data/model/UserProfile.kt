@@ -13,6 +13,10 @@ data class UserProfile(
     val dinnerEndTime: String = "",
     val lifestyleCompleted: Boolean = false,
 
+    val notificationEnabled: Boolean = true,
+    val notificationHour: String = "08",
+    val notificationMinute: String = "00",
+
     val createdAt: Any? = null,
     val updatedAt: Any? = null
 )

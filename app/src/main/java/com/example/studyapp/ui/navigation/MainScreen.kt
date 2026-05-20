@@ -81,6 +81,10 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        settingsViewModel.loadNotificationSettingsFromDb()
+    }
+
     LaunchedEffect(settingsViewModel.notificationEnabled) {
         if (
             settingsViewModel.notificationEnabled &&
