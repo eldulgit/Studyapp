@@ -2,11 +2,8 @@ package com.example.studyapp.ui.navigation
 
 import android.Manifest
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -18,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -47,7 +43,6 @@ import com.example.studyapp.ui.stats.StatsScreen
 import com.example.studyapp.ui.timer.TimerScreen
 import com.example.studyapp.ui.timer.TimerViewModel
 import androidx.compose.runtime.LaunchedEffect
-import com.example.studyapp.notification.StudyNotificationScheduler
 import com.example.studyapp.ui.settings.lifestyle.LifeStyleViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -64,7 +59,6 @@ fun MainScreen(
     val context = LocalContext.current
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
-    var exactAlarmPermissionRequested by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -97,23 +91,6 @@ fun MainScreen(
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-
-        if (
-            settingsViewModel.notificationEnabled &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            !StudyNotificationScheduler.canScheduleExactAlarms(context) &&
-            !exactAlarmPermissionRequested
-        ) {
-            exactAlarmPermissionRequested = true
-
-            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                data = Uri.parse("package:${context.packageName}")
-            }
-
-            runCatching {
-                context.startActivity(intent)
-            }
         }
     }
 

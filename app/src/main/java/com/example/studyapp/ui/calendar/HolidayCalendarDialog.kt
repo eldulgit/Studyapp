@@ -121,7 +121,7 @@ private fun WeekHeader() {
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -190,7 +190,7 @@ private fun DayCell(
     val dateTextColor = if (isHoliday) {
         Color.Red
     } else {
-        Color.Black
+        MaterialTheme.colorScheme.onSurface
     }
 
     val selectedBackgroundColor = if (isSelected) {
