@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -25,6 +26,7 @@ fun CircularTimer(
     val rawRemainingSweep = segments.firstOrNull()?.sweepAngle?.coerceIn(0f, 360f) ?: 0f
     val animatedSweep = remember { Animatable(rawRemainingSweep) }
     val startAngle = segments.firstOrNull()?.startAngle ?: -90f
+    val baseColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.72f)
 
     LaunchedEffect(rawRemainingSweep) {
         if (animatedSweep.value == 0f && rawRemainingSweep > 0f) {
@@ -49,10 +51,8 @@ fun CircularTimer(
         )
         val arcSize = Size(diameter, diameter)
 
-        val baseGray = Color(0xFFD9D4DC)
-
         drawArc(
-            color = baseGray,
+            color = baseColor,
             startAngle = 0f,
             sweepAngle = 360f,
             useCenter = false,

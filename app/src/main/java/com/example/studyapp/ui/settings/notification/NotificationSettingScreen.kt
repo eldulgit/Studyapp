@@ -138,7 +138,7 @@ private fun SkyOutlineSwitch(
             .width(48.dp)
             .height(28.dp)
             .background(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(14.dp)
             )
             .border(

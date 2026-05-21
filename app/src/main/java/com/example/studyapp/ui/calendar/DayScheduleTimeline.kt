@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -39,6 +41,7 @@ fun DayScheduleTimeline(
 ) {
     val actualDate = selectedDate ?: LocalDate.now()
     val displayedSchedules = schedules.filter { it.date == actualDate }
+    val isDarkTheme = isAppInDarkTheme()
 
     val wakeMinutes = wakeTime.split(":").let { it[0].toInt() * 60 + it[1].toInt() }
     val sleepMinutes = sleepTime.split(":").let {
@@ -55,7 +58,21 @@ fun DayScheduleTimeline(
     val verticalScroll = rememberScrollState()
 
     val lineWidth = 0.5.dp
-    val lineColor = Color(0xFFBDBDBD).copy(alpha = 0.6f)
+    val lineColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.outlineVariant
+    } else {
+        Color(0xFFBDBDBD).copy(alpha = 0.6f)
+    }
+    val emptyCellColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        Color.White
+    }
+    val hourTextColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        Color(0xFF111827)
+    }
 
     Column(
         modifier = modifier
@@ -90,15 +107,19 @@ fun DayScheduleTimeline(
                             modifier = Modifier
                                 .width(timeLabelWidth)
                                 .height(rowHeight)
-                                .background(Color.White)
+                                .background(emptyCellColor)
                                 .border(lineWidth, lineColor),
                             contentAlignment = Alignment.Center
                         ) {
+                            val rowScheduleColor = rowSchedule?.color?.let {
+                                subjectColorForTheme(it, isDarkTheme)
+                            }
+
                             Box(
                                 modifier = Modifier
                                     .size(28.dp)
                                     .background(
-                                        color = rowSchedule?.color?.copy(alpha = 0.72f)
+                                        color = rowScheduleColor?.copy(alpha = 0.72f)
                                             ?: Color.Transparent,
                                         shape = CircleShape
                                     ),
@@ -108,7 +129,7 @@ fun DayScheduleTimeline(
                                     text = formatHourLabel(hour),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Black,
-                                    color = Color(0xFF111827)
+                                    color = hourTextColor
                                 )
                             }
                         }
@@ -124,11 +145,15 @@ fun DayScheduleTimeline(
                                 slotStartMinute < scheduleEnd && slotEndMinute > scheduleStart
                             }
 
+                            val matchedColor = matched?.color?.let {
+                                subjectColorForTheme(it, isDarkTheme)
+                            }
+
                             Box(
                                 modifier = Modifier
                                     .width(minuteCellWidth)
                                     .height(rowHeight)
-                                    .background(matched?.color ?: Color.White)
+                                    .background(matchedColor ?: emptyCellColor)
                                     .border(lineWidth, lineColor),
                                 contentAlignment = Alignment.Center
                             ) {}

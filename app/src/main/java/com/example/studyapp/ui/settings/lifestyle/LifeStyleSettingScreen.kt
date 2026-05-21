@@ -35,7 +35,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.util.filterTimeInput
 import com.example.studyapp.util.normalizeTimeInput
 
 @Composable
@@ -73,6 +75,48 @@ fun LifeStyleSettingScreen(
     val lunchEndFocusRequester = remember { FocusRequester() }
     val dinnerStartFocusRequester = remember { FocusRequester() }
     val dinnerEndFocusRequester = remember { FocusRequester() }
+
+    fun updateTime(value: String, update: (String) -> Unit) {
+        update(filterTimeInput(value))
+        errorMessage = null
+    }
+
+    fun save() {
+        val normalizedWakeTime = normalizeTimeInput(wakeTime)
+        val normalizedSleepTime = normalizeTimeInput(sleepTime)
+        val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
+        val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
+        val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
+        val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
+
+        if (
+            normalizedWakeTime == null ||
+            normalizedSleepTime == null ||
+            normalizedLunchStartTime == null ||
+            normalizedLunchEndTime == null ||
+            normalizedDinnerStartTime == null ||
+            normalizedDinnerEndTime == null
+        ) {
+            errorMessage = "시간은 7, 700, 0730, 7:30, 07:30 형식으로 입력해주세요."
+            return
+        }
+
+        wakeTime = normalizedWakeTime
+        sleepTime = normalizedSleepTime
+        lunchStartTime = normalizedLunchStartTime
+        lunchEndTime = normalizedLunchEndTime
+        dinnerStartTime = normalizedDinnerStartTime
+        dinnerEndTime = normalizedDinnerEndTime
+
+        onSaveClick(
+            normalizedWakeTime,
+            normalizedSleepTime,
+            normalizedLunchStartTime,
+            normalizedLunchEndTime,
+            normalizedDinnerStartTime,
+            normalizedDinnerEndTime
+        )
+    }
 
     LaunchedEffect(
         initialWakeTime,
@@ -119,7 +163,7 @@ fun LifeStyleSettingScreen(
                     onClick = onBackClick,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
                 }
 
                 Text(
@@ -134,14 +178,12 @@ fun LifeStyleSettingScreen(
 
             OutlinedTextField(
                 value = wakeTime,
-                onValueChange = {
-                    wakeTime = it
-                    errorMessage = null
-                },
+                onValueChange = { updateTime(it) { value -> wakeTime = value } },
                 label = { Text("기상 시간") },
                 placeholder = { Text("예: 07:00") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -156,14 +198,12 @@ fun LifeStyleSettingScreen(
 
             OutlinedTextField(
                 value = sleepTime,
-                onValueChange = {
-                    sleepTime = it
-                    errorMessage = null
-                },
+                onValueChange = { updateTime(it) { value -> sleepTime = value } },
                 label = { Text("취침 시간") },
                 placeholder = { Text("예: 23:30") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -190,14 +230,12 @@ fun LifeStyleSettingScreen(
             ) {
                 OutlinedTextField(
                     value = lunchStartTime,
-                    onValueChange = {
-                        lunchStartTime = it
-                        errorMessage = null
-                    },
+                    onValueChange = { updateTime(it) { value -> lunchStartTime = value } },
                     label = { Text("시작") },
                     placeholder = { Text("12:00") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
@@ -210,14 +248,12 @@ fun LifeStyleSettingScreen(
 
                 OutlinedTextField(
                     value = lunchEndTime,
-                    onValueChange = {
-                        lunchEndTime = it
-                        errorMessage = null
-                    },
-                    label = { Text("끝") },
+                    onValueChange = { updateTime(it) { value -> lunchEndTime = value } },
+                    label = { Text("종료") },
                     placeholder = { Text("13:00") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
@@ -245,14 +281,12 @@ fun LifeStyleSettingScreen(
             ) {
                 OutlinedTextField(
                     value = dinnerStartTime,
-                    onValueChange = {
-                        dinnerStartTime = it
-                        errorMessage = null
-                    },
+                    onValueChange = { updateTime(it) { value -> dinnerStartTime = value } },
                     label = { Text("시작") },
                     placeholder = { Text("18:00") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
@@ -265,18 +299,19 @@ fun LifeStyleSettingScreen(
 
                 OutlinedTextField(
                     value = dinnerEndTime,
-                    onValueChange = {
-                        dinnerEndTime = it
-                        errorMessage = null
-                    },
-                    label = { Text("끝") },
+                    onValueChange = { updateTime(it) { value -> dinnerEndTime = value } },
+                    label = { Text("종료") },
                     placeholder = { Text("19:00") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
+                        onDone = {
+                            focusManager.clearFocus()
+                            save()
+                        }
                     ),
                     modifier = Modifier
                         .weight(1f)
@@ -299,42 +334,7 @@ fun LifeStyleSettingScreen(
             Spacer(modifier = Modifier.height(beforeButtonGap))
 
             Button(
-                onClick = {
-                    val normalizedWakeTime = normalizeTimeInput(wakeTime)
-                    val normalizedSleepTime = normalizeTimeInput(sleepTime)
-                    val normalizedLunchStartTime = normalizeTimeInput(lunchStartTime)
-                    val normalizedLunchEndTime = normalizeTimeInput(lunchEndTime)
-                    val normalizedDinnerStartTime = normalizeTimeInput(dinnerStartTime)
-                    val normalizedDinnerEndTime = normalizeTimeInput(dinnerEndTime)
-
-                    if (
-                        normalizedWakeTime == null ||
-                        normalizedSleepTime == null ||
-                        normalizedLunchStartTime == null ||
-                        normalizedLunchEndTime == null ||
-                        normalizedDinnerStartTime == null ||
-                        normalizedDinnerEndTime == null
-                    ) {
-                        errorMessage = "시간은 7, 700, 730, 0730 형식으로 입력해주세요."
-                        return@Button
-                    }
-
-                    wakeTime = normalizedWakeTime
-                    sleepTime = normalizedSleepTime
-                    lunchStartTime = normalizedLunchStartTime
-                    lunchEndTime = normalizedLunchEndTime
-                    dinnerStartTime = normalizedDinnerStartTime
-                    dinnerEndTime = normalizedDinnerEndTime
-
-                    onSaveClick(
-                        normalizedWakeTime,
-                        normalizedSleepTime,
-                        normalizedLunchStartTime,
-                        normalizedLunchEndTime,
-                        normalizedDinnerStartTime,
-                        normalizedDinnerEndTime
-                    )
-                },
+                onClick = { save() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "저장")

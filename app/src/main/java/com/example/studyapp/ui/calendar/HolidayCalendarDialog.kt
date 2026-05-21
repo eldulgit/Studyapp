@@ -188,7 +188,7 @@ private fun DayCell(
     onClick: () -> Unit
 ) {
     val dateTextColor = if (isHoliday) {
-        Color.Red
+        MaterialTheme.colorScheme.error
     } else {
         MaterialTheme.colorScheme.onSurface
     }

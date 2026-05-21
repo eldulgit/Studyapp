@@ -25,6 +25,10 @@ object StudyNotificationScheduler {
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pendingIntent = reminderPendingIntent(context)
+
+        // 기존에 등록된 알림이 있으면 먼저 취소하고 새 시간으로 다시 등록
+        alarmManager.cancel(pendingIntent)
+
         val triggerAtMillis = nextTriggerAtMillis(hour, minute)
 
         if (canScheduleExactAlarms(context)) {

@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
 
 @Composable
 fun SubjectSettingCard(
@@ -29,13 +30,18 @@ fun SubjectSettingCard(
     onEditClick: () -> Unit
 ) {
     val accentColor = MaterialTheme.colorScheme.primary
+    val cardContainerColor = if (isAppInDarkTheme()) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        Color.White
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEditClick() },
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = cardContainerColor
         ),
         border = BorderStroke(1.dp, accentColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)

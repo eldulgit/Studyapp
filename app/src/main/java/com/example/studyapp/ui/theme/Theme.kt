@@ -20,14 +20,19 @@ private val LightColorScheme = lightColorScheme(
     onBackground = StudyText,
 
     surface = StudySurface,
-    onSurface = StudyText
+    onSurface = StudyText,
+
+    surfaceVariant = StudySurfaceVariant,
+    onSurfaceVariant = StudyMutedText,
+    outline = StudyOutline,
+    outlineVariant = StudyOutline.copy(alpha = 0.6f)
 )
 
 private val DarkColorScheme = darkColorScheme(
     primary = StudyBlueDarkTheme,
     onPrimary = StudyText,
 
-    secondary = StudyBlueDark,
+    secondary = StudyBlueDarkTheme,
     onSecondary = StudyText,
 
     tertiary = StudyYellowDarkTheme,
@@ -37,7 +42,12 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = StudyDarkText,
 
     surface = StudyDarkSurface,
-    onSurface = StudyDarkText
+    onSurface = StudyDarkText,
+
+    surfaceVariant = StudyDarkSurfaceVariant,
+    onSurfaceVariant = StudyDarkMutedText,
+    outline = StudyDarkOutline,
+    outlineVariant = StudyDarkOutline.copy(alpha = 0.72f)
 )
 
 @Composable

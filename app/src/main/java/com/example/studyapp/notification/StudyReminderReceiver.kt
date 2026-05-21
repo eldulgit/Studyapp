@@ -12,20 +12,38 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.studyapp.R
+import com.example.studyapp.ui.settings.SettingsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class StudyReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        createChannel(context)
+        val pendingResult = goAsync()
 
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
+        createChannel(context)
+        showNotificationIfAllowed(context)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                scheduleNextReminderIfEnabled(context)
+            } finally {
+                pendingResult.finish()
+            }
         }
+    }
+
+    private fun showNotificationIfAllowed(context: Context) {
+        val hasNotificationPermission = !(
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+        )
+
+        if (!hasNotificationPermission) return
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
@@ -36,6 +54,18 @@ class StudyReminderReceiver : BroadcastReceiver() {
             .build()
 
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+    }
+
+    private suspend fun scheduleNextReminderIfEnabled(context: Context) {
+        val repo = SettingsRepository(context)
+
+        if (!repo.notificationEnabledFlow.first()) return
+
+        StudyNotificationScheduler.scheduleDailyStudyReminder(
+            context = context,
+            hour = repo.notificationHourFlow.first(),
+            minute = repo.notificationMinuteFlow.first()
+        )
     }
 
     private fun createChannel(context: Context) {

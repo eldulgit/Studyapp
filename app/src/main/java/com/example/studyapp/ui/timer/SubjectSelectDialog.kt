@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.settings.subject.SubjectItem
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 
 @Composable
 fun SubjectSelectDialog(
@@ -32,10 +34,11 @@ fun SubjectSelectDialog(
     onConfirm: () -> Unit
 ) {
     if (!show) return
+    val isDarkTheme = isAppInDarkTheme()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text("과목 선택") },
         text = {
             androidx.compose.foundation.layout.Column(
@@ -68,7 +71,13 @@ fun SubjectSelectDialog(
                         androidx.compose.foundation.layout.Box(
                             modifier = Modifier
                                 .size(10.dp)
-                                .background(Color(subject.colorArgb), CircleShape)
+                                .background(
+                                    color = subjectColorForTheme(
+                                        color = Color(subject.colorArgb),
+                                        darkTheme = isDarkTheme
+                                    ),
+                                    shape = CircleShape
+                                )
                         )
                     }
                 }

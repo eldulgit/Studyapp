@@ -19,6 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.settings.schedule.FixedScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 
 @Composable
 fun HourSlice(
@@ -27,6 +29,8 @@ fun HourSlice(
     goals: List<FixedScheduleItem>,
     subjectViewModel: SubjectViewModel
 ){
+    val isDarkTheme = isAppInDarkTheme()
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -72,7 +76,8 @@ fun HourSlice(
                 val cellColor = nearestSchedule
                     ?.toScheduleColor(
                         goals = goals,
-                        subjectViewModel = subjectViewModel
+                        subjectViewModel = subjectViewModel,
+                        darkTheme = isDarkTheme
                     )
                     ?.copy(alpha = if (matchedSchedule != null) 1f else 0.32f)
                     ?: Color(0xFFEAF6FF)
@@ -90,7 +95,8 @@ fun HourSlice(
 
 private fun FixedScheduleItem.toScheduleColor(
     goals: List<FixedScheduleItem>,
-    subjectViewModel: SubjectViewModel
+    subjectViewModel: SubjectViewModel,
+    darkTheme: Boolean
 ): Color {
     val matchedSubject = subjectViewModel.subjects.find { subject ->
         subject.name == title
@@ -101,7 +107,7 @@ private fun FixedScheduleItem.toScheduleColor(
     }
 
     return when {
-        matchedSubject != null -> Color(matchedSubject.colorArgb)
+        matchedSubject != null -> subjectColorForTheme(Color(matchedSubject.colorArgb), darkTheme)
         matchedGoalIndex != -1 -> timetableGoalColors[
             matchedGoalIndex % timetableGoalColors.size
         ]

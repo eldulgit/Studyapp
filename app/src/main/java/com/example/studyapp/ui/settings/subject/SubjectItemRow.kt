@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 
 @Composable
 fun SubjectItemRow(
@@ -27,6 +29,11 @@ fun SubjectItemRow(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val subjectColor = subjectColorForTheme(
+        color = Color(subject.colorArgb),
+        darkTheme = isAppInDarkTheme()
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -54,7 +61,7 @@ fun SubjectItemRow(
                 modifier = Modifier
                     .size(18.dp)
                     .background(
-                        color = Color(subject.colorArgb),
+                        color = subjectColor,
                         shape = CircleShape
                     )
             )

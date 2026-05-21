@@ -20,8 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -65,7 +67,17 @@ fun ScheduleTimetable(
     val headerHeight = 34.dp
     val timeColumnWidth = 34.dp
     val timetableHeight = hourHeight * totalHours
-    val lineColor = Color(0xFFEAEAEA)
+    val isDarkTheme = isAppInDarkTheme()
+    val containerColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.surfaceVariant
+    } else {
+        Color.White
+    }
+    val lineColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
+    } else {
+        Color(0xFFEAEAEA)
+    }
 
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth()
@@ -81,7 +93,7 @@ fun ScheduleTimetable(
                     color = lineColor,
                     shape = RoundedCornerShape(20.dp)
                 )
-                .background(Color.White)
+                .background(containerColor)
         ) {
             Row(
                 modifier = Modifier
@@ -106,7 +118,7 @@ fun ScheduleTimetable(
                         Text(
                             text = day,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -122,7 +134,8 @@ fun ScheduleTimetable(
                     totalHours = totalHours,
                     hourHeight = hourHeight,
                     width = timeColumnWidth,
-                    lineColor = lineColor
+                    lineColor = lineColor,
+                    isDarkTheme = isDarkTheme
                 )
 
                 days.forEach { day ->
@@ -134,6 +147,7 @@ fun ScheduleTimetable(
                         hourHeight = hourHeight,
                         width = dayColumnWidth,
                         lineColor = lineColor,
+                        isDarkTheme = isDarkTheme,
                         onItemClick = onItemClick
                     )
                 }
@@ -148,7 +162,8 @@ private fun TimeColumn(
     totalHours: Int,
     hourHeight: Dp,
     width: Dp,
-    lineColor: Color
+    lineColor: Color,
+    isDarkTheme: Boolean
 ) {
     Column(
         modifier = Modifier.width(width)
@@ -164,7 +179,7 @@ private fun TimeColumn(
                 Text(
                     text = String.format("%02d", startHour + index),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 6.dp)
                 )
             }
@@ -181,6 +196,7 @@ private fun DayColumn(
     hourHeight: Dp,
     width: Dp,
     lineColor: Color,
+    isDarkTheme: Boolean,
     onItemClick: (FixedScheduleItem) -> Unit
 ) {
     Box(
@@ -218,7 +234,7 @@ private fun DayColumn(
 
                     val color = timetableColors[
                         item.stableColorIndex(timetableColors.size)
-                    ]
+                    ].forTheme(isDarkTheme)
                     Box(
                         modifier = Modifier
                             .width(width)
@@ -232,7 +248,7 @@ private fun DayColumn(
                             Text(
                                 text = item.title,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = color.text
+                                color = if (isDarkTheme) Color.Black else color.text
                             )
                         }
                     }
@@ -257,6 +273,15 @@ private data class TimetableColorSet(
     val container: Color,
     val text: Color
 )
+
+private fun TimetableColorSet.forTheme(darkTheme: Boolean): TimetableColorSet {
+    if (!darkTheme) return this
+
+    return TimetableColorSet(
+        container = lerp(container, Color(0xFF334155), 0.42f),
+        text = lerp(text, Color(0xFFE2E8F0), 0.68f)
+    )
+}
 
 private fun FixedScheduleItem.stableColorIndex(colorCount: Int): Int {
     val seed = firestoreId ?: "$id-$title-$dayOfWeek-$startTime-$endTime"

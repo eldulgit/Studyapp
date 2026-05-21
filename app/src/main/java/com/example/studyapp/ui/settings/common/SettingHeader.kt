@@ -90,7 +90,7 @@ fun SettingHeader() {
         Box(
             modifier = Modifier
                 .size(110.dp)   // 살짝 줄여서 더 예쁘게
-                .background(Color.LightGray, CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 .clickable { showPicker = true },
             contentAlignment = Alignment.Center
         ) {
@@ -108,7 +108,7 @@ fun SettingHeader() {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(56.dp)
                 )
             }
@@ -118,7 +118,7 @@ fun SettingHeader() {
         if (showPicker) {
             AlertDialog(
                 onDismissRequest = { showPicker = false },
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 title = { Text("프로필 이미지 선택") },
                 text = {
                     Column {
@@ -207,7 +207,7 @@ fun SettingHeader() {
         if (showNameDialog) {
             AlertDialog(
                 onDismissRequest = { showNameDialog = false },
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 title = { Text("이름 변경") },
                 text = {
                     OutlinedTextField(

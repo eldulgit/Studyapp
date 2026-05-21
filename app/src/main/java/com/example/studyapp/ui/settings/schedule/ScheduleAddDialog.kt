@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -107,6 +108,12 @@ fun ScheduleAddDialog(
     }
 
     val displayErrorMessage = dateValidationError ?: errorMessage
+    val isDarkTheme = isAppInDarkTheme()
+    val dialogSurfaceColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        Color.White
+    }
     var dropdownWidth by remember { mutableStateOf(0.dp) }
     var expandedScheduleIndex by remember {
         mutableStateOf<Int?>(null)
@@ -122,7 +129,7 @@ fun ScheduleAddDialog(
     ) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = Color.White,
+            color = dialogSurfaceColor,
             tonalElevation = 6.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -202,9 +209,9 @@ fun ScheduleAddDialog(
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge,
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        disabledContainerColor = Color.White,
+                        focusedContainerColor = dialogSurfaceColor,
+                        unfocusedContainerColor = dialogSurfaceColor,
+                        disabledContainerColor = dialogSurfaceColor,
                         focusedIndicatorColor = MaterialTheme.colorScheme.primary,
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -286,7 +293,7 @@ fun ScheduleAddDialog(
                                                     expandedScheduleIndex = null
                                                     onDayDropdownExpandedChange(false)
                                                 },
-                                                containerColor = Color.White
+                                                containerColor = dialogSurfaceColor
                                             ) {
                                                 dayOptions.forEach { day ->
                                                     DropdownMenuItem(
@@ -352,7 +359,7 @@ fun ScheduleAddDialog(
                                 MaterialTheme.colorScheme.primary
                             ),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color.White,
+                                containerColor = dialogSurfaceColor,
                                 contentColor = MaterialTheme.colorScheme.primary
                             ),
                             modifier = Modifier.fillMaxWidth()

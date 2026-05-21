@@ -53,6 +53,8 @@ import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
 import com.example.studyapp.ui.timer.pomodoro.formatCountdown
 import com.example.studyapp.ui.timer.pomodoro.formatHoursMinutes
 import com.example.studyapp.ui.settings.SettingsViewModel
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 
 @Composable
 fun TimerScreen(
@@ -62,6 +64,7 @@ fun TimerScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = context as? LifecycleOwner
+    val isDarkTheme = isAppInDarkTheme()
 
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
@@ -73,8 +76,18 @@ fun TimerScreen(
 
         if (owner != null) {
             val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME && timerViewModel.runningTaskId == null) {
-                    timerViewModel.loadTodayGeneratedScheduleTimersFromDb()
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> {
+                        if (timerViewModel.runningTaskId == null) {
+                            timerViewModel.loadTodayGeneratedScheduleTimersFromDb()
+                        }
+                    }
+
+                    Lifecycle.Event.ON_STOP -> {
+                        timerViewModel.saveCurrentTimerProgress()
+                    }
+
+                    else -> Unit
                 }
             }
 
@@ -188,8 +201,8 @@ fun TimerScreen(
 
     val runningTaskColor = availableSubjects
         .firstOrNull { it.name == selectedTask?.name }
-        ?.let { Color(it.colorArgb) }
-        ?: selectedTask?.colorArgb?.let { Color(it) }
+        ?.let { subjectColorForTheme(Color(it.colorArgb), isDarkTheme) }
+        ?: selectedTask?.colorArgb?.let { subjectColorForTheme(Color(it), isDarkTheme) }
         ?: MaterialTheme.colorScheme.primary
 
     Scaffold(
@@ -249,12 +262,15 @@ fun TimerScreen(
                         .firstOrNull { it.name == item.name }
                         ?.colorArgb
                         ?: item.colorArgb
-                        ?: MaterialTheme.colorScheme.primary.toArgb()
+
+                    val subjectColor = subjectColorArgb
+                        ?.let { subjectColorForTheme(Color(it), isDarkTheme) }
+                        ?: MaterialTheme.colorScheme.primary
 
                     TimerTaskRow(
                         subject = item.name,
                         time = formatCountdown(item.remainingSeconds),
-                        subjectColorArgb = subjectColorArgb,
+                        subjectColorArgb = subjectColor.toArgb(),
                         containerWidth = timerWidth,
                         isRunning = isRunningIcon,
                         onToggle = {

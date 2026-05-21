@@ -65,7 +65,7 @@ fun ProfileImageCropDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(text = "프로필 이미지 자르기")
         },
@@ -78,7 +78,7 @@ fun ProfileImageCropDialog(
                     modifier = Modifier
                         .size(cropSize)
                         .clip(cropShape)
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
