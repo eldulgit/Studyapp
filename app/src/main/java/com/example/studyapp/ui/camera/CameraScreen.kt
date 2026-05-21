@@ -38,7 +38,7 @@ fun CameraScreen(
 
     //부저 함수
     val toneGenerator = remember {
-        ToneGenerator(AudioManager.STREAM_ALARM, 80)
+        ToneGenerator(AudioManager.STREAM_MUSIC, 80)
     }
 
     DisposableEffect(Unit) {

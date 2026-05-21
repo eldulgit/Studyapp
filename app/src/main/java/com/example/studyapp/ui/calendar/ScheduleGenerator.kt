@@ -96,8 +96,18 @@ fun generatePriorityStudySchedule(
         subject.priority.coerceAtLeast(1)
     }
 
+    val activeGoals = goals.filter { goal ->
+        try {
+            val start = LocalDate.parse(goal.startDate)
+            val end = LocalDate.parse(goal.endDate)
+            !date.isBefore(start) && !date.isAfter(end)
+        } catch (e: Exception) {
+            true
+        }
+    }
+
     val allocations = subjects.map { subject ->
-        val goal = goals.find { it.title == subject.name }
+        val goal = activeGoals.find { it.title == subject.name }
         if (goal != null) {
             if (!goal.increasePriorityOverTime) {
             SubjectAllocation(subject, 30)
@@ -112,7 +122,7 @@ fun generatePriorityStudySchedule(
     }.toMutableList()
 
     val subjectNames = subjects.map { it.name }.toSet()
-    val unmatchedGoals = goals.filter { it.title !in subjectNames }
+    val unmatchedGoals = activeGoals.filter { it.title !in subjectNames }
 
     unmatchedGoals.forEach { goal ->
         // 과목은 없지만 목표가 있으므로, 목표 정보를 기반으로 가짜 과목 생성
