@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 
 @Composable
 fun SubjectColorPicker(
@@ -29,6 +32,8 @@ fun SubjectColorPicker(
     disabledColorArgbList: List<Int> = emptyList(),
     onColorSelected: (Color) -> Unit
 ) {
+    val isDarkTheme = isAppInDarkTheme()
+
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -38,6 +43,7 @@ fun SubjectColorPicker(
     ) {
         colors.forEach { color ->
             val colorArgb = color.toArgb()
+            val displayColor = subjectColorForTheme(color, isDarkTheme)
             val isSelected = selectedColorArgb == colorArgb
             val isDisabled = colorArgb in disabledColorArgbList
 
@@ -49,7 +55,15 @@ fun SubjectColorPicker(
                     modifier = Modifier
                         .size(36.dp)
                         .background(
-                            color = if (isDisabled) Color.LightGray else color,
+                            color = if (isDisabled) {
+                                if (isDarkTheme) {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                } else {
+                                    Color.LightGray
+                                }
+                            } else {
+                                displayColor
+                            },
                             shape = CircleShape
                         )
                         .border(

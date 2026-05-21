@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import java.util.Calendar
 
 object StudyNotificationScheduler {
@@ -16,6 +17,8 @@ object StudyNotificationScheduler {
     ) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pendingIntent = reminderPendingIntent(context)
+        alarmManager.cancel(pendingIntent)
+
         val triggerTime = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour.toIntOrNull() ?: 8)
             set(Calendar.MINUTE, minute.toIntOrNull() ?: 0)
@@ -27,12 +30,7 @@ object StudyNotificationScheduler {
             }
         }
 
-        alarmManager.setInexactRepeating(
-            AlarmManager.RTC_WAKEUP,
-            triggerTime.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
+        scheduleExactAlarm(alarmManager, context, triggerTime.timeInMillis, pendingIntent)
     }
 
     fun cancelDailyStudyReminder(context: Context) {
@@ -48,5 +46,35 @@ object StudyNotificationScheduler {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+    }
+
+    private fun scheduleExactAlarm(
+        alarmManager: AlarmManager,
+        context: Context,
+        triggerAtMillis: Long,
+        pendingIntent: PendingIntent
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+        }
     }
 }

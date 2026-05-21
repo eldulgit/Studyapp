@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -34,9 +33,13 @@ fun MoonPrioritySelector(
                     containerColor = if (isSelected) {
                         MaterialTheme.colorScheme.primary
                     } else {
-                        Color.White
+                        MaterialTheme.colorScheme.surface
                     },
-                    contentColor = MaterialTheme.colorScheme.onSurface
+                    contentColor = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
                 ),
                 border = BorderStroke(
                     width = 1.dp,

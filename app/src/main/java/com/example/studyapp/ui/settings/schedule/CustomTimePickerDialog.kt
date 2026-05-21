@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.theme.isAppInDarkTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -88,6 +89,11 @@ fun CustomTimePicker(
         targetValue = if (isBlinking) 0.35f else 1f,
         label = "timePickerBlinkAlpha"
     )
+    val pickerSurfaceColor = if (isAppInDarkTheme()) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        Color.White
+    }
 
     LaunchedEffect(hourListState.isScrollInProgress) {
         if (!hourListState.isScrollInProgress) {
@@ -117,7 +123,7 @@ fun CustomTimePicker(
     ) {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
-            color = Color.White,
+            color = pickerSurfaceColor,
             modifier = Modifier
                 .width(320.dp)
                 .padding(horizontal = 20.dp)

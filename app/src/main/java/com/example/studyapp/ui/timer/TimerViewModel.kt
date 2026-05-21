@@ -70,6 +70,10 @@ class TimerViewModel : ViewModel() {
         subjects = subjects.map { subject ->
             subject.copy(remainingSeconds = subject.allocatedSeconds)
         }
+
+        subjects.forEach { subject ->
+            saveTimerProgress(subject)
+        }
     }
 
     fun startCameraMonitoring() {
@@ -181,6 +185,13 @@ class TimerViewModel : ViewModel() {
         }
     }
 
+    fun saveCurrentTimerProgress() {
+        val currentId = runningTaskId ?: selectedTaskId ?: return
+        val currentSubject = subjects.firstOrNull { it.id == currentId } ?: return
+
+        saveTimerProgress(currentSubject)
+    }
+
     fun toggleTask(subjectId: Long) {
         val target = subjects.firstOrNull { it.id == subjectId } ?: return
         if (target.allocatedSeconds <= 0) return
@@ -252,6 +263,7 @@ class TimerViewModel : ViewModel() {
                 val updated = subjects.firstOrNull { it.id == currentId }
                 if (updated == null || updated.remainingSeconds <= 0) {
                     finishCurrentSessionAndSave()
+                    updated?.let { saveTimerProgress(it) }
                     runningTaskId = null
                     break
                 }
@@ -266,6 +278,7 @@ class TimerViewModel : ViewModel() {
         timerJob = null
 
         finishCurrentSessionAndSave()
+        saveCurrentTimerProgress()
         runningTaskId = null
     }
 
@@ -311,6 +324,7 @@ class TimerViewModel : ViewModel() {
         }
 
         val sessionDate = makeSessionDate(startTime)
+        saveTimerProgress(currentSubject)
 
         // 다음 세션과 값이 섞이지 않게 먼저 초기화
         currentSessionStartMillis = null
@@ -330,6 +344,26 @@ class TimerViewModel : ViewModel() {
                 )
             } catch (e: Exception) {
                 android.util.Log.e("TimerFirestore", "공부 기록 저장 실패", e)
+            }
+        }
+    }
+
+    private fun saveTimerProgress(subject: SubjectTimer) {
+        viewModelScope.launch {
+            try {
+                val uid = getOrCreateUid()
+                val today = makeSessionDate(System.currentTimeMillis())
+
+                generatedScheduleRepository.saveTimerTimeOverride(
+                    userId = uid,
+                    date = today,
+                    timerId = subject.id,
+                    subjectName = subject.name,
+                    allocatedSeconds = subject.allocatedSeconds,
+                    remainingSeconds = subject.remainingSeconds
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("TimerFirestore", "타이머 진행 시간 저장 실패", e)
             }
         }
     }
