@@ -87,7 +87,7 @@ fun CalendarScreen(
                 }
                     .thenBy { it.subject }
             )
-            .distinctBy { it.subject }
+            .distinctBy { Pair(it.subject, it.color) }
     }
 
     var showCalendarDialog by remember {

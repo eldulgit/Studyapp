@@ -107,30 +107,19 @@ fun generatePriorityStudySchedule(
     }
 
     val allocations = subjects.map { subject ->
-        val goal = activeGoals.find { it.title == subject.name }
-        if (goal != null) {
-            if (!goal.increasePriorityOverTime) {
-            SubjectAllocation(subject, 30)
-        } else {
-            val weight = calculateStageWeight(goal.startDate, goal.endDate, date)
-            val adjustedPriority = (subject.priority * weight).toInt().coerceAtLeast(1)
-            SubjectAllocation(subject, -1, adjustedPriority)
-        }
-        } else {
-            SubjectAllocation(subject, -1, subject.priority)
-        }
+        SubjectAllocation(subject, -1, subject.priority)
     }.toMutableList()
 
     val subjectNames = subjects.map { it.name }.toSet()
     val unmatchedGoals = activeGoals.filter { it.title !in subjectNames }
 
-    unmatchedGoals.forEach { goal ->
+    activeGoals.forEach { goal ->
         // 과목은 없지만 목표가 있으므로, 목표 정보를 기반으로 가짜 과목 생성
         val dummySubject = SubjectItem(
-        id = goal.id,        // 목표 ID를 사용
-        name = goal.title,   // 목표 제목을 과목명으로 사용
-        priority = 1,        // 기본 우선순위
-        colorArgb = goalScheduleColorArgb(goal.id)
+            id = goal.id, //name = "[목표] ${goal.title}", // 이름이 같을 때 구분하기 위해 접두어를 붙이는 것을 추천
+            name = goal.title, // 이름이 같을 때 구분하기 위해 접두어를 붙이는 것을 추천
+            priority = 1,        // 기본 우선순위
+            colorArgb = goalScheduleColorArgb(goal.id)
         )
         if (!goal.increasePriorityOverTime) {
             allocations.add(SubjectAllocation(dummySubject, 30))
