@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -44,6 +45,8 @@ import com.example.studyapp.ui.timer.TimerScreen
 import com.example.studyapp.ui.timer.TimerViewModel
 import androidx.compose.runtime.LaunchedEffect
 import com.example.studyapp.ui.settings.lifestyle.LifeStyleViewModel
+import com.example.studyapp.util.isIgnoringBatteryOptimizations
+import com.example.studyapp.util.openBatteryOptimizationSettings
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -59,6 +62,10 @@ fun MainScreen(
     val context = LocalContext.current
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
+    var isIgnoringBatteryOptimizations by remember {
+        mutableStateOf(context.isIgnoringBatteryOptimizations())
+    }
+    var requestedBatteryOptimizationThisSession by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -87,8 +94,20 @@ fun MainScreen(
 
     LaunchedEffect(
         settingsViewModel.notificationSettingsLoaded,
-        settingsViewModel.notificationEnabled
+        settingsViewModel.notificationEnabled,
+        isIgnoringBatteryOptimizations,
+        requestedBatteryOptimizationThisSession
     ) {
+        if (
+            settingsViewModel.notificationSettingsLoaded &&
+            settingsViewModel.notificationEnabled &&
+            !isIgnoringBatteryOptimizations &&
+            !requestedBatteryOptimizationThisSession
+        ) {
+            requestedBatteryOptimizationThisSession = true
+            context.openBatteryOptimizationSettings()
+        }
+
         if (
             settingsViewModel.notificationSettingsLoaded &&
             settingsViewModel.notificationEnabled &&
@@ -105,6 +124,7 @@ fun MainScreen(
     DisposableEffect(lifecycleOwner, settingsViewModel.notificationEnabled) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME && settingsViewModel.notificationEnabled) {
+                isIgnoringBatteryOptimizations = context.isIgnoringBatteryOptimizations()
                 settingsViewModel.refreshStudyReminderSchedule()
             }
         }
