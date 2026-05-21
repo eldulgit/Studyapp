@@ -118,7 +118,7 @@ fun ScheduleTimetable(
                         Text(
                             text = day,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -134,7 +134,8 @@ fun ScheduleTimetable(
                     totalHours = totalHours,
                     hourHeight = hourHeight,
                     width = timeColumnWidth,
-                    lineColor = lineColor
+                    lineColor = lineColor,
+                    isDarkTheme = isDarkTheme
                 )
 
                 days.forEach { day ->
@@ -161,7 +162,8 @@ private fun TimeColumn(
     totalHours: Int,
     hourHeight: Dp,
     width: Dp,
-    lineColor: Color
+    lineColor: Color,
+    isDarkTheme: Boolean
 ) {
     Column(
         modifier = Modifier.width(width)
@@ -177,7 +179,7 @@ private fun TimeColumn(
                 Text(
                     text = String.format("%02d", startHour + index),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 6.dp)
                 )
             }
@@ -246,7 +248,7 @@ private fun DayColumn(
                             Text(
                                 text = item.title,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = color.text
+                                color = if (isDarkTheme) Color.Black else color.text
                             )
                         }
                     }
