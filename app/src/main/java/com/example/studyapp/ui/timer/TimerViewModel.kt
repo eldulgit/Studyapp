@@ -12,8 +12,7 @@ import com.example.studyapp.data.repository.GeneratedScheduleRepository
 import com.example.studyapp.data.repository.SubjectRepository
 import com.example.studyapp.data.repository.UserRepository
 import com.example.studyapp.util.AppTimeZone
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -126,7 +125,7 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
-                val today = makeSessionDate(System.currentTimeMillis())
+                val today = makeTimerDate(uid, System.currentTimeMillis())
 
                 generatedScheduleRepository.saveTimerTimeOverride(
                     userId = uid,
@@ -169,7 +168,7 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
-                val today = makeSessionDate(System.currentTimeMillis())
+                val today = makeTimerDate(uid, System.currentTimeMillis())
 
                 generatedScheduleRepository.saveTimerTimeOverride(
                     userId = uid,
@@ -220,10 +219,40 @@ class TimerViewModel : ViewModel() {
         return uid
     }
 
-    private fun makeSessionDate(timeMillis: Long): String {
-        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        formatter.timeZone = AppTimeZone.timeZone
-        return formatter.format(Date(timeMillis))
+    private suspend fun makeTimerDate(uid: String, timeMillis: Long): String {
+        val wakeMinutes = userRepository
+            .getUserProfile(uid)
+            ?.wakeTime
+            ?.toMinutesOrNull()
+            ?: DEFAULT_WAKE_MINUTES
+
+        return makeTimerDate(timeMillis, wakeMinutes)
+    }
+
+    private fun makeTimerDate(timeMillis: Long, wakeMinutes: Int): String {
+        val resetMinuteRaw = wakeMinutes - RESET_BEFORE_WAKE_MINUTES
+        val calendar = Calendar.getInstance(AppTimeZone.timeZone).apply {
+            timeInMillis = timeMillis
+        }
+        val minuteOfDay = calendar.get(Calendar.HOUR_OF_DAY) * 60 +
+                calendar.get(Calendar.MINUTE)
+
+        if (resetMinuteRaw < 0) {
+            val resetMinute = resetMinuteRaw + MINUTES_PER_DAY
+            if (minuteOfDay >= resetMinute) {
+                calendar.add(Calendar.DAY_OF_MONTH, 1)
+            }
+        } else if (minuteOfDay < resetMinuteRaw) {
+            calendar.add(Calendar.DAY_OF_MONTH, -1)
+        }
+
+        return String.format(
+            Locale.getDefault(),
+            "%04d-%02d-%02d",
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH) + 1,
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
     }
 
     private fun startTask(subjectId: Long) {
@@ -323,7 +352,6 @@ class TimerViewModel : ViewModel() {
             return
         }
 
-        val sessionDate = makeSessionDate(startTime)
         saveTimerProgress(currentSubject)
 
         // 다음 세션과 값이 섞이지 않게 먼저 초기화
@@ -333,6 +361,7 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = authRepository.getStatsOwnerId()
+                val sessionDate = makeTimerDate(uid, startTime)
 
                 studySessionRepository.addRecord(
                     userId = uid,
@@ -352,7 +381,7 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
-                val today = makeSessionDate(System.currentTimeMillis())
+                val today = makeTimerDate(uid, System.currentTimeMillis())
 
                 generatedScheduleRepository.saveTimerTimeOverride(
                     userId = uid,
@@ -372,8 +401,15 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val uid = getOrCreateUid()
-
-                val today = makeSessionDate(System.currentTimeMillis())
+                val userProfile = userRepository.getUserProfile(uid)
+                val wakeStartMinute = userProfile
+                    ?.wakeTime
+                    ?.toMinutesOrNull()
+                    ?: DEFAULT_WAKE_MINUTES
+                val today = makeTimerDate(
+                    timeMillis = System.currentTimeMillis(),
+                    wakeMinutes = wakeStartMinute
+                )
 
                 val generatedSchedules = generatedScheduleRepository.getSchedulesByDate(
                     userId = uid,
@@ -384,12 +420,6 @@ class TimerViewModel : ViewModel() {
                     userId = uid,
                     date = today
                 )
-
-                val wakeStartMinute = userRepository
-                    .getUserProfile(uid)
-                    ?.wakeTime
-                    ?.toMinutesOrNull()
-                    ?: 0
 
                 val firestoreSubjects = subjectRepository.getSubjects(uid)
 
@@ -533,6 +563,10 @@ private fun calculateDurationSeconds(startTime: String, endTime: String): Int {
     val diff = (end - start + 1440) % 1440
     return (if (diff == 0 && startTime != endTime) 1440 else diff) * 60
 }
+
+private const val MINUTES_PER_DAY = 24 * 60
+private const val RESET_BEFORE_WAKE_MINUTES = 60
+private const val DEFAULT_WAKE_MINUTES = 7 * 60
 
 private fun String.toMinutesOrNull(): Int? {
     val parts = split(":")
