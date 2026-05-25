@@ -63,6 +63,9 @@ fun MainScreen(
     val settingsViewModel: SettingsViewModel = viewModel()
 
     val context = LocalContext.current
+    val helpPrefs = remember(context) {
+        context.getSharedPreferences(HELP_PREFS_NAME, Activity.MODE_PRIVATE)
+    }
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
     var isIgnoringBatteryOptimizations by remember {
@@ -85,6 +88,9 @@ fun MainScreen(
         BottomNavItem.Stats.route,
         BottomNavItem.Setting.route
     )
+    val shouldShowCoachHelpOnFirstRun = remember {
+        !helpPrefs.getBoolean(KEY_COACH_HELP_SHOWN, false)
+    }
     val coachHelpSteps = remember {
         listOf(
             CoachHelpStep(
@@ -115,7 +121,7 @@ fun MainScreen(
                 route = BottomNavItem.Calendar.route,
                 title = "Schedule 생성 버튼",
                 description = "Schedule 탭 오른쪽 위에서 달력 아이콘 옆의 생성 아이콘을 누르면 오늘 스케줄이 만들어져요. 생활패턴, 과목, 목표, 고정 스케줄을 기준으로 배치돼요.",
-                placement = CoachHelpPlacement.Top
+                placement = CoachHelpPlacement.Bottom
             ),
             CoachHelpStep(
                 route = BottomNavItem.Timer.route,
@@ -125,21 +131,29 @@ fun MainScreen(
             ),
             CoachHelpStep(
                 route = BottomNavItem.Timer.route,
-                title = "집중 측정",
+                title = "카메라 인식",
                 description = "과목의 재생 버튼을 누른 뒤 오른쪽 위 카메라 버튼을 누르면 집중 측정을 시작해요. 카메라 화면을 닫으면 타이머도 멈춰요.",
-                placement = CoachHelpPlacement.Top
+                placement = CoachHelpPlacement.Bottom
             ),
             CoachHelpStep(
                 route = BottomNavItem.Stats.route,
                 title = "Stats 탭",
                 description = "마지막으로 Stats 화면에서 공부 기록과 집중 흐름을 확인해요. 기간별 공부량과 코멘트를 보면서 다음 계획을 조정하면 돼요.",
-                placement = CoachHelpPlacement.Top
+                placement = CoachHelpPlacement.Bottom
             )
         )
     }
-    var showCoachHelp by remember { mutableStateOf(true) }
+    var showCoachHelp by remember { mutableStateOf(shouldShowCoachHelpOnFirstRun) }
     var coachHelpIndex by remember { mutableLongStateOf(0L) }
     val currentCoachStep = coachHelpSteps.getOrNull(coachHelpIndex.toInt())
+
+    LaunchedEffect(shouldShowCoachHelpOnFirstRun) {
+        if (shouldShowCoachHelpOnFirstRun) {
+            helpPrefs.edit()
+                .putBoolean(KEY_COACH_HELP_SHOWN, true)
+                .apply()
+        }
+    }
 
     LaunchedEffect(currentCoachStep?.route) {
         val targetRoute = currentCoachStep?.route ?: return@LaunchedEffect
@@ -338,3 +352,6 @@ fun MainScreen(
         }
     }
 }
+
+private const val HELP_PREFS_NAME = "study_app_prefs"
+private const val KEY_COACH_HELP_SHOWN = "coach_help_shown"
