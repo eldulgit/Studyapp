@@ -150,7 +150,7 @@ fun LifestyleInputScreen(
             value = sleepTime,
             onValueChange = { updateTime(it) { value -> sleepTime = value } },
             label = { Text("취침 시간") },
-            placeholder = { Text("예: 7:30, 730") },
+            placeholder = { Text("예: 11:30, 1130") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -179,7 +179,7 @@ fun LifestyleInputScreen(
                 value = lunchStartTime,
                 onValueChange = { updateTime(it) { value -> lunchStartTime = value } },
                 label = { Text("시작") },
-                placeholder = { Text("예: 7:30, 730") },
+                placeholder = { Text("예: 12:00, 12") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -199,7 +199,7 @@ fun LifestyleInputScreen(
                 value = lunchEndTime,
                 onValueChange = { updateTime(it) { value -> lunchEndTime = value } },
                 label = { Text("종료") },
-                placeholder = { Text("예: 7:30, 730") },
+                placeholder = { Text("예: 13:00, 13") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -229,7 +229,7 @@ fun LifestyleInputScreen(
                 value = dinnerStartTime,
                 onValueChange = { updateTime(it) { value -> dinnerStartTime = value } },
                 label = { Text("시작") },
-                placeholder = { Text("예: 7:30, 730") },
+                placeholder = { Text("예: 18:30, 1830") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -249,7 +249,7 @@ fun LifestyleInputScreen(
                 value = dinnerEndTime,
                 onValueChange = { updateTime(it) { value -> dinnerEndTime = value } },
                 label = { Text("종료") },
-                placeholder = { Text("예: 7:30, 730") },
+                placeholder = { Text("예: 19:30, 1930") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
