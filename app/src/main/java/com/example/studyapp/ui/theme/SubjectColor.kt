@@ -12,6 +12,6 @@ fun subjectColorForTheme(
     return lerp(
         start = color,
         stop = StudyDarkSurfaceVariant,
-        fraction = 0.34f
+        fraction = 0.22f
     ).copy(alpha = color.alpha)
 }

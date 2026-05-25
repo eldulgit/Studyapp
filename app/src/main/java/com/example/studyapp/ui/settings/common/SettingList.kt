@@ -12,9 +12,6 @@ fun SettingsList(navController: NavController) {
         SettingItem("과목 설정") {
             navController.navigate("setting_subject")
         }
-        SettingItem("스케줄 설정") {
-            navController.navigate("setting_schedule")
-        }
         SettingItem("생활패턴 설정") {
             navController.navigate("setting_lifestyle")
         }

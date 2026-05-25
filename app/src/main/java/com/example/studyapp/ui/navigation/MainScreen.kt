@@ -69,8 +69,9 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val bottomRoutes = listOf(
-        BottomNavItem.Calendar.route,
+        BottomNavItem.ScheduleSetting.route,
         BottomNavItem.Timer.route,
+        BottomNavItem.Calendar.route,
         BottomNavItem.Stats.route,
         BottomNavItem.Setting.route
     )
@@ -125,9 +126,13 @@ fun MainScreen(
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = BottomNavItem.Calendar.route,
+            startDestination = BottomNavItem.ScheduleSetting.route,
             modifier = Modifier.padding(padding)
         ) {
+            composable(BottomNavItem.ScheduleSetting.route) {
+                ScheduleSettingScreen()
+            }
+
             composable(BottomNavItem.Calendar.route) {
                 CalendarScreen(navController, subjectViewModel)
             }
@@ -153,10 +158,6 @@ fun MainScreen(
 
             composable("setting_subject") {
                 SubjectSettingScreen(navController, subjectViewModel)
-            }
-
-            composable("setting_schedule") {
-                ScheduleSettingScreen(navController)
             }
 
             composable("setting_lifestyle") {

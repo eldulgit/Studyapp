@@ -186,7 +186,8 @@ fun StudyApp() {
                 StartScreen.LoginChoice -> {
                     LoginChoiceScreen(
                         onGoogleLoginClick = ::onGoogleLoginClick,
-                        onGuestClick = ::onGuestClick
+                        onGuestClick = ::onGuestClick,
+                        isGoogleLoggedIn = authRepository.isCurrentUserGoogleLinked()
                     )
                 }
 

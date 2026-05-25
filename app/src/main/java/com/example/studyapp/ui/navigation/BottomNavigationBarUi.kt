@@ -19,8 +19,9 @@ fun BottomNavigationBar(
     navController: NavController
 ) {
     val items = listOf(
-        BottomNavItem.Calendar,
+        BottomNavItem.ScheduleSetting,
         BottomNavItem.Timer,
+        BottomNavItem.Calendar,
         BottomNavItem.Stats,
         BottomNavItem.Setting
     )

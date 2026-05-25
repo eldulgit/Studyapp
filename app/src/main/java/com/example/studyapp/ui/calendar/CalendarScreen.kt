@@ -47,6 +47,8 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 import java.time.LocalDate
 import androidx.compose.ui.graphics.Color
 
@@ -358,6 +360,7 @@ private fun SubjectColorLegend(
     schedules: List<DayScheduleBlock>
 ) {
     if (schedules.isEmpty()) return
+    val isDarkTheme = isAppInDarkTheme()
 
     LazyRow(
         modifier = modifier,
@@ -372,7 +375,7 @@ private fun SubjectColorLegend(
                     modifier = Modifier
                         .size(10.dp)
                         .background(
-                            color = schedule.color,
+                            color = subjectColorForTheme(schedule.color, isDarkTheme),
                             shape = CircleShape
                         )
                 )
