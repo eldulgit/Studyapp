@@ -14,9 +14,15 @@ sealed class BottomNavItem(
     val label: String,
     val icon: ImageVector
 ) {
+    object ScheduleSetting : BottomNavItem(
+        route = "setting_schedule",
+        label = "Setup",
+        icon = Icons.Default.GridView
+    )
+
     object Calendar : BottomNavItem(
         route = "calendar",
-        label = "schedule",
+        label = "Schedule",
         icon = Icons.Default.Schedule
     )
 

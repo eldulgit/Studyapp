@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 fun LoginChoiceScreen(
     onGoogleLoginClick: () -> Unit,
     onGuestClick: () -> Unit,
+    isGoogleLoggedIn: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -52,7 +53,13 @@ fun LoginChoiceScreen(
             onClick = onGoogleLoginClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Google 로그인")
+            Text(
+                text = if (isGoogleLoggedIn) {
+                    "Google 로그인 되어있음"
+                } else {
+                    "Google 로그인"
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))

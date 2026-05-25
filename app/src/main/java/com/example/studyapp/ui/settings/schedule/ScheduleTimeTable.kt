@@ -278,8 +278,8 @@ private fun TimetableColorSet.forTheme(darkTheme: Boolean): TimetableColorSet {
     if (!darkTheme) return this
 
     return TimetableColorSet(
-        container = lerp(container, Color(0xFF334155), 0.42f),
-        text = lerp(text, Color(0xFFE2E8F0), 0.68f)
+        container = lerp(container, Color(0xFF334155), 0.28f),
+        text = lerp(text, Color(0xFFE2E8F0), 0.52f)
     )
 }
 

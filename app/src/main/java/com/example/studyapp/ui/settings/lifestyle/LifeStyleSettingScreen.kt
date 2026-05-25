@@ -97,7 +97,7 @@ fun LifeStyleSettingScreen(
             normalizedDinnerStartTime == null ||
             normalizedDinnerEndTime == null
         ) {
-            errorMessage = "시간은 7, 700, 0730, 7:30, 07:30 형식으로 입력해주세요."
+            errorMessage = "시간은 7:30, 730 형식으로 입력해주세요."
             return
         }
 
@@ -180,10 +180,10 @@ fun LifeStyleSettingScreen(
                 value = wakeTime,
                 onValueChange = { updateTime(it) { value -> wakeTime = value } },
                 label = { Text("기상 시간") },
-                placeholder = { Text("예: 07:00") },
+                placeholder = { Text("예: 7:30, 730") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -200,10 +200,10 @@ fun LifeStyleSettingScreen(
                 value = sleepTime,
                 onValueChange = { updateTime(it) { value -> sleepTime = value } },
                 label = { Text("취침 시간") },
-                placeholder = { Text("예: 23:30") },
+                placeholder = { Text("예: 7:30, 730") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -232,10 +232,10 @@ fun LifeStyleSettingScreen(
                     value = lunchStartTime,
                     onValueChange = { updateTime(it) { value -> lunchStartTime = value } },
                     label = { Text("시작") },
-                    placeholder = { Text("12:00") },
+                    placeholder = { Text("예: 7:30, 730") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
@@ -250,10 +250,10 @@ fun LifeStyleSettingScreen(
                     value = lunchEndTime,
                     onValueChange = { updateTime(it) { value -> lunchEndTime = value } },
                     label = { Text("종료") },
-                    placeholder = { Text("13:00") },
+                    placeholder = { Text("예: 7:30, 730") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
@@ -283,10 +283,10 @@ fun LifeStyleSettingScreen(
                     value = dinnerStartTime,
                     onValueChange = { updateTime(it) { value -> dinnerStartTime = value } },
                     label = { Text("시작") },
-                    placeholder = { Text("18:00") },
+                    placeholder = { Text("예: 7:30, 730") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
@@ -301,10 +301,10 @@ fun LifeStyleSettingScreen(
                     value = dinnerEndTime,
                     onValueChange = { updateTime(it) { value -> dinnerEndTime = value } },
                     label = { Text("종료") },
-                    placeholder = { Text("19:00") },
+                    placeholder = { Text("예: 7:30, 730") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(

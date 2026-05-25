@@ -1,6 +1,7 @@
 package com.example.studyapp.ui.camera
 
 import android.annotation.SuppressLint
+import android.util.Size
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.common.InputImage
@@ -37,9 +38,11 @@ class MLKitFocusAnalyzer(
     private val BLANK_STARE_THRESHOLD_MS = 10000L
     private val HEAD_MOVEMENT_THRESHOLD = 2.0f
     private val HEAD_DOWN_THRESHOLD = 12.0f
+    private val ANALYSIS_INTERVAL_MS = 500L
     private var absentStartTime: Long = 0L
     private var eyesClosedStartTime: Long = 0L
     private var headStillStartTime: Long = 0L
+    private var lastAnalyzedAt: Long = 0L
 
     private var anchorHeadX: Float? = null
     private var anchorHeadY: Float? = null
@@ -53,7 +56,18 @@ class MLKitFocusAnalyzer(
 
     @SuppressLint("UnsafeOptInUsageError")
     override fun analyze(imageProxy: ImageProxy) {
-        val mediaImage = imageProxy.image ?: return
+        val currentFrameTime = System.currentTimeMillis()
+        if (currentFrameTime - lastAnalyzedAt < ANALYSIS_INTERVAL_MS) {
+            imageProxy.close()
+            return
+        }
+        lastAnalyzedAt = currentFrameTime
+
+        val mediaImage = imageProxy.image
+        if (mediaImage == null) {
+            imageProxy.close()
+            return
+        }
         val rotation = imageProxy.imageInfo.rotationDegrees
         val image = InputImage.fromMediaImage(mediaImage, rotation)
 
@@ -173,6 +187,7 @@ class MLKitFocusAnalyzer(
 
 fun createFocusAnalyzer(analyzer: ImageAnalysis.Analyzer): ImageAnalysis {
     return ImageAnalysis.Builder()
+        .setTargetResolution(Size(640, 480))
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
         .build()
         .apply {

@@ -7,13 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun SettingsList(navController: NavController) {
+fun SettingsList(
+    navController: NavController,
+    onHelpClick: () -> Unit
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SettingItem("과목 설정") {
             navController.navigate("setting_subject")
-        }
-        SettingItem("스케줄 설정") {
-            navController.navigate("setting_schedule")
         }
         SettingItem("생활패턴 설정") {
             navController.navigate("setting_lifestyle")
@@ -29,6 +29,9 @@ fun SettingsList(navController: NavController) {
         }
         SettingItem("계정 설정") {
             navController.navigate("setting_account")
+        }
+        SettingItem("도움말") {
+            onHelpClick()
         }
     }
 }

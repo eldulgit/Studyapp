@@ -26,6 +26,11 @@
         android:extractNativeLibs="false"
         >
         <activity
+            android:name=".help.HelpActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Studyapp" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
