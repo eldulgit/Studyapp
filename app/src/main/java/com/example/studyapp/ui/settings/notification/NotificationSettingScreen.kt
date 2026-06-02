@@ -43,8 +43,6 @@ fun NotificationSettingScreen(
     settingsViewModel: SettingsViewModel
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val notificationEnabled = settingsViewModel.notificationEnabled
-    val drowsinessAlertEnabled = settingsViewModel.drowsinessAlertEnabled
 
     LaunchedEffect(Unit) {
         settingsViewModel.loadNotificationSettingsFromDb()
@@ -54,6 +52,7 @@ fun NotificationSettingScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 settingsViewModel.refreshStudyReminderSchedule()
+                settingsViewModel.refreshGoalReminderSchedule()
             }
         }
 
@@ -95,18 +94,27 @@ fun NotificationSettingScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("공부 알림 받기")
+            NotificationSwitchRow(
+                title = "졸음 알림",
+                checked = settingsViewModel.drowsinessAlertEnabled,
+                onCheckedChange = settingsViewModel::updateDrowsinessAlertEnabled
+            )
 
-                SkyOutlineSwitch(
-                    checked = notificationEnabled,
-                    onCheckedChange = { settingsViewModel.updateNotificationEnabled(it) }
-                )
-            }
+            Spacer(modifier = Modifier.padding(12.dp))
+
+            NotificationSwitchRow(
+                title = "공부 알림",
+                checked = settingsViewModel.notificationEnabled,
+                onCheckedChange = settingsViewModel::updateNotificationEnabled
+            )
+
+            Spacer(modifier = Modifier.padding(12.dp))
+
+            NotificationSwitchRow(
+                title = "목표 알림",
+                checked = settingsViewModel.goalAlertEnabled,
+                onCheckedChange = settingsViewModel::updateGoalAlertEnabled
+            )
 
             Spacer(modifier = Modifier.padding(12.dp))
 
@@ -117,24 +125,27 @@ fun NotificationSettingScreen(
                     settingsViewModel.updateNotificationTime(hour, minute)
                 }
             )
-
-            Spacer(modifier = Modifier.padding(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("졸음 감지 알림")
-
-                SkyOutlineSwitch(
-                    checked = drowsinessAlertEnabled,
-                    onCheckedChange = {
-                        settingsViewModel.updateDrowsinessAlertEnabled(it)
-                    }
-                )
-            }
         }
+    }
+}
+
+@Composable
+private fun NotificationSwitchRow(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(title)
+
+        SkyOutlineSwitch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
     }
 }
 

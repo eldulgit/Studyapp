@@ -75,7 +75,9 @@ fun MainScreen(
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
-        settingsViewModel.updateNotificationEnabled(granted)
+        if (!granted) {
+            settingsViewModel.updateNotificationEnabled(false)
+        }
     }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -180,12 +182,13 @@ fun MainScreen(
     LaunchedEffect(
         settingsViewModel.notificationSettingsLoaded,
         settingsViewModel.notificationEnabled,
+        settingsViewModel.goalAlertEnabled,
         isIgnoringBatteryOptimizations,
         requestedBatteryOptimizationThisSession
     ) {
         if (
             settingsViewModel.notificationSettingsLoaded &&
-            settingsViewModel.notificationEnabled &&
+            (settingsViewModel.notificationEnabled || settingsViewModel.goalAlertEnabled) &&
             !isIgnoringBatteryOptimizations &&
             !requestedBatteryOptimizationThisSession
         ) {
@@ -195,7 +198,7 @@ fun MainScreen(
 
         if (
             settingsViewModel.notificationSettingsLoaded &&
-            settingsViewModel.notificationEnabled &&
+            (settingsViewModel.notificationEnabled || settingsViewModel.goalAlertEnabled) &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
                 context,
@@ -208,9 +211,12 @@ fun MainScreen(
 
     DisposableEffect(lifecycleOwner, settingsViewModel.notificationEnabled) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && settingsViewModel.notificationEnabled) {
+            if (event == Lifecycle.Event.ON_RESUME) {
                 isIgnoringBatteryOptimizations = context.isIgnoringBatteryOptimizations()
-                settingsViewModel.refreshStudyReminderSchedule()
+                if (settingsViewModel.notificationEnabled) {
+                    settingsViewModel.refreshStudyReminderSchedule()
+                }
+                settingsViewModel.refreshGoalReminderSchedule()
             }
         }
 

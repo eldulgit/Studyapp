@@ -57,6 +57,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".notification.GoalReminderReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".notification.StudyReminderBootReceiver"
             android:exported="true">
             <intent-filter>
