@@ -33,13 +33,22 @@ fun ScheduleTimetable(
     modifier: Modifier = Modifier,
     onItemClick: (FixedScheduleItem) -> Unit = {}
 ) {
-    val days = listOf("월", "화", "수", "목", "금", "토", "일")
-
     val scheduleItems = items.filter {
         it.category == ScheduleCategory.SCHEDULE &&
                 it.dayOfWeek != null &&
                 it.startTime != null &&
                 it.endTime != null
+    }
+    val days = buildList {
+        addAll(listOf("월", "화", "수", "목", "금"))
+
+        if (scheduleItems.any { it.dayOfWeek == "토" }) {
+            add("토")
+        }
+
+        if (scheduleItems.any { it.dayOfWeek == "일" }) {
+            add("일")
+        }
     }
 
     // 기본 범위는 9~17
@@ -247,7 +256,7 @@ private fun DayColumn(
                         Column {
                             Text(
                                 text = item.title,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = if (isDarkTheme) Color.Black else color.text
                             )
                         }

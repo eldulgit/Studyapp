@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
 
 // 목표화면
 
@@ -66,6 +67,7 @@ fun ScheduleSection(
                         title = item.title,
                         subtitle = subtitleBuilder(item),
                         checked = item.increasePriorityOverTime,
+                        muted = item.isOutsideGoalPeriod(),
                         onCheckedChange = { checked ->
                             onCheckedChange(item, checked)
                         },
@@ -77,4 +79,16 @@ fun ScheduleSection(
             }
         }
     }
+}
+
+private fun FixedScheduleItem.isOutsideGoalPeriod(): Boolean {
+    if (category != ScheduleCategory.GOAL) return false
+
+    val start = startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return false
+    val end = endDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return false
+    val today = LocalDate.now()
+
+    return today.isBefore(start) || today.isAfter(end)
 }
