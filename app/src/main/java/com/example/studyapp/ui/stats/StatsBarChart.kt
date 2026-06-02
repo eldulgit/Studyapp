@@ -36,13 +36,14 @@ fun StatsBarChart(
 ) {
     val labels = generateLabels(period)
 
-    val values = generateBarValues(
+    val studiedSecondsValues = generateBarValues(
         records = records,
         period = period,
         labelCount = labels.size
     )
+    val chartValues = studiedSecondsValues.map { it.toChartValue() }
 
-    val scaleMaxValue = values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
+    val scaleMaxValue = chartValues.maxOrNull()?.coerceAtLeast(1f) ?: 1f
 
     Column(
         modifier = modifier
@@ -56,19 +57,31 @@ fun StatsBarChart(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
         ) {
-            values.forEach { value ->
+            studiedSecondsValues.forEachIndexed { index, studiedSeconds ->
+                val value = chartValues[index]
                 val ratio = (value / scaleMaxValue).coerceIn(0f, 1f)
                 val barHeight = (ratio * maxBarHeight.value).dp
 
-                Box(
-                    modifier = Modifier
-                        .width(24.dp)
-                        .height(barHeight)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    Text(
+                        text = formatDurationLabel(studiedSeconds),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .width(24.dp)
+                            .height(barHeight)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
             }
         }
 
@@ -95,7 +108,7 @@ private fun generateBarValues(
     records: List<StudySessionRecord>,
     period: StatsPeriod,
     labelCount: Int
-): List<Float> {
+): List<Int> {
     val today = LocalDate.now(AppTimeZone.zoneId)
 
     return when (period) {
@@ -108,7 +121,6 @@ private fun generateBarValues(
                 records
                     .filter { it.sessionDate == date }
                     .sumOf { it.studiedSeconds }
-                    .toChartValue()
             }
         }
 
@@ -131,7 +143,6 @@ private fun generateBarValues(
                                 !recordDate.isAfter(weekEnd)
                     }
                     .sumOf { it.studiedSeconds }
-                    .toChartValue()
             }
         }
 
@@ -151,7 +162,6 @@ private fun generateBarValues(
                                 recordDate.monthValue == targetMonth.monthValue
                     }
                     .sumOf { it.studiedSeconds }
-                    .toChartValue()
             }
         }
     }
@@ -162,5 +172,19 @@ private fun Int.toChartValue(): Float {
         1f
     } else {
         this / 60f
+    }
+}
+
+private fun formatDurationLabel(seconds: Int): String {
+    if (seconds <= 0) return ""
+
+    val totalMinutes = (seconds / 60).coerceAtLeast(1)
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+
+    return when {
+        hours > 0 && minutes > 0 -> "${hours}H${minutes}M"
+        hours > 0 -> "${hours}H"
+        else -> "${minutes}M"
     }
 }

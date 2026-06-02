@@ -244,7 +244,7 @@ fun SubjectSettingScreen(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        MoonPrioritySelector(
+        ImportanceSelector(
             selectedPriority = priority,
             onPrioritySelected = { selectedPriority ->
                 priority = selectedPriority
@@ -281,8 +281,14 @@ fun SubjectSettingScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp)
+                .padding(top = 8.dp, bottom = 24.dp)
         ) {
+            Text(
+                text = "과목",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             sortedSubjects.forEach { subject ->
                 SubjectItemRow(
                     subject = subject,

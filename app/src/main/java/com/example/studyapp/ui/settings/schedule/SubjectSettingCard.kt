@@ -27,13 +27,30 @@ fun SubjectSettingCard(
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    muted: Boolean = false
 ) {
-    val accentColor = MaterialTheme.colorScheme.primary
-    val cardContainerColor = if (isAppInDarkTheme()) {
-        MaterialTheme.colorScheme.surface
+    val isDarkTheme = isAppInDarkTheme()
+    val accentColor = if (muted) {
+        MaterialTheme.colorScheme.outline
     } else {
-        Color.White
+        MaterialTheme.colorScheme.primary
+    }
+    val cardContainerColor = when {
+        muted && isDarkTheme -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+        muted -> Color(0xFFF1F3F5)
+        isDarkTheme -> MaterialTheme.colorScheme.surface
+        else -> Color.White
+    }
+    val titleColor = if (muted) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val subtitleColor = if (muted) {
+        MaterialTheme.colorScheme.outline
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Card(
@@ -57,7 +74,8 @@ fun SubjectSettingCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    color = titleColor
                 )
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -65,7 +83,7 @@ fun SubjectSettingCard(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = subtitleColor
                 )
             }
 

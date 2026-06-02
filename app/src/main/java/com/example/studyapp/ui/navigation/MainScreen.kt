@@ -34,6 +34,7 @@ import com.example.studyapp.ui.settings.SettingsViewModel
 import com.example.studyapp.ui.settings.account.AccountSettingScreen
 import com.example.studyapp.ui.settings.ai.AiProfileSettingScreen
 import com.example.studyapp.ui.settings.common.SettingScreen
+import com.example.studyapp.ui.settings.help.HelpGuideScreen
 import com.example.studyapp.ui.settings.lifestyle.LifeStyleSettingScreen
 import com.example.studyapp.ui.settings.notification.NotificationSettingScreen
 import com.example.studyapp.ui.settings.schedule.ScheduleSettingScreen
@@ -44,7 +45,10 @@ import com.example.studyapp.ui.stats.StatsScreen
 import com.example.studyapp.ui.timer.TimerScreen
 import com.example.studyapp.ui.timer.TimerViewModel
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import com.example.studyapp.ui.help.CoachHelpOverlay
+import com.example.studyapp.ui.help.CoachHelpHighlight
+import com.example.studyapp.ui.help.CoachHelpHighlightShape
 import com.example.studyapp.ui.help.CoachHelpPlacement
 import com.example.studyapp.ui.help.CoachHelpStep
 import com.example.studyapp.ui.settings.lifestyle.LifeStyleViewModel
@@ -63,9 +67,6 @@ fun MainScreen(
     val settingsViewModel: SettingsViewModel = viewModel()
 
     val context = LocalContext.current
-    val helpPrefs = remember(context) {
-        context.getSharedPreferences(HELP_PREFS_NAME, Activity.MODE_PRIVATE)
-    }
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
     var isIgnoringBatteryOptimizations by remember {
@@ -88,72 +89,78 @@ fun MainScreen(
         BottomNavItem.Stats.route,
         BottomNavItem.Setting.route
     )
-    val shouldShowCoachHelpOnFirstRun = remember {
-        !helpPrefs.getBoolean(KEY_COACH_HELP_SHOWN, false)
-    }
+    val shouldShowCoachHelpOnFirstRun = true
     val coachHelpSteps = remember {
         listOf(
             CoachHelpStep(
+                route = BottomNavItem.ScheduleSetting.route,
+                title = "스케줄과 목표 추가",
+                description = "Setup 화면의 + 버튼을 누르면 추가 화면이 열려요. 여기서 고정 스케줄이나 목표를 추가할 수 있고, 목표는 기간을 입력한 뒤 체크를 켜면 마감일이 가까워질수록 우선순위가 자동으로 올라가요.",
+                placement = CoachHelpPlacement.Bottom,
+                highlight = circleHighlight(0.90f, 0.84f, 0.15f)
+            ),
+            CoachHelpStep(
                 route = BottomNavItem.Setting.route,
-                title = "Settings에서 과목 추가",
-                description = "먼저 Settings 탭의 과목 설정에서 공부할 과목을 추가해요. 과목 색상은 스케줄, 타이머, 통계 화면에서 같은 색으로 표시돼요.",
-                placement = CoachHelpPlacement.Bottom
+                title = "과목 설정",
+                description = "Settings에서 과목 설정으로 들어가 과목을 등록해요. 과목은 스케줄링, 타이머, 통계에서 같은 이름과 색상으로 연결돼요.",
+                placement = CoachHelpPlacement.Center,
+                highlight = rectHighlight(0.15f, 0.275f, 0.25f, 0.048f)
             ),
             CoachHelpStep(
                 route = "setting_subject",
-                title = "과목 설정",
-                description = "여기서 과목명, 색상, 우선순위를 정해요. 과목을 먼저 만들어두면 이후 스케줄 생성과 타이머가 훨씬 자연스럽게 연결돼요.",
-                placement = CoachHelpPlacement.Bottom
-            ),
-            CoachHelpStep(
-                route = BottomNavItem.ScheduleSetting.route,
-                title = "Setup에서 스케줄 추가",
-                description = "Setup 탭에서는 오른쪽 아래 + 버튼으로 목표나 고정 스케줄을 추가해요. 학교 수업처럼 매주 반복되는 시간은 스케줄로 넣으면 돼요.",
-                placement = CoachHelpPlacement.Bottom
-            ),
-            CoachHelpStep(
-                route = BottomNavItem.ScheduleSetting.route,
-                title = "목표 우선순위",
-                description = "목표 항목의 체크를 켜면 마감일이 가까워질수록 우선순위가 올라가요. 시험이나 과제처럼 시간이 지날수록 더 중요해지는 목표에 사용해요.",
-                placement = CoachHelpPlacement.Top
+                title = "과목 저장",
+                description = "과목명을 입력하고 중요도를 선택한 뒤 과목 색상을 고르세요. 오른쪽 위 저장 버튼을 누르면 과목이 저장되고 아래쪽에 카드로 표시돼요.",
+                placement = CoachHelpPlacement.Top,
+                highlight = circleHighlight(0.91f, 0.065f, 0.085f)
             ),
             CoachHelpStep(
                 route = BottomNavItem.Calendar.route,
-                title = "Schedule 생성 버튼",
-                description = "Schedule 탭 오른쪽 위에서 달력 아이콘 옆의 생성 아이콘을 누르면 오늘 스케줄이 만들어져요. 생활패턴, 과목, 목표, 고정 스케줄을 기준으로 배치돼요.",
-                placement = CoachHelpPlacement.Bottom
+                title = "스케줄링",
+                description = "Schedule 화면에서 달력 옆 스케줄링 아이콘을 누르면 과목 라벨과 시간표가 자동으로 생성돼요. 만들어진 스케줄에 맞춰 공부하면 됩니다.",
+                placement = CoachHelpPlacement.Top,
+                highlight = circleHighlight(0.84f, 0.065f, 0.072f)
             ),
             CoachHelpStep(
                 route = BottomNavItem.Timer.route,
-                title = "Timer 자동 추가",
-                description = "스케줄을 생성하면 Timer 탭에 오늘 공부할 시간이 과목별로 자동 추가돼요. 공부하다 줄어든 시간은 오늘 기준으로 저장돼서 다시 돌아와도 이어져요.",
-                placement = CoachHelpPlacement.Bottom
-            ),
-            CoachHelpStep(
-                route = BottomNavItem.Timer.route,
-                title = "카메라 인식",
-                description = "과목의 재생 버튼을 누른 뒤 오른쪽 위 카메라 버튼을 누르면 집중 측정을 시작해요. 카메라 화면을 닫으면 타이머도 멈춰요.",
-                placement = CoachHelpPlacement.Bottom
+                title = "카메라 버튼",
+                description = "스케줄링 후 Timer로 넘어가면 과목별 시간이 자동으로 들어와요. 재생 버튼으로 과목을 선택하고, 수정 버튼으로 시간을 바꿀 수 있어요. 카메라 아이콘을 누르면 카메라 인식으로 집중 측정을 시작합니다.",
+                placement = CoachHelpPlacement.Top,
+                highlight = circleHighlight(0.89f, 0.07f, 0.085f)
             ),
             CoachHelpStep(
                 route = BottomNavItem.Stats.route,
-                title = "Stats 탭",
-                description = "마지막으로 Stats 화면에서 공부 기록과 집중 흐름을 확인해요. 기간별 공부량과 코멘트를 보면서 다음 계획을 조정하면 돼요.",
-                placement = CoachHelpPlacement.Bottom
+                title = "Stats 필터",
+                description = "Stats 화면 위쪽 라벨로 누적 공부시간의 기간을 선택해요. Daily, Weekly, Monthly를 눌러 일간, 주간, 월간 누적 시간을 확인할 수 있어요.",
+                placement = CoachHelpPlacement.Top,
+                highlight = rectHighlight(0.50f, 0.09f, 0.92f, 0.045f)
+            ),
+            CoachHelpStep(
+                route = BottomNavItem.Stats.route,
+                title = "누적 공부시간 그래프",
+                description = "누적 공부시간 그래프는 선택한 기간에 맞춰 공부 시간이 얼마나 쌓였는지 보여줘요. 막대 위 시간 라벨로 공부량을 빠르게 확인할 수 있어요.",
+                placement = CoachHelpPlacement.Center,
+                highlight = rectHighlight(0.50f, 0.302f, 0.86f, 0.235f)
+            ),
+            CoachHelpStep(
+                route = BottomNavItem.Stats.route,
+                title = "시간대별 집중도",
+                description = "시간대별 집중도 그래프는 카메라 인식에서 집중 상태로 판단된 시간이 어느 시간대에 많이 쌓였는지 보여줘요. 집중이 잘 되는 시간을 찾는 데 사용할 수 있어요.",
+                placement = CoachHelpPlacement.Center,
+                highlight = rectHighlight(0.50f, 0.635f, 0.90f, 0.31f)
+            ),
+            CoachHelpStep(
+                route = BottomNavItem.Setting.route,
+                title = "도움말 다시 보기",
+                description = "나중에 사용법이 다시 필요하면 Settings의 도움말을 눌러주세요. 키워드 검색과 자세한 가이드로 기능을 다시 확인할 수 있어요.",
+                placement = CoachHelpPlacement.Center,
+                highlight = rectHighlight(0.12f, 0.62f, 0.22f, 0.05f)
             )
         )
     }
     var showCoachHelp by remember { mutableStateOf(shouldShowCoachHelpOnFirstRun) }
+    var showCoachHelpOverlay by remember { mutableStateOf(false) }
     var coachHelpIndex by remember { mutableLongStateOf(0L) }
     val currentCoachStep = coachHelpSteps.getOrNull(coachHelpIndex.toInt())
-
-    LaunchedEffect(shouldShowCoachHelpOnFirstRun) {
-        if (shouldShowCoachHelpOnFirstRun) {
-            helpPrefs.edit()
-                .putBoolean(KEY_COACH_HELP_SHOWN, true)
-                .apply()
-        }
-    }
 
     LaunchedEffect(currentCoachStep?.route) {
         val targetRoute = currentCoachStep?.route ?: return@LaunchedEffect
@@ -257,13 +264,7 @@ fun MainScreen(
             }
 
             composable(BottomNavItem.Setting.route) {
-                SettingScreen(
-                    navController = navController,
-                    onHelpClick = {
-                        coachHelpIndex = 0L
-                        showCoachHelp = true
-                    }
-                )
+                SettingScreen(navController)
             }
 
             composable("setting_subject") {
@@ -314,16 +315,44 @@ fun MainScreen(
                     onLogout = onLogout
                 )
             }
+
+            composable("setting_help") {
+                HelpGuideScreen(navController)
+            }
         }
     }
 
-    if (showCoachHelp && currentCoachStep != null) {
+    LaunchedEffect(
+        showCoachHelp,
+        coachHelpIndex,
+        currentRoute,
+        currentCoachStep?.route
+    ) {
+        showCoachHelpOverlay = false
+
+        if (
+            showCoachHelp &&
+            currentCoachStep != null &&
+            currentRoute == currentCoachStep.route
+        ) {
+            delay(220)
+            showCoachHelpOverlay = true
+        }
+    }
+
+    if (
+        showCoachHelp &&
+        showCoachHelpOverlay &&
+        currentCoachStep != null &&
+        currentRoute == currentCoachStep.route
+    ) {
         CoachHelpOverlay(
             step = currentCoachStep,
             currentStepIndex = coachHelpIndex.toInt(),
             totalStepCount = coachHelpSteps.size,
             onNext = {
                 val nextIndex = coachHelpIndex + 1
+                showCoachHelpOverlay = false
                 if (nextIndex < coachHelpSteps.size) {
                     coachHelpIndex = nextIndex
                 } else {
@@ -353,5 +382,31 @@ fun MainScreen(
     }
 }
 
-private const val HELP_PREFS_NAME = "study_app_prefs"
-private const val KEY_COACH_HELP_SHOWN = "coach_help_shown"
+private fun circleHighlight(
+    centerXRatio: Float,
+    centerYRatio: Float,
+    diameterRatio: Float
+): CoachHelpHighlight {
+    return CoachHelpHighlight(
+        shape = CoachHelpHighlightShape.Circle,
+        centerXRatio = centerXRatio,
+        centerYRatio = centerYRatio,
+        widthRatio = diameterRatio,
+        heightRatio = diameterRatio
+    )
+}
+
+private fun rectHighlight(
+    centerXRatio: Float,
+    centerYRatio: Float,
+    widthRatio: Float,
+    heightRatio: Float
+): CoachHelpHighlight {
+    return CoachHelpHighlight(
+        shape = CoachHelpHighlightShape.RoundRect,
+        centerXRatio = centerXRatio,
+        centerYRatio = centerYRatio,
+        widthRatio = widthRatio,
+        heightRatio = heightRatio
+    )
+}

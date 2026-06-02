@@ -11,10 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun SettingScreen(
-    navController: NavController,
-    onHelpClick: () -> Unit
-) {
+fun SettingScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -25,8 +22,7 @@ fun SettingScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         SettingsList(
-            navController = navController,
-            onHelpClick = onHelpClick
+            navController = navController
         )
     }
 }

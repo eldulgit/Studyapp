@@ -1,16 +1,11 @@
 package com.example.studyapp.ui.help
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +14,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -27,8 +28,22 @@ data class CoachHelpStep(
     val route: String,
     val title: String,
     val description: String,
-    val placement: CoachHelpPlacement
+    val placement: CoachHelpPlacement,
+    val highlight: CoachHelpHighlight
 )
+
+data class CoachHelpHighlight(
+    val shape: CoachHelpHighlightShape,
+    val centerXRatio: Float,
+    val centerYRatio: Float,
+    val widthRatio: Float,
+    val heightRatio: Float
+)
+
+enum class CoachHelpHighlightShape {
+    Circle,
+    RoundRect
+}
 
 enum class CoachHelpPlacement {
     Top,
@@ -46,68 +61,138 @@ fun CoachHelpOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.46f))
-            .clickable(onClick = onNext)
-            .padding(horizontal = 18.dp)
-            .navigationBarsPadding(),
-        contentAlignment = when (step.placement) {
-            CoachHelpPlacement.Top -> Alignment.TopCenter
-            CoachHelpPlacement.Center -> Alignment.Center
-            CoachHelpPlacement.Bottom -> Alignment.BottomCenter
+            .clickable(onClick = onNext),
+    ) {
+        SpotlightScrim(
+            highlight = step.highlight,
+            modifier = Modifier.matchParentSize()
+        )
+
+        if (step.description.isNotBlank()) {
+            val textCardAlignment = textCardAlignment(step)
+            CoachHelpTextCard(
+                step = step,
+                modifier = Modifier
+                    .align(textCardAlignment)
+                    .textCardPadding(textCardAlignment)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CoachHelpTextCard(
+    step: CoachHelpStep,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = step.title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = step.description,
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun textCardAlignment(step: CoachHelpStep): Alignment {
+    return if (
+        step.placement == CoachHelpPlacement.Bottom ||
+        step.highlight.centerYRatio > 0.78f
+    ) {
+        Alignment.TopCenter
+    } else {
+        Alignment.BottomCenter
+    }
+}
+
+private fun Modifier.textCardPadding(alignment: Alignment): Modifier {
+    return if (alignment == Alignment.TopCenter) {
+        padding(horizontal = 18.dp, vertical = 28.dp)
+    } else {
+        padding(start = 18.dp, end = 18.dp, bottom = 92.dp)
+    }
+}
+
+@Composable
+private fun SpotlightScrim(
+    highlight: CoachHelpHighlight,
+    modifier: Modifier = Modifier
+) {
+    Canvas(
+        modifier = modifier.graphicsLayer {
+            compositingStrategy = CompositingStrategy.Offscreen
         }
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    top = if (step.placement == CoachHelpPlacement.Top) 28.dp else 0.dp,
-                    bottom = if (step.placement == CoachHelpPlacement.Bottom) 22.dp else 0.dp
-                ),
-            shape = RoundedCornerShape(18.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(18.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = step.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+        val highlightPadding = 10.dp.toPx()
+        val highlightWidth = size.width * highlight.widthRatio + highlightPadding * 2f
+        val highlightHeight = size.height * highlight.heightRatio + highlightPadding * 2f
+        val center = Offset(
+            x = size.width * highlight.centerXRatio,
+            y = size.height * highlight.centerYRatio
+        )
+        val topLeft = Offset(
+            x = center.x - highlightWidth / 2f,
+            y = center.y - highlightHeight / 2f
+        )
 
-                    Text(
-                        text = "${currentStepIndex + 1}/$totalStepCount",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+        drawRect(Color.Black.copy(alpha = 0.58f))
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = step.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+        when (highlight.shape) {
+            CoachHelpHighlightShape.Circle -> {
+                val radius = minOf(highlightWidth, highlightHeight) / 2f
+                drawCircle(
+                    color = Color.Transparent,
+                    radius = radius,
+                    center = center,
+                    blendMode = BlendMode.Clear
                 )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.82f),
+                    radius = radius,
+                    center = center,
+                    style = Stroke(width = 2.dp.toPx())
+                )
+            }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = if (currentStepIndex == totalStepCount - 1) {
-                        "화면을 터치하면 도움말이 끝나요"
-                    } else {
-                        "화면을 터치하면 다음 설명으로 넘어가요"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            CoachHelpHighlightShape.RoundRect -> {
+                val cornerRadius = 18.dp.toPx()
+                drawRoundRect(
+                    color = Color.Transparent,
+                    topLeft = topLeft,
+                    size = Size(highlightWidth, highlightHeight),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(
+                        cornerRadius,
+                        cornerRadius
+                    ),
+                    blendMode = BlendMode.Clear
+                )
+                drawRoundRect(
+                    color = Color.White.copy(alpha = 0.82f),
+                    topLeft = topLeft,
+                    size = Size(highlightWidth, highlightHeight),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(
+                        cornerRadius,
+                        cornerRadius
+                    ),
+                    style = Stroke(width = 2.dp.toPx())
                 )
             }
         }
