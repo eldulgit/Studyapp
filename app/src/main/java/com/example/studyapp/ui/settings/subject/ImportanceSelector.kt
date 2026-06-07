@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MoonPrioritySelector(
+fun ImportanceSelector(
     selectedPriority: Int,
     onPrioritySelected: (Int) -> Unit
 ) {
@@ -47,19 +47,19 @@ fun MoonPrioritySelector(
                 )
             ) {
                 Text(
-                    text = priorityToMoon(priority),
-                    style = MaterialTheme.typography.titleLarge
+                    text = priorityToImportanceLabel(priority),
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }
     }
 }
 
-fun priorityToMoon(priority: Int): String {
+fun priorityToImportanceLabel(priority: Int): String {
     return when (priority) {
-        1 -> "🌙"
-        2 -> "🌗"
-        3 -> "🌕"
-        else -> "🌙"
+        1 -> "하"
+        2 -> "중"
+        3 -> "상"
+        else -> "하"
     }
 }

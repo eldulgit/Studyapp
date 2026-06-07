@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,54 +36,70 @@ fun SubjectItemRow(
         color = Color(subject.colorArgb),
         darkTheme = isAppInDarkTheme()
     )
+    val cardContainerColor = if (isAppInDarkTheme()) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        Color.White
+    }
 
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = cardContainerColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Text(
-            text = subject.name,
-            modifier = Modifier.weight(1.2f),
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        Text(
-            text = priorityToMoon(subject.priority),
-            modifier = Modifier.weight(0.6f),
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        Box(
+        Row(
             modifier = Modifier
-                .weight(0.6f),
-            contentAlignment = Alignment.CenterStart
+                .fillMaxWidth()
+                .padding(start = 14.dp, top = 8.dp, end = 4.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = subject.name,
+                modifier = Modifier.weight(1.2f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Text(
+                text = priorityToImportanceLabel(subject.priority),
+                modifier = Modifier.weight(0.6f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+
             Box(
                 modifier = Modifier
-                    .size(18.dp)
-                    .background(
-                        color = subjectColor,
-                        shape = CircleShape
-                    )
-            )
-        }
+                    .weight(0.6f),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .background(
+                            color = subjectColor,
+                            shape = CircleShape
+                        )
+                )
+            }
 
-        Spacer(modifier = Modifier.weight(0.8f))
+            Spacer(modifier = Modifier.weight(0.4f))
 
-        IconButton(onClick = onEdit) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "수정"
-            )
-        }
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "수정"
+                )
+            }
 
-        IconButton(onClick = onDelete) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "삭제"
-            )
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "삭제"
+                )
+            }
         }
     }
 }
