@@ -207,7 +207,7 @@ fun generatePriorityStudySchedule(
     return generatedSchedules
 }
 
-private fun goalScheduleColorArgb(seed: String): Int {
+fun goalScheduleColorArgb(seed: String): Int {
     val index = kotlin.math.abs(seed.hashCode()) % goalScheduleColorPalette.size
     return goalScheduleColorPalette[index]
 }

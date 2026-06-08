@@ -21,12 +21,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.help.CoachHelpTargets
 import com.example.studyapp.ui.help.coachHelpTarget
+import com.example.studyapp.ui.settings.schedule.GoalViewModel
+import com.example.studyapp.ui.settings.subject.SubjectViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatsScreen(
     studiedMinutes: Int,
-    commentOption: String
+    commentOption: String,
+    subjectViewModel: SubjectViewModel
 ) {
     var selectedPeriod by remember { mutableStateOf(StatsPeriod.DAILY) }
 
@@ -39,9 +42,12 @@ fun StatsScreen(
     val goalSeconds = goalMinutes * 60
 
     val statsViewModel: StatsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val goalViewModel: GoalViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
     LaunchedEffect(Unit) {
         statsViewModel.loadStatsData()
+        subjectViewModel.loadSubjectsFromFirestore()
+        goalViewModel.loadGoalsFromFirestore()
     }
 
     val records = statsViewModel.records
@@ -149,12 +155,14 @@ fun StatsScreen(
                                 .coachHelpTarget(CoachHelpTargets.StatsTotalChart)
                         )
 
-                    StatsBarChart(
-                        period = selectedPeriod,
-                        records = records,
+                        StatsBarChart(
+                            period = selectedPeriod,
+                            records = records,
+                            subjects = subjectViewModel.subjects,
+                            goals = goalViewModel.goals,
                             chartHeight = adjustedChartHeight,
                             maxBarHeight = (adjustedChartHeight - 46.dp).coerceAtLeast(24.dp)
-                    )
+                        )
                     }
                 }
             }
