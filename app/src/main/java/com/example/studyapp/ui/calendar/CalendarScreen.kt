@@ -163,7 +163,7 @@ fun CalendarScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "${selectedDate.year}년 ${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일",
+                    text = selectedDate.formatKoreanDateWithDay(),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -328,9 +328,25 @@ fun GroupedScheduleDialog(
 private fun formatScheduleDate(date: String): String {
     return try {
         val localDate = LocalDate.parse(date)
-        "${localDate.year}년 ${localDate.monthValue}월 ${localDate.dayOfMonth}일"
+        localDate.formatKoreanDateWithDay()
     } catch (e: Exception) {
         date
+    }
+}
+
+private fun LocalDate.formatKoreanDateWithDay(): String {
+    return "${year}년 ${monthValue}월 ${dayOfMonth}일 ${koreanDayOfWeek()}"
+}
+
+private fun LocalDate.koreanDayOfWeek(): String {
+    return when (dayOfWeek) {
+        java.time.DayOfWeek.MONDAY -> "월"
+        java.time.DayOfWeek.TUESDAY -> "화"
+        java.time.DayOfWeek.WEDNESDAY -> "수"
+        java.time.DayOfWeek.THURSDAY -> "목"
+        java.time.DayOfWeek.FRIDAY -> "금"
+        java.time.DayOfWeek.SATURDAY -> "토"
+        java.time.DayOfWeek.SUNDAY -> "일"
     }
 }
 

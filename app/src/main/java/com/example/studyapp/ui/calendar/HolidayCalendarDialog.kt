@@ -53,6 +53,9 @@ fun HolidayCalendarDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(text = "닫기")
