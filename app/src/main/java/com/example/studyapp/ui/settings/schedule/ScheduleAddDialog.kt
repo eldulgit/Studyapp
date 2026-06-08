@@ -191,7 +191,7 @@ fun ScheduleAddDialog(
                             onClick = { onCategoryChange(ScheduleCategory.SCHEDULE) }
                         )
                         Text(
-                            text = "스케줄",
+                            text = "시간표",
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }

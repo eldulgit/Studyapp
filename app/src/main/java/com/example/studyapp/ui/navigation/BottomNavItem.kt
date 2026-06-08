@@ -16,13 +16,13 @@ sealed class BottomNavItem(
 ) {
     object ScheduleSetting : BottomNavItem(
         route = "setting_schedule",
-        label = "Setup",
+        label = "Schedule",
         icon = Icons.Default.GridView
     )
 
     object Calendar : BottomNavItem(
         route = "calendar",
-        label = "Schedule",
+        label = "Plan",
         icon = Icons.Default.Schedule
     )
 

@@ -67,6 +67,7 @@ fun TimerScreen(
     val context = LocalContext.current
     val lifecycleOwner = context as? LifecycleOwner
     val isDarkTheme = isAppInDarkTheme()
+    var showCameraHint by remember { mutableStateOf(false) } // 추가 함
 
     LaunchedEffect(Unit) {
         subjectViewModel.loadSubjectsFromFirestore()
@@ -211,100 +212,129 @@ fun TimerScreen(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0.dp)
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 16.dp,
-                    bottom = 0.dp
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = padding.calculateTopPadding())
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 0.dp
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                IconButton(
-                    onClick = { openCamera() },
-                    modifier = Modifier.coachHelpTarget(CoachHelpTargets.TimerCamera)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Camera"
+                    IconButton(
+                        onClick = {
+                            showCameraHint = false
+                            openCamera()
+                        },
+
+                        modifier = Modifier.coachHelpTarget(CoachHelpTargets.TimerCamera)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PhotoCamera,
+                            contentDescription = "Camera"
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(modifier = Modifier.size(270.dp)) {
+                    CircularTimer(
+                        modifier = Modifier.fillMaxSize(),
+                        segments = segments,
+                        colorForIndex = { runningTaskColor }
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Box(modifier = Modifier.size(270.dp)) {
-                CircularTimer(
-                    modifier = Modifier.fillMaxSize(),
-                    segments = segments,
-                    colorForIndex = { runningTaskColor }
-                )
-            }
+                LazyColumn(
+                    modifier = Modifier
+                        .width(timerWidth)
+                        .weight(1f),
+                    contentPadding = PaddingValues(bottom = 0.dp)
+                ) {
+                    items(
+                        items = timerSubjects,
+                        key = { it.id }
+                    ) { item ->
+                        val isRunningIcon = pauseIconTaskId == item.id
 
-            Spacer(modifier = Modifier.height(16.dp))
+                        val subjectColorArgb = availableSubjects
+                            .firstOrNull { it.name == item.name }
+                            ?.colorArgb
+                            ?: item.colorArgb
 
-            LazyColumn(
-                modifier = Modifier
-                    .width(timerWidth)
-                    .weight(1f),
-                contentPadding = PaddingValues(bottom = 0.dp)
-            ) {
-                items(
-                    items = timerSubjects,
-                    key = { it.id }
-                ) { item ->
-                    val isRunningIcon = pauseIconTaskId == item.id
+                        val subjectColor = subjectColorArgb
+                            ?.let { subjectColorForTheme(Color(it), isDarkTheme) }
+                            ?: MaterialTheme.colorScheme.primary
 
-                    val subjectColorArgb = availableSubjects
-                        .firstOrNull { it.name == item.name }
-                        ?.colorArgb
-                        ?: item.colorArgb
-
-                    val subjectColor = subjectColorArgb
-                        ?.let { subjectColorForTheme(Color(it), isDarkTheme) }
-                        ?: MaterialTheme.colorScheme.primary
-
-                    TimerTaskRow(
-                        subject = item.name,
-                        time = formatCountdown(item.remainingSeconds),
-                        subjectColorArgb = subjectColor.toArgb(),
-                        containerWidth = timerWidth,
-                        isRunning = isRunningIcon,
-                        onToggle = {
-                            if (pauseIconTaskId == item.id) {
-                                /*
+                        TimerTaskRow(
+                            subject = item.name,
+                            time = formatCountdown(item.remainingSeconds),
+                            subjectColorArgb = subjectColor.toArgb(),
+                            containerWidth = timerWidth,
+                            isRunning = isRunningIcon,
+                            onToggle = {
+                                if (pauseIconTaskId == item.id) {
+                                    /*
                                  * Ⅱ 아이콘 상태에서 다시 누르면 선택 해제
                                  */
-                                timerViewModel.toggleTask(item.id)
-                                pauseIconTaskId = null
-                            } else {
-                                /*
+                                    timerViewModel.toggleTask(item.id)
+                                    pauseIconTaskId = null
+                                    showCameraHint = false
+                                } else {
+                                    /*
                                  * 세모 아이콘 상태에서 누르면 선택 상태로 만들고
                                  * 아이콘만 Ⅱ로 변경
                                  *
                                  * 카메라에서 나온 직후에는 selectedTaskId가 이미 같은 과목일 수 있음.
                                  * 이때 toggleTask()를 호출하면 선택이 해제되므로 호출하지 않음.
                                  */
-                                if (timerViewModel.selectedTaskId != item.id) {
-                                    timerViewModel.toggleTask(item.id)
-                                }
+                                    if (timerViewModel.selectedTaskId != item.id) {
+                                        timerViewModel.toggleTask(item.id)
+                                    }
 
-                                pauseIconTaskId = item.id
+                                    pauseIconTaskId = item.id
+                                    showCameraHint = true
+                                }
+                            },
+                            onEditClick = {
+                                editTargetId = item.id
+                                showTimeEditDialog = true
                             }
-                        },
-                        onEditClick = {
-                            editTargetId = item.id
-                            showTimeEditDialog = true
-                        }
-                    )
+                        )
+                    }
+                }
+            }
+            if (showCameraHint) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.Surface(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = "카메라 버튼을 눌러주세요!",
+                            color = Color.White,
+                            modifier = Modifier.padding(
+                                horizontal = 20.dp,
+                                vertical = 12.dp
+                            ),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
                 }
             }
         }
