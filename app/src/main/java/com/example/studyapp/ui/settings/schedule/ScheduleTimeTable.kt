@@ -50,6 +50,11 @@ fun ScheduleTimetable(
             add("일")
         }
     }
+    val colorIndexByTitle = buildScheduleColorIndexMap(
+        items = scheduleItems,
+        days = days,
+        colorCount = timetableColors.size
+    )
 
     // 기본 범위는 9~17
     val defaultStartHour = 9
@@ -157,6 +162,7 @@ fun ScheduleTimetable(
                         width = dayColumnWidth,
                         lineColor = lineColor,
                         isDarkTheme = isDarkTheme,
+                        colorIndexByTitle = colorIndexByTitle,
                         onItemClick = onItemClick
                     )
                 }
@@ -206,6 +212,7 @@ private fun DayColumn(
     width: Dp,
     lineColor: Color,
     isDarkTheme: Boolean,
+    colorIndexByTitle: Map<String, Int>,
     onItemClick: (FixedScheduleItem) -> Unit
 ) {
     Box(
@@ -242,7 +249,8 @@ private fun DayColumn(
                     val blockHeight = ((endMinutes - startMinutes) / 60f) * hourHeight.value
 
                     val color = timetableColors[
-                        item.stableColorIndex(timetableColors.size)
+                        colorIndexByTitle[item.normalizedTitle()]
+                            ?: item.stableColorIndex(timetableColors.size)
                     ].forTheme(isDarkTheme)
                     Box(
                         modifier = Modifier
@@ -293,8 +301,75 @@ private fun TimetableColorSet.forTheme(darkTheme: Boolean): TimetableColorSet {
 }
 
 private fun FixedScheduleItem.stableColorIndex(colorCount: Int): Int {
-    val seed = firestoreId ?: "$id-$title-$dayOfWeek-$startTime-$endTime"
-    return kotlin.math.abs(seed.hashCode()) % colorCount
+    return floorMod(normalizedTitle().hashCode(), colorCount)
+}
+
+private fun FixedScheduleItem.normalizedTitle(): String {
+    return title.trim().ifBlank { firestoreId ?: id.toString() }
+}
+
+private fun buildScheduleColorIndexMap(
+    items: List<FixedScheduleItem>,
+    days: List<String>,
+    colorCount: Int
+): Map<String, Int> {
+    if (colorCount <= 0) return emptyMap()
+
+    val titles = items
+        .map { it.normalizedTitle() }
+        .distinct()
+        .sorted()
+    val adjacentTitles = titles.associateWith { mutableSetOf<String>() }
+
+    items.forEachIndexed { index, item ->
+        val itemTitle = item.normalizedTitle()
+        val itemStart = parseTimeToMinutes(item.startTime) ?: return@forEachIndexed
+        val itemEnd = parseTimeToMinutes(item.endTime) ?: return@forEachIndexed
+        val itemDayIndex = days.indexOf(item.dayOfWeek)
+
+        items.drop(index + 1).forEach { other ->
+            val otherTitle = other.normalizedTitle()
+            if (itemTitle == otherTitle) return@forEach
+            val otherDayIndex = days.indexOf(other.dayOfWeek)
+            if (itemDayIndex == -1 || otherDayIndex == -1) return@forEach
+            if (kotlin.math.abs(itemDayIndex - otherDayIndex) > 1) return@forEach
+
+            val otherStart = parseTimeToMinutes(other.startTime) ?: return@forEach
+            val otherEnd = parseTimeToMinutes(other.endTime) ?: return@forEach
+
+            if (itemStart <= otherEnd && otherStart <= itemEnd) {
+                adjacentTitles[itemTitle]?.add(otherTitle)
+                adjacentTitles[otherTitle]?.add(itemTitle)
+            }
+        }
+    }
+
+    val assigned = mutableMapOf<String, Int>()
+
+    titles
+        .sortedWith(
+            compareByDescending<String> { adjacentTitles[it]?.size ?: 0 }
+                .thenBy { it }
+        )
+        .forEach { title ->
+            val blockedColors = adjacentTitles[title]
+                .orEmpty()
+                .mapNotNull { assigned[it] }
+                .toSet()
+            val preferredColor = floorMod(title.hashCode(), colorCount)
+            val availableColor = (0 until colorCount)
+                .map { (preferredColor + it) % colorCount }
+                .firstOrNull { it !in blockedColors }
+                ?: preferredColor
+
+            assigned[title] = availableColor
+        }
+
+    return assigned
+}
+
+private fun floorMod(value: Int, modulus: Int): Int {
+    return ((value % modulus) + modulus) % modulus
 }
 
 private val timetableColors = listOf(

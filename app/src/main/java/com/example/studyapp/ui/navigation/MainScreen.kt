@@ -9,9 +9,12 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -51,6 +54,9 @@ import com.example.studyapp.ui.help.CoachHelpHighlight
 import com.example.studyapp.ui.help.CoachHelpHighlightShape
 import com.example.studyapp.ui.help.CoachHelpPlacement
 import com.example.studyapp.ui.help.CoachHelpStep
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.LocalCoachHelpTargetState
+import com.example.studyapp.ui.help.rememberCoachHelpTargetState
 import com.example.studyapp.ui.settings.lifestyle.LifeStyleViewModel
 import com.example.studyapp.util.isIgnoringBatteryOptimizations
 import com.example.studyapp.util.openBatteryOptimizationSettings
@@ -89,6 +95,7 @@ fun MainScreen(
         BottomNavItem.Stats.route,
         BottomNavItem.Setting.route
     )
+    val coachHelpTargetState = rememberCoachHelpTargetState()
     val shouldShowCoachHelpOnFirstRun = true
     val coachHelpSteps = remember {
         listOf(
@@ -97,63 +104,72 @@ fun MainScreen(
                 title = "스케줄과 목표 추가",
                 description = "Setup 화면의 + 버튼을 누르면 추가 화면이 열려요. 여기서 고정 스케줄이나 목표를 추가할 수 있고, 목표는 기간을 입력한 뒤 체크를 켜면 마감일이 가까워질수록 우선순위가 자동으로 올라가요.",
                 placement = CoachHelpPlacement.Bottom,
-                highlight = circleHighlight(0.90f, 0.84f, 0.15f)
+                highlight = circleHighlight(0.90f, 0.84f, 0.15f),
+                targetKey = CoachHelpTargets.ScheduleSettingAdd
             ),
             CoachHelpStep(
                 route = BottomNavItem.Setting.route,
                 title = "과목 설정",
                 description = "Settings에서 과목 설정으로 들어가 과목을 등록해요. 과목은 스케줄링, 타이머, 통계에서 같은 이름과 색상으로 연결돼요.",
                 placement = CoachHelpPlacement.Center,
-                highlight = rectHighlight(0.15f, 0.275f, 0.25f, 0.048f)
+                highlight = rectHighlight(0.15f, 0.275f, 0.25f, 0.048f),
+                targetKey = CoachHelpTargets.SubjectSettingMenu
             ),
             CoachHelpStep(
                 route = "setting_subject",
                 title = "과목 저장",
                 description = "과목명을 입력하고 중요도를 선택한 뒤 과목 색상을 고르세요. 오른쪽 위 저장 버튼을 누르면 과목이 저장되고 아래쪽에 카드로 표시돼요.",
                 placement = CoachHelpPlacement.Top,
-                highlight = circleHighlight(0.91f, 0.065f, 0.085f)
+                highlight = circleHighlight(0.91f, 0.065f, 0.085f),
+                targetKey = CoachHelpTargets.SubjectSave
             ),
             CoachHelpStep(
                 route = BottomNavItem.Calendar.route,
                 title = "스케줄링",
                 description = "Schedule 화면에서 달력 옆 스케줄링 아이콘을 누르면 과목 라벨과 시간표가 자동으로 생성돼요. 만들어진 스케줄에 맞춰 공부하면 됩니다.",
                 placement = CoachHelpPlacement.Top,
-                highlight = circleHighlight(0.84f, 0.065f, 0.072f)
+                highlight = circleHighlight(0.84f, 0.065f, 0.072f),
+                targetKey = CoachHelpTargets.ScheduleGenerate
             ),
             CoachHelpStep(
                 route = BottomNavItem.Timer.route,
                 title = "카메라 버튼",
                 description = "스케줄링 후 Timer로 넘어가면 과목별 시간이 자동으로 들어와요. 재생 버튼으로 과목을 선택하고, 수정 버튼으로 시간을 바꿀 수 있어요. 카메라 아이콘을 누르면 카메라 인식으로 집중 측정을 시작합니다.",
                 placement = CoachHelpPlacement.Top,
-                highlight = circleHighlight(0.89f, 0.07f, 0.085f)
+                highlight = circleHighlight(0.89f, 0.07f, 0.085f),
+                targetKey = CoachHelpTargets.TimerCamera
             ),
             CoachHelpStep(
                 route = BottomNavItem.Stats.route,
                 title = "Stats 필터",
                 description = "Stats 화면 위쪽 라벨로 누적 공부시간의 기간을 선택해요. Daily, Weekly, Monthly를 눌러 일간, 주간, 월간 누적 시간을 확인할 수 있어요.",
                 placement = CoachHelpPlacement.Top,
-                highlight = rectHighlight(0.50f, 0.09f, 0.92f, 0.045f)
+                highlight = rectHighlight(0.50f, 0.09f, 0.92f, 0.045f),
+                targetKey = CoachHelpTargets.StatsFilter
             ),
             CoachHelpStep(
                 route = BottomNavItem.Stats.route,
                 title = "누적 공부시간 그래프",
                 description = "누적 공부시간 그래프는 선택한 기간에 맞춰 공부 시간이 얼마나 쌓였는지 보여줘요. 막대 위 시간 라벨로 공부량을 빠르게 확인할 수 있어요.",
                 placement = CoachHelpPlacement.Center,
-                highlight = rectHighlight(0.50f, 0.302f, 0.86f, 0.235f)
+                highlight = rectHighlight(0.50f, 0.302f, 0.86f, 0.235f),
+                targetKey = CoachHelpTargets.StatsTotalChart
             ),
             CoachHelpStep(
                 route = BottomNavItem.Stats.route,
                 title = "시간대별 집중도",
                 description = "시간대별 집중도 그래프는 카메라 인식에서 집중 상태로 판단된 시간이 어느 시간대에 많이 쌓였는지 보여줘요. 집중이 잘 되는 시간을 찾는 데 사용할 수 있어요.",
-                placement = CoachHelpPlacement.Center,
-                highlight = rectHighlight(0.50f, 0.635f, 0.90f, 0.31f)
+                placement = CoachHelpPlacement.Bottom,
+                highlight = rectHighlight(0.50f, 0.635f, 0.90f, 0.31f),
+                targetKey = CoachHelpTargets.StatsFocusChart
             ),
             CoachHelpStep(
                 route = BottomNavItem.Setting.route,
                 title = "도움말 다시 보기",
                 description = "나중에 사용법이 다시 필요하면 Settings의 도움말을 눌러주세요. 키워드 검색과 자세한 가이드로 기능을 다시 확인할 수 있어요.",
                 placement = CoachHelpPlacement.Center,
-                highlight = rectHighlight(0.12f, 0.62f, 0.22f, 0.05f)
+                highlight = rectHighlight(0.12f, 0.62f, 0.22f, 0.05f),
+                targetKey = CoachHelpTargets.HelpMenu
             )
         )
     }
@@ -235,89 +251,119 @@ fun MainScreen(
             BottomNavigationBar(navController)
         }
     ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = BottomNavItem.ScheduleSetting.route,
-            modifier = Modifier.padding(padding)
-        ) {
-            composable(BottomNavItem.ScheduleSetting.route) {
-                ScheduleSettingScreen()
-            }
+        Box(modifier = Modifier.fillMaxSize()) {
+            CompositionLocalProvider(
+                LocalCoachHelpTargetState provides coachHelpTargetState
+            ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = BottomNavItem.ScheduleSetting.route,
+                    modifier = Modifier.padding(padding)
+                ) {
+                    composable(BottomNavItem.ScheduleSetting.route) {
+                        ScheduleSettingScreen()
+                    }
 
-            composable(BottomNavItem.Calendar.route) {
-                CalendarScreen(navController, subjectViewModel)
-            }
+                    composable(BottomNavItem.Calendar.route) {
+                        CalendarScreen(navController, subjectViewModel)
+                    }
 
-            composable(BottomNavItem.Stats.route) {
-                StatsScreen(
-                    studiedMinutes = timerViewModel.studiedMinutes,
-                    commentOption = settingsViewModel.commentOption
-                )
-            }
+                    composable(BottomNavItem.Stats.route) {
+                        StatsScreen(
+                            studiedMinutes = timerViewModel.studiedMinutes,
+                            commentOption = settingsViewModel.commentOption
+                        )
+                    }
 
-            composable(BottomNavItem.Timer.route) {
-                TimerScreen(
-                    timerViewModel = timerViewModel,
-                    subjectViewModel = subjectViewModel,
-                    settingsViewModel = settingsViewModel
-                )
-            }
+                    composable(BottomNavItem.Timer.route) {
+                        TimerScreen(
+                            timerViewModel = timerViewModel,
+                            subjectViewModel = subjectViewModel,
+                            settingsViewModel = settingsViewModel
+                        )
+                    }
 
-            composable(BottomNavItem.Setting.route) {
-                SettingScreen(navController)
-            }
+                    composable(BottomNavItem.Setting.route) {
+                        SettingScreen(navController)
+                    }
 
-            composable("setting_subject") {
-                SubjectSettingScreen(navController, subjectViewModel)
-            }
+                    composable("setting_subject") {
+                        SubjectSettingScreen(navController, subjectViewModel)
+                    }
 
-            composable("setting_lifestyle") {
-                val lifeStyleViewModel: LifeStyleViewModel = viewModel()
+                    composable("setting_lifestyle") {
+                        val lifeStyleViewModel: LifeStyleViewModel = viewModel()
 
-                LaunchedEffect(Unit) {
-                    lifeStyleViewModel.loadLifestyle()
-                }
+                        LaunchedEffect(Unit) {
+                            lifeStyleViewModel.loadLifestyle()
+                        }
 
-                LaunchedEffect(lifeStyleViewModel.saveCompleted) {
-                    if (lifeStyleViewModel.saveCompleted) {
-                        lifeStyleViewModel.consumeSaveCompleted()
-                        navController.popBackStack()
+                        LaunchedEffect(lifeStyleViewModel.saveCompleted) {
+                            if (lifeStyleViewModel.saveCompleted) {
+                                lifeStyleViewModel.consumeSaveCompleted()
+                                navController.popBackStack()
+                            }
+                        }
+
+                        LifeStyleSettingScreen(
+                            initialWakeTime = lifeStyleViewModel.wakeTime,
+                            initialSleepTime = lifeStyleViewModel.sleepTime,
+                            initialLunchStartTime = lifeStyleViewModel.lunchStartTime,
+                            initialLunchEndTime = lifeStyleViewModel.lunchEndTime,
+                            initialDinnerStartTime = lifeStyleViewModel.dinnerStartTime,
+                            initialDinnerEndTime = lifeStyleViewModel.dinnerEndTime,
+                            onSaveClick = lifeStyleViewModel::saveLifestyle,
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("setting_notification") {
+                        NotificationSettingScreen(navController, settingsViewModel)
+                    }
+
+                    composable("setting_theme") {
+                        ThemeSettingScreen(navController, settingsViewModel)
+                    }
+
+                    composable("setting_ai") {
+                        AiProfileSettingScreen(navController, settingsViewModel)
+                    }
+
+                    composable("setting_account") {
+                        AccountSettingScreen(
+                            navController = navController,
+                            onLogout = onLogout
+                        )
+                    }
+
+                    composable("setting_help") {
+                        HelpGuideScreen(navController)
                     }
                 }
 
-                LifeStyleSettingScreen(
-                    initialWakeTime = lifeStyleViewModel.wakeTime,
-                    initialSleepTime = lifeStyleViewModel.sleepTime,
-                    initialLunchStartTime = lifeStyleViewModel.lunchStartTime,
-                    initialLunchEndTime = lifeStyleViewModel.lunchEndTime,
-                    initialDinnerStartTime = lifeStyleViewModel.dinnerStartTime,
-                    initialDinnerEndTime = lifeStyleViewModel.dinnerEndTime,
-                    onSaveClick = lifeStyleViewModel::saveLifestyle,
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-
-            composable("setting_notification") {
-                NotificationSettingScreen(navController, settingsViewModel)
-            }
-
-            composable("setting_theme") {
-                ThemeSettingScreen(navController, settingsViewModel)
-            }
-
-            composable("setting_ai") {
-                AiProfileSettingScreen(navController, settingsViewModel)
-            }
-
-            composable("setting_account") {
-                AccountSettingScreen(
-                    navController = navController,
-                    onLogout = onLogout
-                )
-            }
-
-            composable("setting_help") {
-                HelpGuideScreen(navController)
+                if (
+                    showCoachHelp &&
+                    showCoachHelpOverlay &&
+                    currentCoachStep != null &&
+                    currentRoute == currentCoachStep.route
+                ) {
+                    CoachHelpOverlay(
+                        step = currentCoachStep,
+                        currentStepIndex = coachHelpIndex.toInt(),
+                        totalStepCount = coachHelpSteps.size,
+                        contentPadding = padding,
+                        targetBounds = coachHelpTargetState.boundsFor(currentCoachStep.targetKey),
+                        onNext = {
+                            val nextIndex = coachHelpIndex + 1
+                            showCoachHelpOverlay = false
+                            if (nextIndex < coachHelpSteps.size) {
+                                coachHelpIndex = nextIndex
+                            } else {
+                                showCoachHelp = false
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -338,28 +384,6 @@ fun MainScreen(
             delay(220)
             showCoachHelpOverlay = true
         }
-    }
-
-    if (
-        showCoachHelp &&
-        showCoachHelpOverlay &&
-        currentCoachStep != null &&
-        currentRoute == currentCoachStep.route
-    ) {
-        CoachHelpOverlay(
-            step = currentCoachStep,
-            currentStepIndex = coachHelpIndex.toInt(),
-            totalStepCount = coachHelpSteps.size,
-            onNext = {
-                val nextIndex = coachHelpIndex + 1
-                showCoachHelpOverlay = false
-                if (nextIndex < coachHelpSteps.size) {
-                    coachHelpIndex = nextIndex
-                } else {
-                    showCoachHelp = false
-                }
-            }
-        )
     }
 
     BackHandler {

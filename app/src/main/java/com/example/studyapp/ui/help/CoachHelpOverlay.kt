@@ -4,6 +4,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,12 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -29,7 +34,8 @@ data class CoachHelpStep(
     val title: String,
     val description: String,
     val placement: CoachHelpPlacement,
-    val highlight: CoachHelpHighlight
+    val highlight: CoachHelpHighlight,
+    val targetKey: String? = null
 )
 
 data class CoachHelpHighlight(
@@ -56,8 +62,12 @@ fun CoachHelpOverlay(
     step: CoachHelpStep,
     currentStepIndex: Int,
     totalStepCount: Int,
+    contentPadding: PaddingValues = PaddingValues(),
+    targetBounds: Rect? = null,
     onNext: () -> Unit
 ) {
+    val layoutDirection = LocalLayoutDirection.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -65,6 +75,9 @@ fun CoachHelpOverlay(
     ) {
         SpotlightScrim(
             highlight = step.highlight,
+            contentPadding = contentPadding,
+            layoutDirection = layoutDirection,
+            targetBounds = targetBounds,
             modifier = Modifier.matchParentSize()
         )
 
@@ -74,7 +87,7 @@ fun CoachHelpOverlay(
                 step = step,
                 modifier = Modifier
                     .align(textCardAlignment)
-                    .textCardPadding(textCardAlignment)
+                    .textCardPadding(textCardAlignment, contentPadding)
             )
         }
     }
@@ -123,17 +136,31 @@ private fun textCardAlignment(step: CoachHelpStep): Alignment {
     }
 }
 
-private fun Modifier.textCardPadding(alignment: Alignment): Modifier {
+private fun Modifier.textCardPadding(
+    alignment: Alignment,
+    contentPadding: PaddingValues
+): Modifier {
     return if (alignment == Alignment.TopCenter) {
-        padding(horizontal = 18.dp, vertical = 28.dp)
+        padding(
+            start = 18.dp,
+            end = 18.dp,
+            top = contentPadding.calculateTopPadding() + 20.dp
+        )
     } else {
-        padding(start = 18.dp, end = 18.dp, bottom = 92.dp)
+        padding(
+            start = 18.dp,
+            end = 18.dp,
+            bottom = contentPadding.calculateBottomPadding().coerceAtLeast(80.dp) + 24.dp
+        )
     }
 }
 
 @Composable
 private fun SpotlightScrim(
     highlight: CoachHelpHighlight,
+    contentPadding: PaddingValues,
+    layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+    targetBounds: Rect?,
     modifier: Modifier = Modifier
 ) {
     Canvas(
@@ -141,12 +168,21 @@ private fun SpotlightScrim(
             compositingStrategy = CompositingStrategy.Offscreen
         }
     ) {
+        val contentLeft = contentPadding.calculateStartPadding(layoutDirection).toPx()
+        val contentRight = contentPadding.calculateEndPadding(layoutDirection).toPx()
+        val contentTop = contentPadding.calculateTopPadding().toPx()
+        val contentBottom = contentPadding.calculateBottomPadding().toPx()
+        val contentWidth = (size.width - contentLeft - contentRight).coerceAtLeast(1f)
+        val contentHeight = (size.height - contentTop - contentBottom).coerceAtLeast(1f)
         val highlightPadding = 10.dp.toPx()
-        val highlightWidth = size.width * highlight.widthRatio + highlightPadding * 2f
-        val highlightHeight = size.height * highlight.heightRatio + highlightPadding * 2f
-        val center = Offset(
-            x = size.width * highlight.centerXRatio,
-            y = size.height * highlight.centerYRatio
+        val measuredBounds = targetBounds?.inflate(highlightPadding)
+        val highlightWidth = measuredBounds?.width
+            ?: (contentWidth * highlight.widthRatio + highlightPadding * 2f)
+        val highlightHeight = measuredBounds?.height
+            ?: (contentHeight * highlight.heightRatio + highlightPadding * 2f)
+        val center = measuredBounds?.center ?: Offset(
+            x = contentLeft + contentWidth * highlight.centerXRatio,
+            y = contentTop + contentHeight * highlight.centerYRatio
         )
         val topLeft = Offset(
             x = center.x - highlightWidth / 2f,

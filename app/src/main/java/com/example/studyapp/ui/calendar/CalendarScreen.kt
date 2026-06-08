@@ -46,6 +46,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.studyapp.data.model.GeneratedScheduleItem
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.theme.isAppInDarkTheme
 import com.example.studyapp.ui.theme.subjectColorForTheme
@@ -180,7 +182,9 @@ fun CalendarScreen(
                             generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
                         },
                         enabled = !isGenerating,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier
+                            .size(36.dp)
+                            .coachHelpTarget(CoachHelpTargets.ScheduleGenerate)
                     ) {
                         if (isGenerating) {
                             CircularProgressIndicator(

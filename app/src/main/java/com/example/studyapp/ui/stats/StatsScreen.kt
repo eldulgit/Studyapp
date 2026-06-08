@@ -19,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -132,12 +134,28 @@ fun StatsScreen(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
+                    val chartTargetTopInset = 8.dp
+                    val adjustedChartHeight = (maxHeight - chartTargetTopInset)
+                        .coerceAtLeast(48.dp)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = chartTargetTopInset)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .coachHelpTarget(CoachHelpTargets.StatsTotalChart)
+                        )
+
                     StatsBarChart(
                         period = selectedPeriod,
                         records = records,
-                        chartHeight = maxHeight,
-                        maxBarHeight = (maxHeight - 46.dp).coerceAtLeast(24.dp)
+                            chartHeight = adjustedChartHeight,
+                            maxBarHeight = (adjustedChartHeight - 46.dp).coerceAtLeast(24.dp)
                     )
+                    }
                 }
             }
 
@@ -146,6 +164,7 @@ fun StatsScreen(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .coachHelpTarget(CoachHelpTargets.StatsFocusChart)
                     .weight(0.45f)
             ) {
                 StudyFocusLineChart(

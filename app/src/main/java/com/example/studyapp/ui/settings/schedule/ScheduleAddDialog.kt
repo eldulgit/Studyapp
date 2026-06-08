@@ -243,6 +243,18 @@ fun ScheduleAddDialog(
                     }
                 }
 
+                if (selectedCategory == ScheduleCategory.GOAL) {
+                    Text(
+                        text = "과목과 다른 이름을 사용해주세요.",
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 8.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 AnimatedVisibility(
                     visible = selectedCategory == ScheduleCategory.SCHEDULE,
                     enter = expandVertically() + fadeIn(),

@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 
 @Composable
 fun SubjectSettingScreen(
@@ -211,7 +213,9 @@ fun SubjectSettingScreen(
 
             IconButton(
                 onClick = { saveSubject() },
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier
+                    .size(48.dp)
+                    .coachHelpTarget(CoachHelpTargets.SubjectSave)
             ) {
                 Icon(
                     imageVector = Icons.Default.Save,

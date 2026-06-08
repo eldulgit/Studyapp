@@ -44,6 +44,7 @@ fun ScheduleSection(
 
                 Text(
                     text = guideText,
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

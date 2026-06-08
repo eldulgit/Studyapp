@@ -5,11 +5,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 
 @Composable
 fun SettingsList(navController: NavController) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        SettingItem("과목 설정") {
+        SettingItem(
+            title = "과목 설정",
+            modifier = Modifier.coachHelpTarget(CoachHelpTargets.SubjectSettingMenu)
+        ) {
             navController.navigate("setting_subject")
         }
         SettingItem("생활패턴 설정") {
@@ -27,7 +32,10 @@ fun SettingsList(navController: NavController) {
         SettingItem("계정 설정") {
             navController.navigate("setting_account")
         }
-        SettingItem("도움말") {
+        SettingItem(
+            title = "도움말",
+            modifier = Modifier.coachHelpTarget(CoachHelpTargets.HelpMenu)
+        ) {
             navController.navigate("setting_help")
         }
     }

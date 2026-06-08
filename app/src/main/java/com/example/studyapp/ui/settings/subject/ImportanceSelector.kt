@@ -24,7 +24,7 @@ fun ImportanceSelector(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        listOf(1, 2, 3).forEach { priority ->
+        listOf(3, 2, 1).forEach { priority ->
             val isSelected = selectedPriority == priority
 
             Button(

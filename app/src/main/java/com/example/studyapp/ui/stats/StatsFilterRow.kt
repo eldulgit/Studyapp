@@ -16,6 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 
 @Composable
 fun StatsFilterRow(
@@ -29,7 +31,9 @@ fun StatsFilterRow(
     )
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .coachHelpTarget(CoachHelpTargets.StatsFilter)
     ) {
         Text(
             text = "누적 공부시간",

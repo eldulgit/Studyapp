@@ -61,6 +61,7 @@ fun HelpGuideScreen(navController: NavController) {
             details = listOf(
                 "목표는 시작 날짜와 마감 날짜를 입력해서 기간을 정해요.",
                 "목표 카드의 체크를 켜면 마감일이 가까워질수록 우선순위가 자동으로 올라가요.",
+                "목표를 추가할 때는 과목과 다른 이름을 사용해주세요.",
                 "기간이 아직 시작되지 않았거나 이미 지난 목표는 회색으로 표시돼요."
             )
         ),
@@ -332,32 +333,23 @@ private fun HelpGuideCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Text(
-                text = item.keyword,
+                text = "${item.keyword} · ${item.title}",
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
             Text(
                 text = item.summary,
+                modifier = Modifier.padding(top = 4.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }

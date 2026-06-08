@@ -43,7 +43,7 @@ fun SubjectSettingCard(
         else -> Color.White
     }
     val titleColor = if (muted) {
-        MaterialTheme.colorScheme.onSurfaceVariant
+        MaterialTheme.colorScheme.outline
     } else {
         MaterialTheme.colorScheme.onSurface
     }
@@ -89,7 +89,8 @@ fun SubjectSettingCard(
 
             Checkbox(
                 checked = checked,
-                onCheckedChange = onCheckedChange,
+                onCheckedChange = if (muted) null else onCheckedChange,
+                enabled = !muted,
                 colors = CheckboxDefaults.colors(
                     checkedColor = accentColor,
                     uncheckedColor = accentColor,

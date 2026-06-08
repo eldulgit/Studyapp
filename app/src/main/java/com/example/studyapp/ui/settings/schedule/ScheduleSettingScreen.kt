@@ -34,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -223,6 +225,7 @@ fun ScheduleSettingScreen() {
         floatingActionButton = {
             if (showFab && !showAddDialog && !showTimePickerDialog) {
                 FloatingActionButton(
+                    modifier = Modifier.coachHelpTarget(CoachHelpTargets.ScheduleSettingAdd),
                     onClick = {
                         editingItemId = null
                         selectedCategory = ScheduleCategory.GOAL

@@ -47,6 +47,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.studyapp.ui.camera.CameraScreen
+import com.example.studyapp.ui.help.CoachHelpTargets
+import com.example.studyapp.ui.help.coachHelpTarget
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.timer.pomodoro.CircularTimer
 import com.example.studyapp.ui.timer.pomodoro.buildSingleSubjectSegment
@@ -226,7 +228,10 @@ fun TimerScreen(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { openCamera() }) {
+                IconButton(
+                    onClick = { openCamera() },
+                    modifier = Modifier.coachHelpTarget(CoachHelpTargets.TimerCamera)
+                ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Camera"

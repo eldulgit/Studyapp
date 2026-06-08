@@ -14,10 +14,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingItem(
     title: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         onClick = onClick,
         color = MaterialTheme.colorScheme.background
     ) {
