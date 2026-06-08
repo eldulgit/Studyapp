@@ -7,7 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studyapp.data.repository.AuthRepository
+import com.example.studyapp.data.repository.GoalRepository
 import com.example.studyapp.data.repository.UserRepository
+import com.example.studyapp.notification.GoalNotificationScheduler
 import com.example.studyapp.notification.StudyNotificationScheduler
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -17,6 +19,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val repo = SettingsRepository(application)
     private val authRepository = AuthRepository()
     private val userRepository = UserRepository()
+    private val goalRepository = GoalRepository()
 
     var drowsinessAlertEnabled by mutableStateOf(true)
         private set
@@ -71,7 +74,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 }
             }
 
-            launch { repo.goalAlertEnabledFlow.collect { goalAlertEnabled = it } }
+            launch {
+                repo.goalAlertEnabledFlow.collect {
+                    goalAlertEnabled = it
+                    refreshGoalReminderSchedule()
+                }
+            }
             launch { repo.commentOptionFlow.collect { commentOption = it } }
         }
     }
@@ -100,13 +108,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateGoalAlertEnabled(enabled: Boolean) {
         goalAlertEnabled = enabled
-        viewModelScope.launch { repo.saveGoalAlertEnabled(enabled) }
+        viewModelScope.launch {
+            repo.saveGoalAlertEnabled(enabled)
+            refreshGoalReminderSchedule()
+        }
     }
 
     fun updateNotificationTime(hour: String, minute: String) {
         notificationHour = hour
         notificationMinute = minute
         updateScheduledStudyReminder()
+        refreshGoalReminderSchedule()
         viewModelScope.launch {
             repo.saveNotificationTime(hour, minute)
             saveNotificationSettingsToDb()
@@ -120,6 +132,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun refreshStudyReminderSchedule() {
         updateScheduledStudyReminder()
+    }
+
+    fun refreshGoalReminderSchedule() {
+        viewModelScope.launch {
+            updateScheduledGoalReminders()
+        }
     }
 
     fun loadNotificationSettingsFromDb() {
@@ -152,6 +170,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 repo.saveNotificationEnabled(notificationEnabled)
                 repo.saveNotificationTime(notificationHour, notificationMinute)
                 updateScheduledStudyReminder()
+                refreshGoalReminderSchedule()
             } catch (e: Exception) {
                 android.util.Log.e("SettingsFirestore", "알림 설정 불러오기 실패", e)
             } finally {
@@ -171,6 +190,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         } else {
             StudyNotificationScheduler.cancelDailyStudyReminder(getApplication())
         }
+    }
+
+    private suspend fun updateScheduledGoalReminders() {
+        if (!goalAlertEnabled) {
+            GoalNotificationScheduler.cancelGoalReminders(getApplication())
+            return
+        }
+
+        val uid = authRepository.getCurrentUid() ?: return
+        val goals = goalRepository.getGoals(uid)
+
+        GoalNotificationScheduler.scheduleGoalReminders(
+            context = getApplication(),
+            goals = goals,
+            hour = notificationHour,
+            minute = notificationMinute
+        )
     }
 
     private suspend fun saveNotificationSettingsToDb() {
