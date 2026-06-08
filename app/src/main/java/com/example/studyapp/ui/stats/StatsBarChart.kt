@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
@@ -18,32 +19,58 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.studyapp.ui.calendar.goalScheduleColorArgb
+import com.example.studyapp.ui.settings.schedule.GoalItem
+import com.example.studyapp.ui.settings.subject.SubjectItem
+import com.example.studyapp.ui.theme.isAppInDarkTheme
+import com.example.studyapp.ui.theme.subjectColorForTheme
 import com.example.studyapp.util.AppTimeZone
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
+import kotlin.math.ceil
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatsBarChart(
     period: StatsPeriod,
     records: List<StudySessionRecord>,
+    subjects: List<SubjectItem>,
+    goals: List<GoalItem>,
     modifier: Modifier = Modifier,
     chartHeight: Dp = 150.dp,
     maxBarHeight: Dp = 104.dp
 ) {
     val labels = generateLabels(period)
 
-    val studiedSecondsValues = generateBarValues(
+    val barSegments = generateBarSegments(
         records = records,
         period = period,
         labelCount = labels.size
     )
+    val studiedSecondsValues = barSegments.map { segments ->
+        segments.sumOf { it.studiedSeconds }
+    }
     val chartValues = studiedSecondsValues.map { it.toChartValue() }
+    val subjectColorMap = subjects.associate { subject ->
+        subject.name.trim() to Color(subject.colorArgb)
+    } + goals.associate { goal ->
+        goal.title.trim() to Color(goalScheduleColorArgb(goal.id))
+    }
+    val isDarkTheme = isAppInDarkTheme()
 
-    val scaleMaxValue = chartValues.maxOrNull()?.coerceAtLeast(1f) ?: 1f
+    val hasStudyData = studiedSecondsValues.any { it > 0 }
+    val yAxisValues = buildYAxisValues(
+        maxChartValue = chartValues.maxOrNull() ?: 0f,
+        hasStudyData = hasStudyData
+    )
+    val scaleMaxValue = yAxisValues.first().coerceAtLeast(1f)
+    val yAxisWidth = 52.dp
+    val plotStartPadding = 8.dp
 
     Column(
         modifier = modifier
@@ -54,61 +81,118 @@ fun StatsBarChart(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
         ) {
-            studiedSecondsValues.forEachIndexed { index, studiedSeconds ->
-                val value = chartValues[index]
-                val ratio = (value / scaleMaxValue).coerceIn(0f, 1f)
-                val barHeight = (ratio * maxBarHeight.value).dp
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom
-                ) {
+            Column(
+                modifier = Modifier
+                    .width(yAxisWidth)
+                    .height(maxBarHeight),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                yAxisValues.forEach { value ->
                     Text(
-                        text = formatDurationLabel(studiedSeconds),
+                        text = formatAxisDurationLabel(value),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
 
-                    Box(
-                        modifier = Modifier
-                            .width(24.dp)
-                            .height(barHeight)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                    )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(maxBarHeight)
+                    .padding(start = plotStartPadding)
+            ) {
+                Column(
+                    modifier = Modifier.matchParentSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    yAxisValues.forEach {
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.matchParentSize(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    barSegments.forEachIndexed { index, segments ->
+                        val totalValue = chartValues[index]
+                        val totalRatio = (totalValue / scaleMaxValue).coerceIn(0f, 1f)
+                        val totalBarHeight = (totalRatio * maxBarHeight.value).dp
+                        val totalSeconds = studiedSecondsValues[index]
+
+                        Column(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(totalBarHeight)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = RoundedCornerShape(4.dp)
+                                ),
+                            verticalArrangement = Arrangement.Bottom
+                        ) {
+                            segments.forEach { segment ->
+                                val segmentRatio = if (totalSeconds > 0) {
+                                    segment.studiedSeconds.toFloat() / totalSeconds
+                                } else {
+                                    0f
+                                }
+                                val segmentHeight = (totalBarHeight.value * segmentRatio).dp
+                                val subjectColor = subjectColorMap[segment.subjectName.trim()]
+                                    ?.let { subjectColorForTheme(it, isDarkTheme) }
+                                    ?: MaterialTheme.colorScheme.primary
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(segmentHeight)
+                                        .background(subjectColor)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        Divider()
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.width(yAxisWidth + plotStartPadding))
+            Divider(modifier = Modifier.weight(1f))
+        }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            labels.forEach { label ->
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall
-                )
+            Spacer(modifier = Modifier.width(yAxisWidth + plotStartPadding))
+
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                labels.forEach { label ->
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
         }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun generateBarValues(
+private fun generateBarSegments(
     records: List<StudySessionRecord>,
     period: StatsPeriod,
     labelCount: Int
-): List<Int> {
+): List<List<SubjectStudySegment>> {
     val today = LocalDate.now(AppTimeZone.zoneId)
 
     return when (period) {
@@ -120,7 +204,7 @@ private fun generateBarValues(
 
                 records
                     .filter { it.sessionDate == date }
-                    .sumOf { it.studiedSeconds }
+                    .toSubjectStudySegments()
             }
         }
 
@@ -142,7 +226,7 @@ private fun generateBarValues(
                         !recordDate.isBefore(weekStart) &&
                                 !recordDate.isAfter(weekEnd)
                     }
-                    .sumOf { it.studiedSeconds }
+                    .toSubjectStudySegments()
             }
         }
 
@@ -161,24 +245,65 @@ private fun generateBarValues(
                         recordDate.year == targetMonth.year &&
                                 recordDate.monthValue == targetMonth.monthValue
                     }
-                    .sumOf { it.studiedSeconds }
+                    .toSubjectStudySegments()
             }
         }
     }
 }
 
+private data class SubjectStudySegment(
+    val subjectName: String,
+    val studiedSeconds: Int
+)
+
+private fun List<StudySessionRecord>.toSubjectStudySegments(): List<SubjectStudySegment> {
+    return groupBy { it.subjectName.trim() }
+        .map { (subjectName, records) ->
+            SubjectStudySegment(
+                subjectName = subjectName,
+                studiedSeconds = records.sumOf { it.studiedSeconds }
+            )
+        }
+        .filter { it.studiedSeconds > 0 }
+        .sortedByDescending { it.studiedSeconds }
+}
+
 private fun Int.toChartValue(): Float {
-    return if (this > 0 && this < 60) {
-        1f
-    } else {
-        this / 60f
+    return this.toFloat()
+}
+
+private fun buildYAxisValues(
+    maxChartValue: Float,
+    hasStudyData: Boolean
+): List<Float> {
+    if (!hasStudyData) {
+        return listOf(20.minutes, 10.minutes, 1.minutes, 0f)
+    }
+
+    val topValue = when {
+        maxChartValue <= 1.minutes -> 1.minutes
+        maxChartValue <= 10.minutes -> 10.minutes
+        maxChartValue <= 20.minutes -> 20.minutes
+        maxChartValue <= 1.hours -> 1.hours
+        else -> ceil(maxChartValue / 1.hours) * 1.hours
+    }
+
+    return when (topValue) {
+        1.minutes -> listOf(1.minutes, 40f, 20f, 0f)
+        10.minutes -> listOf(10.minutes, 5.minutes, 1.minutes, 0f)
+        20.minutes -> listOf(20.minutes, 10.minutes, 1.minutes, 0f)
+        1.hours -> listOf(1.hours, 30.minutes, 10.minutes, 0f)
+        else -> listOf(topValue, topValue / 2f, topValue / 4f, 0f)
     }
 }
 
-private fun formatDurationLabel(seconds: Int): String {
-    if (seconds <= 0) return ""
+private fun formatAxisDurationLabel(chartValue: Float): String {
+    if (chartValue <= 0f) return "0"
 
-    val totalMinutes = (seconds / 60).coerceAtLeast(1)
+    val totalSeconds = chartValue.toInt().coerceAtLeast(1)
+    if (totalSeconds < 60) return "${totalSeconds}S"
+
+    val totalMinutes = totalSeconds / 60
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
 
@@ -188,3 +313,9 @@ private fun formatDurationLabel(seconds: Int): String {
         else -> "${minutes}M"
     }
 }
+
+private val Int.minutes: Float
+    get() = this * 60f
+
+private val Int.hours: Float
+    get() = this * 60.minutes

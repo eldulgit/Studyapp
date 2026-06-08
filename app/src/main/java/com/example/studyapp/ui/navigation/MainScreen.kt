@@ -277,7 +277,8 @@ fun MainScreen(
                     composable(BottomNavItem.Stats.route) {
                         StatsScreen(
                             studiedMinutes = timerViewModel.studiedMinutes,
-                            commentOption = settingsViewModel.commentOption
+                            commentOption = settingsViewModel.commentOption,
+                            subjectViewModel = subjectViewModel
                         )
                     }
 
