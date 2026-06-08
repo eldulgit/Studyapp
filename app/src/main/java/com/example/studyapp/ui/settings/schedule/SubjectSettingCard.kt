@@ -2,12 +2,15 @@ package com.example.studyapp.ui.settings.schedule
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -56,6 +59,7 @@ fun SubjectSettingCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 72.dp)
             .clickable { onEditClick() },
         colors = CardDefaults.cardColors(
             containerColor = cardContainerColor
@@ -66,7 +70,8 @@ fun SubjectSettingCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .heightIn(min = 50.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -87,16 +92,20 @@ fun SubjectSettingCard(
                 )
             }
 
-            Checkbox(
-                checked = checked,
-                onCheckedChange = if (muted) null else onCheckedChange,
-                enabled = !muted,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = accentColor,
-                    uncheckedColor = accentColor,
-                    checkmarkColor = MaterialTheme.colorScheme.onPrimary
+            Box(
+                modifier = Modifier.size(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Checkbox(
+                    checked = if (muted) false else checked,
+                    onCheckedChange = if (muted) null else onCheckedChange,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = accentColor,
+                        uncheckedColor = accentColor,
+                        checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 )
-            )
+            }
         }
     }
 }

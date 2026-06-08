@@ -75,7 +75,10 @@ class GeneratedScheduleViewModel : ViewModel() {
     }
 
     private val goalRepository = GoalRepository()
-    fun generateAndSaveSchedule(date: LocalDate) {
+    fun generateAndSaveSchedule(
+        date: LocalDate,
+        showSuccessMessage: Boolean = true
+    ) {
         if (isGenerating) return
 
         viewModelScope.launch {
@@ -88,6 +91,9 @@ class GeneratedScheduleViewModel : ViewModel() {
 
                 val profile = userRepository.getUserProfile(uid)
                     ?: throw IllegalStateException("사용자 생활패턴 정보가 없습니다.")
+
+                if (profile.wakeTime.isNotBlank()) wakeTime = profile.wakeTime
+                if (profile.sleepTime.isNotBlank()) sleepTime = profile.sleepTime
 
                 if (profile.wakeTime.isBlank() || profile.sleepTime.isBlank() ||
                     profile.lunchStartTime.isBlank() || profile.lunchEndTime.isBlank() || //추가
@@ -128,7 +134,9 @@ class GeneratedScheduleViewModel : ViewModel() {
 
                 loadSchedulesInternal(uid, date)
 
-                message = "시간표를 생성해서 저장했습니다."
+                if (showSuccessMessage) {
+                    message = "시간표를 생성해서 저장했습니다."
+                }
             } catch (e: Exception) {
                 message = e.message ?: "시간표 생성에 실패했습니다."
             } finally {

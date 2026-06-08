@@ -104,75 +104,34 @@ fun MainScreen(
             CoachHelpStep(
                 route = BottomNavItem.ScheduleSetting.route,
                 title = "스케줄과 목표 추가",
-                description = "Setup 화면의 + 버튼을 누르면 추가 화면이 열려요. 여기서 고정 스케줄이나 목표를 추가할 수 있고, 목표는 기간을 입력한 뒤 체크를 켜면 마감일이 가까워질수록 우선순위가 자동으로 올라가요.",
+                description = "+ 버튼으로 일정과 목표를 추가해요.",
                 placement = CoachHelpPlacement.Bottom,
                 highlight = circleHighlight(0.90f, 0.84f, 0.15f),
                 targetKey = CoachHelpTargets.ScheduleSettingAdd
             ),
             CoachHelpStep(
                 route = BottomNavItem.Setting.route,
-                title = "과목 설정",
-                description = "Settings에서 과목 설정으로 들어가 과목을 등록해요. 과목은 스케줄링, 타이머, 통계에서 같은 이름과 색상으로 연결돼요.",
+                title = "과목설정",
+                description = "과목 정보와 색상을 저장해요.",
                 placement = CoachHelpPlacement.Center,
                 highlight = rectHighlight(0.15f, 0.275f, 0.25f, 0.048f),
                 targetKey = CoachHelpTargets.SubjectSettingMenu
             ),
             CoachHelpStep(
-                route = "setting_subject",
-                title = "과목 저장",
-                description = "과목명을 입력하고 중요도를 선택한 뒤 과목 색상을 고르세요. 오른쪽 위 저장 버튼을 누르면 과목이 저장되고 아래쪽에 카드로 표시돼요.",
-                placement = CoachHelpPlacement.Top,
-                highlight = circleHighlight(0.91f, 0.065f, 0.085f),
-                targetKey = CoachHelpTargets.SubjectSave
-            ),
-            CoachHelpStep(
                 route = BottomNavItem.Calendar.route,
                 title = "스케줄링",
-                description = "Schedule 화면에서 달력 옆 스케줄링 아이콘을 누르면 과목 라벨과 시간표가 자동으로 생성돼요. 만들어진 스케줄에 맞춰 공부하면 됩니다.",
+                description = "생성된 공부 계획을 확인해요.",
                 placement = CoachHelpPlacement.Top,
-                highlight = circleHighlight(0.84f, 0.065f, 0.072f),
-                targetKey = CoachHelpTargets.ScheduleGenerate
+                highlight = null
             ),
             CoachHelpStep(
                 route = BottomNavItem.Timer.route,
-                title = "카메라 버튼",
-                description = "스케줄링 후 Timer로 넘어가면 과목별 시간이 자동으로 들어와요. 재생 버튼으로 과목을 선택하고, 수정 버튼으로 시간을 바꿀 수 있어요. 카메라 아이콘을 누르면 카메라 인식으로 집중 측정을 시작합니다.",
+                title = "Timer",
+                description = "재생 후 카메라로 측정해요.",
                 placement = CoachHelpPlacement.Top,
                 highlight = circleHighlight(0.89f, 0.07f, 0.085f),
                 targetKey = CoachHelpTargets.TimerCamera
             ),
-            CoachHelpStep(
-                route = BottomNavItem.Stats.route,
-                title = "Stats 필터",
-                description = "Stats 화면 위쪽 라벨로 누적 공부시간의 기간을 선택해요. Daily, Weekly, Monthly를 눌러 일간, 주간, 월간 누적 시간을 확인할 수 있어요.",
-                placement = CoachHelpPlacement.Top,
-                highlight = rectHighlight(0.50f, 0.09f, 0.92f, 0.045f),
-                targetKey = CoachHelpTargets.StatsFilter
-            ),
-            CoachHelpStep(
-                route = BottomNavItem.Stats.route,
-                title = "누적 공부시간 그래프",
-                description = "누적 공부시간 그래프는 선택한 기간에 맞춰 공부 시간이 얼마나 쌓였는지 보여줘요. 막대 위 시간 라벨로 공부량을 빠르게 확인할 수 있어요.",
-                placement = CoachHelpPlacement.Center,
-                highlight = rectHighlight(0.50f, 0.302f, 0.86f, 0.235f),
-                targetKey = CoachHelpTargets.StatsTotalChart
-            ),
-            CoachHelpStep(
-                route = BottomNavItem.Stats.route,
-                title = "시간대별 집중도",
-                description = "시간대별 집중도 그래프는 카메라 인식에서 집중 상태로 판단된 시간이 어느 시간대에 많이 쌓였는지 보여줘요. 집중이 잘 되는 시간을 찾는 데 사용할 수 있어요.",
-                placement = CoachHelpPlacement.Bottom,
-                highlight = rectHighlight(0.50f, 0.635f, 0.90f, 0.31f),
-                targetKey = CoachHelpTargets.StatsFocusChart
-            ),
-            CoachHelpStep(
-                route = BottomNavItem.Setting.route,
-                title = "도움말 다시 보기",
-                description = "나중에 사용법이 다시 필요하면 Settings의 도움말을 눌러주세요. 키워드 검색과 자세한 가이드로 기능을 다시 확인할 수 있어요.",
-                placement = CoachHelpPlacement.Center,
-                highlight = rectHighlight(0.12f, 0.62f, 0.22f, 0.05f),
-                targetKey = CoachHelpTargets.HelpMenu
-            )
         )
     }
     var showCoachHelp by remember { mutableStateOf(shouldShowCoachHelpOnFirstRun) }
@@ -271,7 +230,11 @@ fun MainScreen(
                     }
 
                     composable(BottomNavItem.Calendar.route) {
-                        CalendarScreen(navController, subjectViewModel)
+                        CalendarScreen(
+                            navController = navController,
+                            subjectViewModel = subjectViewModel,
+                            isVisible = currentRoute == BottomNavItem.Calendar.route
+                        )
                     }
 
                     composable(BottomNavItem.Stats.route) {
@@ -366,6 +329,12 @@ fun MainScreen(
                                 coachHelpIndex = nextIndex
                             } else {
                                 showCoachHelp = false
+                                navController.navigate(BottomNavItem.ScheduleSetting.route) {
+                                    popUpTo(navController.graph.id) {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     )
