@@ -34,7 +34,7 @@ data class CoachHelpStep(
     val title: String,
     val description: String,
     val placement: CoachHelpPlacement,
-    val highlight: CoachHelpHighlight,
+    val highlight: CoachHelpHighlight?,
     val targetKey: String? = null
 )
 
@@ -128,7 +128,7 @@ private fun CoachHelpTextCard(
 private fun textCardAlignment(step: CoachHelpStep): Alignment {
     return if (
         step.placement == CoachHelpPlacement.Bottom ||
-        step.highlight.centerYRatio > 0.78f
+        (step.highlight?.centerYRatio ?: 0f) > 0.78f
     ) {
         Alignment.TopCenter
     } else {
@@ -157,7 +157,7 @@ private fun Modifier.textCardPadding(
 
 @Composable
 private fun SpotlightScrim(
-    highlight: CoachHelpHighlight,
+    highlight: CoachHelpHighlight?,
     contentPadding: PaddingValues,
     layoutDirection: androidx.compose.ui.unit.LayoutDirection,
     targetBounds: Rect?,
@@ -174,6 +174,12 @@ private fun SpotlightScrim(
         val contentBottom = contentPadding.calculateBottomPadding().toPx()
         val contentWidth = (size.width - contentLeft - contentRight).coerceAtLeast(1f)
         val contentHeight = (size.height - contentTop - contentBottom).coerceAtLeast(1f)
+        drawRect(Color.Black.copy(alpha = 0.58f))
+
+        if (highlight == null) {
+            return@Canvas
+        }
+
         val highlightPadding = 10.dp.toPx()
         val measuredBounds = targetBounds?.inflate(highlightPadding)
         val highlightWidth = measuredBounds?.width
@@ -188,8 +194,6 @@ private fun SpotlightScrim(
             x = center.x - highlightWidth / 2f,
             y = center.y - highlightHeight / 2f
         )
-
-        drawRect(Color.Black.copy(alpha = 0.58f))
 
         when (highlight.shape) {
             CoachHelpHighlightShape.Circle -> {

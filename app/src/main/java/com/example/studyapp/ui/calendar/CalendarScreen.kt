@@ -3,7 +3,6 @@ package com.example.studyapp.ui.calendar
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,13 +24,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,36 +38,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.example.studyapp.data.model.GeneratedScheduleItem
-import com.example.studyapp.ui.help.CoachHelpTargets
-import com.example.studyapp.ui.help.coachHelpTarget
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
 import com.example.studyapp.ui.theme.isAppInDarkTheme
 import com.example.studyapp.ui.theme.subjectColorForTheme
 import java.time.LocalDate
 import androidx.compose.ui.graphics.Color
 
-private const val AI_GENERATE_ICON_URL = "https://img.icons8.com/color/96/ai-generated-text.png"
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarScreen(
     navController: NavController,
-    subjectViewModel: SubjectViewModel
+    subjectViewModel: SubjectViewModel,
+    isVisible: Boolean = true
 ) {
     val holidayViewModel: HolidayViewModel = viewModel()
     val generatedScheduleViewModel: GeneratedScheduleViewModel = viewModel()
 
     val context = LocalContext.current
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     val generatedSchedules = generatedScheduleViewModel.schedules
-    val isGenerating = generatedScheduleViewModel.isGenerating
     val scheduleMessage = generatedScheduleViewModel.message
     val scheduleSnapshot = generatedSchedules.toList()
 
@@ -114,8 +110,31 @@ fun CalendarScreen(
     }
 
 
-    LaunchedEffect(selectedDate) {
-        generatedScheduleViewModel.loadSchedules(selectedDate)
+    fun refreshGeneratedSchedule() {
+        generatedScheduleViewModel.generateAndSaveSchedule(
+            date = selectedDate,
+            showSuccessMessage = false
+        )
+    }
+
+    LaunchedEffect(selectedDate, isVisible) {
+        if (isVisible) {
+            refreshGeneratedSchedule()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, selectedDate) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshGeneratedSchedule()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     LaunchedEffect(scheduleMessage) {
@@ -177,30 +196,6 @@ fun CalendarScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End
                 ) {
-                    IconButton(
-                        onClick = {
-                            generatedScheduleViewModel.generateAndSaveSchedule(selectedDate)
-                        },
-                        enabled = !isGenerating,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .coachHelpTarget(CoachHelpTargets.ScheduleGenerate)
-                    ) {
-                        if (isGenerating) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Image(
-                                painter = rememberAsyncImagePainter(AI_GENERATE_ICON_URL),
-                                contentDescription = "시간표 생성",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-
                     IconButton(
                         onClick = {
                             showCalendarDialog = true
