@@ -2,6 +2,7 @@ package com.example.studyapp.ui.navigation
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
@@ -98,7 +99,12 @@ fun MainScreen(
         BottomNavItem.Setting.route
     )
     val coachHelpTargetState = rememberCoachHelpTargetState()
-    val shouldShowCoachHelpOnFirstRun = true
+    val coachHelpPrefs = remember {
+        context.getSharedPreferences("coach_help_prefs", Context.MODE_PRIVATE)
+    }
+    val shouldShowCoachHelpOnFirstRun = remember {
+        !coachHelpPrefs.getBoolean("coach_help_completed", false)
+    }
     val coachHelpSteps = remember {
         listOf(
             CoachHelpStep(
@@ -139,7 +145,9 @@ fun MainScreen(
     var coachHelpIndex by remember { mutableLongStateOf(0L) }
     val currentCoachStep = coachHelpSteps.getOrNull(coachHelpIndex.toInt())
 
-    LaunchedEffect(currentCoachStep?.route) {
+    LaunchedEffect(showCoachHelp, currentCoachStep?.route) {
+        if (!showCoachHelp) return@LaunchedEffect
+
         val targetRoute = currentCoachStep?.route ?: return@LaunchedEffect
         if (currentRoute != targetRoute) {
             navController.navigate(targetRoute) {
@@ -330,6 +338,9 @@ fun MainScreen(
                                 coachHelpIndex = nextIndex
                             } else {
                                 showCoachHelp = false
+                                coachHelpPrefs.edit()
+                                    .putBoolean("coach_help_completed", true)
+                                    .apply()
                                 navController.navigate(BottomNavItem.ScheduleSetting.route) {
                                     popUpTo(navController.graph.id) {
                                         inclusive = false
