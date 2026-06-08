@@ -336,7 +336,7 @@ private fun HelpGuideCard(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Text(
-                text = "${item.keyword} · ${item.title}",
+                text = item.keyword,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
@@ -345,7 +345,7 @@ private fun HelpGuideCard(
             )
 
             Text(
-                text = item.summary,
+                text = item.title,
                 modifier = Modifier.padding(top = 4.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
