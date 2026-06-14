@@ -17,7 +17,9 @@ import com.example.studyapp.data.repository.ScheduleRepository
 import com.example.studyapp.data.repository.SubjectRepository
 import com.example.studyapp.data.repository.UserRepository
 import com.example.studyapp.ui.settings.schedule.GoalItem // 추가
+import com.example.studyapp.ui.settings.schedule.ScheduleItem
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -29,6 +31,7 @@ class GeneratedScheduleViewModel : ViewModel() {
     private val generatedScheduleRepository = GeneratedScheduleRepository()
 
     val schedules = mutableStateListOf<DayScheduleBlock>()
+    val fixedScheduleBlocks = mutableStateListOf<DayScheduleBlock>()
 
     var isGenerating by mutableStateOf(false)
         private set
@@ -67,6 +70,10 @@ class GeneratedScheduleViewModel : ViewModel() {
                     if (it.wakeTime.isNotBlank()) wakeTime = it.wakeTime
                     if (it.sleepTime.isNotBlank()) sleepTime = it.sleepTime
                 }
+                updateFixedScheduleBlocks(
+                    date = date,
+                    fixedSchedules = fixedScheduleRepository.getSchedules(uid)
+                )
                 loadSchedulesInternal(uid, date)
             } catch (e: Exception) {
                 message = e.message ?: "시간표를 불러오지 못했습니다."
@@ -108,6 +115,10 @@ class GeneratedScheduleViewModel : ViewModel() {
                 }
 
                 val fixedSchedules = fixedScheduleRepository.getSchedules(uid)
+                updateFixedScheduleBlocks(
+                    date = date,
+                    fixedSchedules = fixedSchedules
+                )
 
                 val generatedSchedules = generatePriorityStudySchedule(
                     date = date,
@@ -159,6 +170,58 @@ class GeneratedScheduleViewModel : ViewModel() {
             }
         )
 
+    }
+
+    private fun updateFixedScheduleBlocks(
+        date: LocalDate,
+        fixedSchedules: List<ScheduleItem>
+    ) {
+        val todayKoreanDay = date.toKoreanDayOfWeek()
+
+        fixedScheduleBlocks.clear()
+        fixedScheduleBlocks.addAll(
+            fixedSchedules
+                .filter { it.dayOfWeek == todayKoreanDay }
+                .mapNotNull { schedule -> schedule.toFixedScheduleBlockOrNull(date) }
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun ScheduleItem.toFixedScheduleBlockOrNull(date: LocalDate): DayScheduleBlock? {
+    val start = startTime.split(":")
+    val end = endTime.split(":")
+
+    if (start.size != 2 || end.size != 2) return null
+
+    val startHour = start[0].toIntOrNull() ?: return null
+    val startMinute = start[1].toIntOrNull() ?: return null
+    val endHour = end[0].toIntOrNull() ?: return null
+    val endMinute = end[1].toIntOrNull() ?: return null
+
+    return DayScheduleBlock(
+        date = date,
+        startHour = startHour,
+        startMinute = startMinute,
+        endHour = endHour,
+        endMinute = endMinute,
+        subject = "고정스케줄",
+        color = FixedScheduleBlockColor
+    )
+}
+
+private val FixedScheduleBlockColor = Color(0xFFE5E7EB)
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun LocalDate.toKoreanDayOfWeek(): String {
+    return when (dayOfWeek) {
+        DayOfWeek.MONDAY -> "월"
+        DayOfWeek.TUESDAY -> "화"
+        DayOfWeek.WEDNESDAY -> "수"
+        DayOfWeek.THURSDAY -> "목"
+        DayOfWeek.FRIDAY -> "금"
+        DayOfWeek.SATURDAY -> "토"
+        DayOfWeek.SUNDAY -> "일"
     }
 }
 

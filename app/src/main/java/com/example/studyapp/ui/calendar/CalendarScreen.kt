@@ -65,21 +65,26 @@ fun CalendarScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val generatedSchedules = generatedScheduleViewModel.schedules
+    val fixedScheduleBlocks = generatedScheduleViewModel.fixedScheduleBlocks
     val scheduleMessage = generatedScheduleViewModel.message
     val scheduleSnapshot = generatedSchedules.toList()
+    val fixedScheduleSnapshot = fixedScheduleBlocks.toList()
+    val timelineSchedules = remember(scheduleSnapshot, fixedScheduleSnapshot) {
+        fixedScheduleSnapshot + scheduleSnapshot
+    }
 
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
     }
 
     val scheduledSubjects = remember(
-        scheduleSnapshot,
+        timelineSchedules,
         selectedDate,
         generatedScheduleViewModel.wakeTime
     ) {
         val wakeStartMinute = generatedScheduleViewModel.wakeTime.toMinutesOrNull() ?: 0
 
-        scheduleSnapshot
+        timelineSchedules
             .filter { it.date == selectedDate }
             .sortedWith(
                 compareBy<DayScheduleBlock> {
@@ -243,7 +248,7 @@ fun CalendarScreen(
                 .fillMaxWidth()
                 .weight(1f),
             selectedDate = selectedDate,
-            schedules = generatedSchedules,
+            schedules = timelineSchedules,
             wakeTime = generatedScheduleViewModel.wakeTime,
             sleepTime = generatedScheduleViewModel.sleepTime
         )
