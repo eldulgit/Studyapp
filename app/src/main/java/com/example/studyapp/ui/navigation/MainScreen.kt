@@ -249,7 +249,8 @@ fun MainScreen(
                         StatsScreen(
                             studiedMinutes = timerViewModel.studiedMinutes,
                             commentOption = settingsViewModel.commentOption,
-                            subjectViewModel = subjectViewModel
+                            subjectViewModel = subjectViewModel,
+                            isVisible = currentRoute == BottomNavItem.Stats.route
                         )
                     }
 

@@ -39,17 +39,7 @@ fun ScheduleTimetable(
                 it.startTime != null &&
                 it.endTime != null
     }
-    val days = buildList {
-        addAll(listOf("월", "화", "수", "목", "금"))
-
-        if (scheduleItems.any { it.dayOfWeek == "토" }) {
-            add("토")
-        }
-
-        if (scheduleItems.any { it.dayOfWeek == "일" }) {
-            add("일")
-        }
-    }
+    val days = listOf("월", "화", "수", "목", "금", "토", "일")
     val colorIndexByTitle = buildScheduleColorIndexMap(
         items = scheduleItems,
         days = days,
@@ -77,8 +67,8 @@ fun ScheduleTimetable(
     val totalHours = (endHour - startHour).coerceAtLeast(1)
 
     // 세로 간격 조금 줄임
-    val hourHeight = 56.dp
-    val headerHeight = 34.dp
+    val hourHeight = 52.dp
+    val headerHeight = 32.dp
     val timeColumnWidth = 34.dp
     val timetableHeight = hourHeight * totalHours
     val isDarkTheme = isAppInDarkTheme()
@@ -90,7 +80,7 @@ fun ScheduleTimetable(
     val lineColor = if (isDarkTheme) {
         MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
     } else {
-        Color(0xFFEAEAEA)
+        Color(0xFFE2E8F0).copy(alpha = 0.62f)
     }
 
     BoxWithConstraints(
@@ -104,7 +94,7 @@ fun ScheduleTimetable(
                 .clip(RoundedCornerShape(20.dp))
                 .border(
                     width = 1.dp,
-                    color = lineColor,
+                    color = lineColor.copy(alpha = 0.7f),
                     shape = RoundedCornerShape(20.dp)
                 )
                 .background(containerColor)
@@ -118,7 +108,7 @@ fun ScheduleTimetable(
                     modifier = Modifier
                         .width(timeColumnWidth)
                         .height(headerHeight)
-                        .border(0.5.dp, lineColor)
+                        .border(0.5.dp, lineColor.copy(alpha = 0.35f))
                 )
 
                 days.forEach { day ->
@@ -126,13 +116,13 @@ fun ScheduleTimetable(
                         modifier = Modifier
                             .width(dayColumnWidth)
                             .height(headerHeight)
-                            .border(0.5.dp, lineColor),
+                            .border(0.5.dp, lineColor.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = day,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -188,13 +178,13 @@ private fun TimeColumn(
                 modifier = Modifier
                     .width(width)
                     .height(hourHeight)
-                    .border(0.5.dp, lineColor),
+                    .border(0.5.dp, lineColor.copy(alpha = 0.35f)),
                 contentAlignment = Alignment.TopCenter
             ) {
                 Text(
                     text = String.format("%02d", startHour + index),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 6.dp)
                 )
             }
@@ -219,7 +209,7 @@ private fun DayColumn(
         modifier = Modifier
             .width(width)
             .height(hourHeight * totalHours)
-            .border(0.5.dp, lineColor)
+            .border(0.5.dp, lineColor.copy(alpha = 0.35f))
     ) {
         Column(
             modifier = Modifier.matchParentSize()
@@ -229,7 +219,7 @@ private fun DayColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(hourHeight)
-                        .border(0.5.dp, lineColor)
+                        .border(0.5.dp, lineColor.copy(alpha = 0.28f))
                 )
             }
         }
@@ -257,6 +247,7 @@ private fun DayColumn(
                             .width(width)
                             .height(blockHeight.dp.coerceAtLeast(1.dp))
                             .offset(y = topOffset.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(color.container)
                             .clickable { onItemClick(item) }
                             .padding(horizontal = 6.dp, vertical = 6.dp)
@@ -265,7 +256,7 @@ private fun DayColumn(
                             Text(
                                 text = item.title,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isDarkTheme) Color.Black else color.text
+                                color = color.text
                             )
                         }
                     }
@@ -374,31 +365,31 @@ private fun floorMod(value: Int, modulus: Int): Int {
 
 private val timetableColors = listOf(
     TimetableColorSet(
-        container = Color(0xFFFBE2E2),
-        text = Color(0xFF6A3D3D)
+        container = Color(0xFFFFE4E6),
+        text = Color(0xFF9F1239)
     ),
     TimetableColorSet(
-        container = Color(0xFFFBEAD5),
-        text = Color(0xFF6A4B2C)
+        container = Color(0xFFFEF3C7),
+        text = Color(0xFF92400E)
     ),
     TimetableColorSet(
-        container = Color(0xFFF8F0C9),
-        text = Color(0xFF665C2C)
+        container = Color(0xFFF3E8FF),
+        text = Color(0xFF6B21A8)
     ),
     TimetableColorSet(
-        container = Color(0xFFE4F2DB),
-        text = Color(0xFF3F6137)
+        container = Color(0xFFECFDF5),
+        text = Color(0xFF047857)
     ),
     TimetableColorSet(
-        container = Color(0xFFDDF2EC),
-        text = Color(0xFF315E54)
+        container = Color(0xFFE0F2FE),
+        text = Color(0xFF0369A1)
     ),
     TimetableColorSet(
-        container = Color(0xFFE2EBFA),
-        text = Color(0xFF354B68)
+        container = Color(0xFFEEF2FF),
+        text = Color(0xFF3730A3)
     ),
     TimetableColorSet(
-        container = Color(0xFFF0E3F8),
-        text = Color(0xFF543D67)
+        container = Color(0xFFEFF6FF),
+        text = Color(0xFF1D4ED8)
     )
 )

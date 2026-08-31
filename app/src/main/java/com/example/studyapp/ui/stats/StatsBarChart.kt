@@ -66,16 +66,18 @@ fun StatsBarChart(
     val hasStudyData = studiedSecondsValues.any { it > 0 }
     val yAxisValues = buildYAxisValues(
         maxChartValue = chartValues.maxOrNull() ?: 0f,
-        hasStudyData = hasStudyData
+        hasStudyData = hasStudyData,
+        period = period
     )
     val scaleMaxValue = yAxisValues.first().coerceAtLeast(1f)
-    val yAxisWidth = 52.dp
-    val plotStartPadding = 8.dp
+    val yAxisWidth = 30.dp
+    val plotStartPadding = 2.dp
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .height(chartHeight)
+            .padding(start = 4.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -92,7 +94,7 @@ fun StatsBarChart(
             ) {
                 yAxisValues.forEach { value ->
                     Text(
-                        text = formatAxisDurationLabel(value),
+                        text = formatAxisDurationLabel(value, period),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -274,8 +276,24 @@ private fun Int.toChartValue(): Float {
 
 private fun buildYAxisValues(
     maxChartValue: Float,
-    hasStudyData: Boolean
+    hasStudyData: Boolean,
+    period: StatsPeriod
 ): List<Float> {
+    if (period == StatsPeriod.MONTHLY) {
+        val topHour = if (!hasStudyData) {
+            3
+        } else {
+            ceil(maxChartValue / 1.hours).toInt().coerceAtLeast(3)
+        }
+
+        return listOf(
+            topHour.hours,
+            ((topHour * 2f) / 3f).hours,
+            (topHour / 3f).hours,
+            0f
+        )
+    }
+
     if (!hasStudyData) {
         return listOf(20.minutes, 10.minutes, 1.minutes, 0f)
     }
@@ -297,10 +315,15 @@ private fun buildYAxisValues(
     }
 }
 
-private fun formatAxisDurationLabel(chartValue: Float): String {
+private fun formatAxisDurationLabel(chartValue: Float, period: StatsPeriod): String {
     if (chartValue <= 0f) return "0"
 
     val totalSeconds = chartValue.toInt().coerceAtLeast(1)
+    if (period == StatsPeriod.MONTHLY) {
+        val hours = ceil(totalSeconds / 3600f).toInt().coerceAtLeast(1)
+        return "${hours}h"
+    }
+
     if (totalSeconds < 60) return "${totalSeconds}S"
 
     val totalMinutes = totalSeconds / 60
@@ -318,4 +341,7 @@ private val Int.minutes: Float
     get() = this * 60f
 
 private val Int.hours: Float
+    get() = this * 60.minutes
+
+private val Float.hours: Float
     get() = this * 60.minutes

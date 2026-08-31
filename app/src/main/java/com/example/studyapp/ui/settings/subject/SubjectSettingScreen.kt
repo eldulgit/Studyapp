@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.studyapp.ui.help.CoachHelpTargets
@@ -188,11 +191,12 @@ fun SubjectSettingScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(screenScrollState)
+            .padding(horizontal = 12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -208,7 +212,9 @@ fun SubjectSettingScreen(
 
             Text(
                 text = "과목 관리",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             IconButton(
@@ -224,73 +230,92 @@ fun SubjectSettingScreen(
             }
         }
 
-        SubjectInput(
-            label = "과목명",
-            value = subjectName,
-            onValueChange = {
-                subjectName = it
-                subjectNameError = false
-            }
-        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 1.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+            ) {
+                SubjectInput(
+                    label = "과목명",
+                    value = subjectName,
+                    onValueChange = {
+                        subjectName = it
+                        subjectNameError = false
+                    }
+                )
 
-        if (subjectNameError) {
-            Text(
-                text = "이미 선택된 과목입니다.",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
+                if (subjectNameError) {
+                    Text(
+                        text = "이미 선택된 과목입니다.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+
+                Text(
+                    text = "중요도",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                ImportanceSelector(
+                    selectedPriority = priority,
+                    onPrioritySelected = { selectedPriority ->
+                        priority = selectedPriority
+                    }
+                )
+
+                Spacer(modifier = Modifier.size(8.dp))
+
+                Text(
+                    text = "과목 색상",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                SubjectColorPicker(
+                    colors = subjectColors,
+                    selectedColorArgb = selectedColorArgb,
+                    disabledColorArgbList = disabledColorArgbList,
+                    onColorSelected = { color ->
+                        selectedColorArgb = color.toArgb()
+                        subjectColorError = false
+                    }
+                )
+
+                if (subjectColorError) {
+                    Text(
+                        text = "이미 선택된 색상입니다.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+            }
         }
 
-        Text(
-            text = "중요도",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        ImportanceSelector(
-            selectedPriority = priority,
-            onPrioritySelected = { selectedPriority ->
-                priority = selectedPriority
-            }
-        )
-
-        Spacer(modifier = Modifier.size(16.dp))
-
-        Text(
-            text = "과목 색상",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        SubjectColorPicker(
-            colors = subjectColors,
-            selectedColorArgb = selectedColorArgb,
-            disabledColorArgbList = disabledColorArgbList,
-            onColorSelected = { color ->
-                selectedColorArgb = color.toArgb()
-                subjectColorError = false
-            }
-        )
-
-        if (subjectColorError) {
-            Text(
-                text = "이미 선택된 색상입니다.",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-        }
+        Spacer(modifier = Modifier.size(12.dp))
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 24.dp)
+                .padding(bottom = 24.dp)
         ) {
             Text(
                 text = "과목",
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.bodyMedium
+                modifier = Modifier.padding(vertical = 8.dp),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             sortedSubjects.forEach { subject ->

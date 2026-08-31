@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.help.CoachHelpTargets
 import com.example.studyapp.ui.help.coachHelpTarget
@@ -222,7 +225,7 @@ fun ScheduleSettingScreen() {
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
-        floatingActionButton = {
+                floatingActionButton = {
             if (showFab && !showAddDialog && !showTimePickerDialog) {
                 FloatingActionButton(
                     modifier = Modifier.coachHelpTarget(CoachHelpTargets.ScheduleSettingAdd),
@@ -243,6 +246,7 @@ fun ScheduleSettingScreen() {
                         pendingStartTime = null
                         showAddDialog = true
                     },
+                    shape = RoundedCornerShape(18.dp),
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
@@ -264,21 +268,31 @@ fun ScheduleSettingScreen() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                contentPadding = PaddingValues(top = 18.dp, bottom = 104.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 item {
                     Column {
                         Text(
                             text = "시간표",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                        ScheduleTimetable(
-                            items = scheduleItems,
-                            onItemClick = { item ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 0.dp,
+                            shadowElevation = 1.dp
+                        ) {
+                            ScheduleTimetable(
+                                modifier = Modifier.padding(12.dp),
+                                items = scheduleItems,
+                                onItemClick = { item ->
                                 editingItemId = item.id
                                 selectedCategory = ScheduleCategory.SCHEDULE
                                 title = item.title
@@ -301,9 +315,10 @@ fun ScheduleSettingScreen() {
                                 isSelectingStartTime = true
                                 pendingStartTime = null
 
-                                showAddDialog = true
-                            }
-                        )
+                                    showAddDialog = true
+                                }
+                            )
+                        }
                     }
                 }
 

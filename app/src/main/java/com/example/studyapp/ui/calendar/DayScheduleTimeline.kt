@@ -14,16 +14,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.theme.isAppInDarkTheme
@@ -53,47 +54,33 @@ fun DayScheduleTimeline(
     val startHour = baseStartMinute / 60
     val endHour = (sleepMinutes + 59) / 60
 
-    val rowHeight = 38.dp
-    val timeLabelWidth = 56.dp
-    val verticalScroll = rememberScrollState()
+    val timeLabelWidth = 46.dp
 
-    val lineWidth = 0.5.dp
-    val lineColor = if (isDarkTheme) {
-        MaterialTheme.colorScheme.outlineVariant
-    } else {
-        Color(0xFFBDBDBD).copy(alpha = 0.6f)
-    }
-    val emptyCellColor = if (isDarkTheme) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        Color.White
-    }
-    val hourTextColor = if (isDarkTheme) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        Color(0xFF111827)
-    }
+    val lineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
+    val hourTextColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .fillMaxHeight()
     ) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .fillMaxHeight()
+                .padding(horizontal = 10.dp)
         ) {
-            val minuteCellWidth: Dp = (maxWidth - timeLabelWidth) / 6
+            val contentWidth: Dp = maxWidth - timeLabelWidth
 
             Column(
                 modifier = Modifier
-                    .fillMaxWidth().fillMaxHeight()
-                    .verticalScroll(verticalScroll)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
             ) {
                 for (hour in startHour until endHour) {
                     val hourStartMinute = hour * 60
                     val hourEndMinute = hourStartMinute + 60
-                    val rowSchedule = displayedSchedules.firstOrNull { schedule ->
+                    val rowSchedules = displayedSchedules.filter { schedule ->
                         val scheduleStart = schedule.startMinuteFrom(baseStartMinute)
                         val scheduleEnd = schedule.endMinuteFrom(baseStartMinute)
 
@@ -101,66 +88,92 @@ fun DayScheduleTimeline(
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
                     ) {
                         Box(
                             modifier = Modifier
                                 .width(timeLabelWidth)
-                                .height(rowHeight)
-                                .background(emptyCellColor)
-                                .border(lineWidth, lineColor),
-                            contentAlignment = Alignment.Center
+                                .fillMaxHeight()
+                                .padding(top = 2.dp),
+                            contentAlignment = Alignment.TopCenter
                         ) {
-                            val rowScheduleColor = rowSchedule?.color?.let {
-                                subjectColorForTheme(it, isDarkTheme)
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .background(
-                                        color = rowScheduleColor?.copy(alpha = 0.72f)
-                                            ?: Color.Transparent,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = formatHourLabel(hour),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = hourTextColor
-                                )
-                            }
+                            Text(
+                                text = formatHourLabel(hour),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = hourTextColor
+                            )
                         }
 
-                        for (slot in 0 until 6) {
-                            val slotStartMinute = hour * 60 + slot * 10
-                            val slotEndMinute = slotStartMinute + 10
-
-                            val matched = displayedSchedules.find { schedule ->
-                                val scheduleStart = schedule.startMinuteFrom(baseStartMinute)
-                                val scheduleEnd = schedule.endMinuteFrom(baseStartMinute)
-
-                                slotStartMinute < scheduleEnd && slotEndMinute > scheduleStart
+                        Box(
+                            modifier = Modifier
+                                .width(contentWidth)
+                                .fillMaxHeight()
+                                .border(
+                                    width = 0.5.dp,
+                                    color = lineColor,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(3.dp)
+                        ) {
+                            if (rowSchedules.isEmpty()) {
+                                Box(modifier = Modifier.fillMaxWidth())
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    rowSchedules.take(2).forEach { schedule ->
+                                        TimelineScheduleChip(
+                                            schedule = schedule,
+                                            isDarkTheme = isDarkTheme,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxHeight()
+                                        )
+                                    }
+                                }
                             }
-
-                            val matchedColor = matched?.color?.let {
-                                subjectColorForTheme(it, isDarkTheme)
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .width(minuteCellWidth)
-                                    .height(rowHeight)
-                                    .background(matchedColor ?: emptyCellColor)
-                                    .border(lineWidth, lineColor),
-                                contentAlignment = Alignment.Center
-                            ) {}
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TimelineScheduleChip(
+    schedule: DayScheduleBlock,
+    isDarkTheme: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val baseColor = subjectColorForTheme(schedule.color, isDarkTheme)
+    val chipColor = lerp(baseColor, MaterialTheme.colorScheme.surface, 0.28f)
+    val textColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        lerp(baseColor, Color(0xFF0F172A), 0.64f)
+    }
+
+    Surface(
+        modifier = modifier.padding(end = 6.dp),
+        shape = RoundedCornerShape(10.dp),
+        color = chipColor
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = schedule.subject,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = textColor
+            )
         }
     }
 }

@@ -16,17 +16,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -47,10 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.studyapp.data.model.GeneratedScheduleItem
 import com.example.studyapp.ui.settings.subject.SubjectViewModel
-import com.example.studyapp.ui.theme.isAppInDarkTheme
-import com.example.studyapp.ui.theme.subjectColorForTheme
 import java.time.LocalDate
-import androidx.compose.ui.graphics.Color
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -75,24 +72,6 @@ fun CalendarScreen(
 
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
-    }
-
-    val scheduledSubjects = remember(
-        timelineSchedules,
-        selectedDate,
-        generatedScheduleViewModel.wakeTime
-    ) {
-        val wakeStartMinute = generatedScheduleViewModel.wakeTime.toMinutesOrNull() ?: 0
-
-        timelineSchedules
-            .filter { it.date == selectedDate }
-            .sortedWith(
-                compareBy<DayScheduleBlock> {
-                    it.startMinuteOfDay().normalizeFrom(wakeStartMinute)
-                }
-                    .thenBy { it.subject }
-            )
-            .distinctBy { Pair(it.subject, it.color) }
     }
 
     var showCalendarDialog by remember {
@@ -168,90 +147,71 @@ fun CalendarScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp)
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 0.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 왼쪽 빈 공간: 높이까지 48로 만들지 말고 width만 유지
-            Box(modifier = Modifier.width(80.dp))
-
-            // 중앙 날짜
-            Box(
+            Text(
+                text = "오늘의 계획",
                 modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = selectedDate.formatKoreanDateWithDay(),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
-            // 오른쪽 달력 버튼
-            Box(
-                modifier = Modifier.width(80.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    IconButton(
-                        onClick = {
-                            showCalendarDialog = true
-                        },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = "날짜 선택",
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 1.dp,
+                onClick = {
+                    showCalendarDialog = true
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    SubjectColorLegend(
-                        schedules = scheduledSubjects
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "날짜 선택",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(6.dp))
         }
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(7.dp))
 
-        DayScheduleTimeline(
+        Text(
+            text = selectedDate.formatKoreanDateWithDay(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            selectedDate = selectedDate,
-            schedules = timelineSchedules,
-            wakeTime = generatedScheduleViewModel.wakeTime,
-            sleepTime = generatedScheduleViewModel.sleepTime
-        )
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 1.dp
+        ) {
+            DayScheduleTimeline(
+                modifier = Modifier.padding(vertical = 4.dp),
+                selectedDate = selectedDate,
+                schedules = timelineSchedules,
+                wakeTime = generatedScheduleViewModel.wakeTime,
+                sleepTime = generatedScheduleViewModel.sleepTime
+            )
+        }
     }
 }
 
@@ -350,63 +310,3 @@ private fun LocalDate.koreanDayOfWeek(): String {
     }
 }
 
-private fun DayScheduleBlock.startMinuteOfDay(): Int {
-    return startHour * 60 + startMinute
-}
-
-private fun String.toMinutesOrNull(): Int? {
-    val parts = split(":")
-    if (parts.size != 2) return null
-
-    val hour = parts[0].toIntOrNull() ?: return null
-    val minute = parts[1].toIntOrNull() ?: return null
-
-    if (hour !in 0..23 || minute !in 0..59) return null
-
-    return hour * 60 + minute
-}
-
-private fun Int.normalizeFrom(baseStartMinute: Int): Int {
-    return if (this < baseStartMinute) {
-        this + 24 * 60
-    } else {
-        this
-    }
-}
-
-@Composable
-private fun SubjectColorLegend(
-    modifier: Modifier = Modifier,
-    schedules: List<DayScheduleBlock>
-) {
-    if (schedules.isEmpty()) return
-    val isDarkTheme = isAppInDarkTheme()
-
-    LazyRow(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        items(schedules) { schedule ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .background(
-                            color = subjectColorForTheme(schedule.color, isDarkTheme),
-                            shape = CircleShape
-                        )
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = schedule.subject,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}

@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -50,6 +51,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.theme.isAppInDarkTheme
@@ -112,6 +115,11 @@ fun ScheduleAddDialog(
     val dialogSurfaceColor = if (isDarkTheme) {
         MaterialTheme.colorScheme.surface
     } else {
+        Color(0xFFF1F5F9)
+    }
+    val inputSurfaceColor = if (isDarkTheme) {
+        MaterialTheme.colorScheme.surfaceVariant
+    } else {
         Color.White
     }
     var dropdownWidth by remember { mutableStateOf(0.dp) }
@@ -124,19 +132,20 @@ fun ScheduleAddDialog(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f))
-            .padding(24.dp),
+            .padding(horizontal = 14.dp, vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            shape = MaterialTheme.shapes.large,
+            shape = RoundedCornerShape(28.dp),
             color = dialogSurfaceColor,
-            tonalElevation = 6.dp,
+            tonalElevation = 0.dp,
+            shadowElevation = 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(18.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -145,7 +154,9 @@ fun ScheduleAddDialog(
                 ) {
                     Text(
                         text = "카테고리",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     if (onDelete != null) {
@@ -159,9 +170,12 @@ fun ScheduleAddDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(18.dp)
+                ) {
                     Row(
                         modifier = Modifier.clickable {
                             onCategoryChange(ScheduleCategory.GOAL)
@@ -197,47 +211,51 @@ fun ScheduleAddDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(26.dp))
 
                 TextField(
                     value = title,
                     onValueChange = onTitleChange,
                     placeholder = { Text("제목") },
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
+                        .fillMaxWidth()
+                        .heightIn(min = 64.dp)
                         .align(Alignment.CenterHorizontally),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge,
+                    shape = RoundedCornerShape(18.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = dialogSurfaceColor,
-                        unfocusedContainerColor = dialogSurfaceColor,
-                        disabledContainerColor = dialogSurfaceColor,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = inputSurfaceColor,
+                        unfocusedContainerColor = inputSurfaceColor,
+                        disabledContainerColor = inputSurfaceColor,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 if (selectedCategory == ScheduleCategory.GOAL) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
+                            .fillMaxWidth()
                             .align(Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         InlineScheduleValue(
                             text = formatMonthDayOrPlaceholder(startDate, "시작 날짜"),
-                            modifier = Modifier.width(108.dp),
+                            modifier = Modifier.weight(1f),
+                            containerColor = inputSurfaceColor,
                             onClick = onStartDateClick
                         )
 
                         InlineScheduleValue(
                             text = formatMonthDayOrPlaceholder(endDate, "마감 날짜"),
-                            modifier = Modifier.width(108.dp),
+                            modifier = Modifier.weight(1f),
+                            containerColor = inputSurfaceColor,
                             onClick = onEndDateClick
                         )
                     }
@@ -260,12 +278,12 @@ fun ScheduleAddDialog(
                     enter = expandVertically() + fadeIn(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Column(
                             modifier = Modifier
                                 .heightIn(max = 156.dp)
                                 .verticalScroll(scheduleInputScrollState),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             scheduleTimeInputs.forEachIndexed { index, input ->
                                 val canRemoveScheduleTime =
@@ -273,23 +291,22 @@ fun ScheduleAddDialog(
 
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxWidth(0.9f)
+                                        .fillMaxWidth()
                                         .align(Alignment.CenterHorizontally)
                                 ) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Start
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
-                                        Spacer(modifier = Modifier.weight(1f))
-
                                         Box(
-                                            modifier = Modifier.weight(2f),
+                                            modifier = Modifier.weight(1f),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             InlineScheduleValue(
                                                 text = input.dayOfWeek,
-                                                modifier = Modifier.width(62.dp),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                containerColor = inputSurfaceColor,
                                                 onClick = {
                                                     expandedScheduleIndex = index
                                                     onDayDropdownExpandedChange(true)
@@ -322,29 +339,33 @@ fun ScheduleAddDialog(
                                         }
 
                                         Box(
-                                            modifier = Modifier.weight(3f),
+                                            modifier = Modifier.weight(1f),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             InlineScheduleValue(
                                                 text = input.startTime,
-                                                modifier = Modifier.width(68.dp),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                containerColor = inputSurfaceColor,
                                                 onClick = { onScheduleStartTimeClick(index) }
                                             )
                                         }
 
                                         Box(
-                                            modifier = Modifier.weight(3f),
+                                            modifier = Modifier.weight(1f),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             InlineScheduleValue(
                                                 text = input.endTime,
-                                                modifier = Modifier.width(68.dp),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                containerColor = inputSurfaceColor,
                                                 onClick = { onScheduleEndTimeClick(index) }
                                             )
                                         }
 
                                         Box(
-                                            modifier = Modifier.weight(1f),
+                                            modifier = Modifier.width(
+                                                if (canRemoveScheduleTime) 32.dp else 0.dp
+                                            ),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             if (canRemoveScheduleTime) {
@@ -371,10 +392,13 @@ fun ScheduleAddDialog(
                                 MaterialTheme.colorScheme.primary
                             ),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = dialogSurfaceColor,
+                                containerColor = inputSurfaceColor,
                                 contentColor = MaterialTheme.colorScheme.primary
                             ),
-                            modifier = Modifier.fillMaxWidth()
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
                         ) {
                             Text(
                                 text = "요일/시간 추가",
@@ -432,12 +456,13 @@ private fun formatMonthDayOrPlaceholder(date: String, placeholder: String): Stri
 private fun InlineScheduleValue(
     text: String,
     modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     onClick: () -> Unit,
     onWidthChanged: ((Dp) -> Unit)? = null
 ) {
     val density = LocalDensity.current
 
-    Row(
+    Surface(
         modifier = modifier
             .clickable(onClick = onClick)
             .onGloballyPositioned { coordinates ->
@@ -445,19 +470,32 @@ private fun InlineScheduleValue(
                     with(density) { coordinates.size.width.toDp() }
                 )
             }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .heightIn(min = 56.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = containerColor
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-        Icon(
-            imageVector = Icons.Default.ArrowDropDown,
-            contentDescription = null,
-            tint = Color(0xFFE53935),
-            modifier = Modifier.size(20.dp)
-        )
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }

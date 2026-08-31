@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -150,7 +152,7 @@ fun LifeStyleSettingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -168,7 +170,9 @@ fun LifeStyleSettingScreen(
 
                 Text(
                     text = "생활패턴 설정",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.size(48.dp))
@@ -176,58 +180,65 @@ fun LifeStyleSettingScreen(
 
             Spacer(modifier = Modifier.height(introGap))
 
-            OutlinedTextField(
-                value = wakeTime,
-                onValueChange = { updateTime(it) { value -> wakeTime = value } },
-                label = { Text("기상 시간") },
-                placeholder = { Text("예: 7:30, 730") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { sleepFocusRequester.requestFocus() }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(wakeFocusRequester)
-            )
-
-            Spacer(modifier = Modifier.height(fieldGap))
-
-            OutlinedTextField(
-                value = sleepTime,
-                onValueChange = { updateTime(it) { value -> sleepTime = value } },
-                label = { Text("취침 시간") },
-                placeholder = { Text("예: 7:30, 730") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { lunchStartFocusRequester.requestFocus() }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(sleepFocusRequester)
-            )
-
-            Spacer(modifier = Modifier.height(sectionGap))
-
-            Text(
-                text = "점심 시간",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(sectionTitleGap))
-
-            Row(
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 1.dp
             ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = wakeTime,
+                        onValueChange = { updateTime(it) { value -> wakeTime = value } },
+                        label = { Text("기상 시간") },
+                        placeholder = { Text("예: 7:30, 730") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { sleepFocusRequester.requestFocus() }
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(wakeFocusRequester)
+                    )
+
+                    Spacer(modifier = Modifier.height(fieldGap))
+
+                    OutlinedTextField(
+                        value = sleepTime,
+                        onValueChange = { updateTime(it) { value -> sleepTime = value } },
+                        label = { Text("취침 시간") },
+                        placeholder = { Text("예: 7:30, 730") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { lunchStartFocusRequester.requestFocus() }
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(sleepFocusRequester)
+                    )
+
+                    Spacer(modifier = Modifier.height(sectionGap))
+
+                    Text(
+                        text = "점심 시간",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(sectionTitleGap))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                 OutlinedTextField(
                     value = lunchStartTime,
                     onValueChange = { updateTime(it) { value -> lunchStartTime = value } },
@@ -263,22 +274,22 @@ fun LifeStyleSettingScreen(
                         .weight(1f)
                         .focusRequester(lunchEndFocusRequester)
                 )
-            }
+                    }
 
-            Spacer(modifier = Modifier.height(sectionGap))
+                    Spacer(modifier = Modifier.height(sectionGap))
 
-            Text(
-                text = "저녁 시간",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+                    Text(
+                        text = "저녁 시간",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
 
-            Spacer(modifier = Modifier.height(sectionTitleGap))
+                    Spacer(modifier = Modifier.height(sectionTitleGap))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                 OutlinedTextField(
                     value = dinnerStartTime,
                     onValueChange = { updateTime(it) { value -> dinnerStartTime = value } },
@@ -317,6 +328,8 @@ fun LifeStyleSettingScreen(
                         .weight(1f)
                         .focusRequester(dinnerEndFocusRequester)
                 )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(beforeErrorGap))

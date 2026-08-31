@@ -21,6 +21,7 @@ class StatsViewModel : ViewModel() {
     private val studySessionRepository = StudySessionRepository()
 
     val records = mutableStateListOf<StudySessionRecord>()
+    val timerOverrideRecords = mutableStateListOf<StudySessionRecord>()
 
     /**
      * 통계 데이터 조회/저장에 사용할 사용자 ID를 가져오는 함수
@@ -46,9 +47,12 @@ class StatsViewModel : ViewModel() {
                 val uid = getStatsOwnerId()
 
                 val result = studySessionRepository.getAllRecords(uid)
+                val timerOverrideResult = studySessionRepository.getTimerOverrideRecords(uid)
 
                 records.clear()
                 records.addAll(result)
+                timerOverrideRecords.clear()
+                timerOverrideRecords.addAll(timerOverrideResult)
 
             } catch (e: Exception) {
                 android.util.Log.e("StatsFirestore", "기록 불러오기 실패", e)
@@ -63,11 +67,14 @@ class StatsViewModel : ViewModel() {
 
                 val profile = userRepository.getUserProfile(uid)
                 val result = studySessionRepository.getAllRecords(uid)
+                val timerOverrideResult = studySessionRepository.getTimerOverrideRecords(uid)
 
                 userProfile = profile
 
                 records.clear()
                 records.addAll(result)
+                timerOverrideRecords.clear()
+                timerOverrideRecords.addAll(timerOverrideResult)
 
             } catch (e: Exception) {
                 android.util.Log.e("StatsFirestore", "통계 데이터 불러오기 실패", e)
@@ -83,6 +90,7 @@ class StatsViewModel : ViewModel() {
                 studySessionRepository.clearAll(uid)
 
                 records.clear()
+                timerOverrideRecords.clear()
 
             } catch (e: Exception) {
                 android.util.Log.e("StatsFirestore", "기록 삭제 실패", e)

@@ -5,11 +5,16 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.studyapp.ui.help.CoachHelpTargets
 import com.example.studyapp.ui.help.coachHelpTarget
@@ -29,28 +35,31 @@ import com.example.studyapp.ui.settings.subject.SubjectViewModel
 fun StatsScreen(
     studiedMinutes: Int,
     commentOption: String,
-    subjectViewModel: SubjectViewModel
+    subjectViewModel: SubjectViewModel,
+    isVisible: Boolean = true
 ) {
     var selectedPeriod by remember { mutableStateOf(StatsPeriod.DAILY) }
-
-    val goalMinutes = when (selectedPeriod) {
-        StatsPeriod.DAILY -> 120
-        StatsPeriod.WEEKLY -> 600
-        StatsPeriod.MONTHLY -> 2400
-    }
-
-    val goalSeconds = goalMinutes * 60
 
     val statsViewModel: StatsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val goalViewModel: GoalViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
-    LaunchedEffect(Unit) {
-        statsViewModel.loadStatsData()
-        subjectViewModel.loadSubjectsFromFirestore()
-        goalViewModel.loadGoalsFromFirestore()
+    LaunchedEffect(isVisible, studiedMinutes) {
+        if (isVisible) {
+            statsViewModel.loadStatsData()
+            subjectViewModel.loadSubjectsFromFirestore()
+            goalViewModel.loadGoalsFromFirestore()
+        }
     }
 
-    val records = statsViewModel.records
+    val records = remember(
+        statsViewModel.records.toList(),
+        statsViewModel.timerOverrideRecords.toList()
+    ) {
+        mergeStatsRecords(
+            sessionRecords = statsViewModel.records,
+            timerOverrideRecords = statsViewModel.timerOverrideRecords
+        )
+    }
 
     val currentSeconds = getCurrentPeriodStudySeconds(
         records = records,
@@ -61,29 +70,10 @@ fun StatsScreen(
         records = records,
         period = selectedPeriod
     )
-
-    val commentTitle = when (commentOption) {
-        "오늘의 명언" -> "오늘의 명언"
-        "AI 코멘트" -> "AI 코치"
-        else -> "AI 코치"
-    }
-
-    val comment = when (commentOption) {
-        "오늘의 명언" -> getTodayQuote()
-
-        "AI 코멘트" -> getAiStudyComment(
-            currentSeconds = currentSeconds,
-            previousSeconds = previousSeconds,
-            goalSeconds = goalSeconds,
-            period = selectedPeriod
-        )
-
-        else -> getAiStudyComment(
-            currentSeconds = currentSeconds,
-            previousSeconds = previousSeconds,
-            goalSeconds = goalSeconds,
-            period = selectedPeriod
-        )
+    val cumulativeTitle = when (selectedPeriod) {
+        StatsPeriod.DAILY -> "일별 누적 공부시간"
+        StatsPeriod.WEEKLY -> "주별 누적 공부시간"
+        StatsPeriod.MONTHLY -> "월별 누적 공부시간"
     }
 
     val userProfile = statsViewModel.userProfile
@@ -108,10 +98,9 @@ fun StatsScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         val horizontalPadding = 16.dp
-        val topPadding = 8.dp
-        val bottomPadding = 8.dp
+        val topPadding = 18.dp
+        val bottomPadding = 12.dp
         val chartGap = 12.dp
-        val commentGap = 2.dp
 
         Column(
             modifier = Modifier
@@ -123,17 +112,59 @@ fun StatsScreen(
                     bottom = bottomPadding
                 )
         ) {
+            Text(
+                text = "공부 통계",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.45f)
+                    .weight(0.56f)
             ) {
                 StatsFilterRow(
                     selected = selectedPeriod,
                     onSelect = { selectedPeriod = it }
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 1.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = cumulativeTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = formatStatsDuration(currentSeconds),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Text(
+                            text = formatStatsDelta(currentSeconds - previousSeconds),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 BoxWithConstraints(
                     modifier = Modifier
@@ -144,10 +175,13 @@ fun StatsScreen(
                     val adjustedChartHeight = (maxHeight - chartTargetTopInset)
                         .coerceAtLeast(48.dp)
 
-                    Box(
+                    Surface(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = chartTargetTopInset)
+                            .padding(top = chartTargetTopInset),
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 1.dp
                     ) {
                         Box(
                             modifier = Modifier
@@ -169,33 +203,73 @@ fun StatsScreen(
 
             Spacer(modifier = Modifier.height(chartGap))
 
-            BoxWithConstraints(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .coachHelpTarget(CoachHelpTargets.StatsFocusChart)
-                    .weight(0.45f)
+                    .weight(0.44f),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 1.dp
             ) {
-                StudyFocusLineChart(
-                    points = hourlyFocusPoints,
-                    chartHeight = (maxHeight - 48.dp).coerceAtLeast(48.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(commentGap))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.1f),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                StatsCommentSection(
-                    title = commentTitle,
-                    comment = comment
-                )
+                BoxWithConstraints(
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    StudyFocusLineChart(
+                        points = hourlyFocusPoints,
+                        chartHeight = (maxHeight - 48.dp).coerceAtLeast(48.dp)
+                    )
+                }
             }
         }
     }
+}
+
+private fun formatStatsDuration(seconds: Int): String {
+    val totalMinutes = seconds / 60
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+
+    return when {
+        hours > 0 && minutes > 0 -> "${hours}시간 ${minutes}분"
+        hours > 0 -> "${hours}시간"
+        else -> "${minutes}분"
+    }
+}
+
+private fun formatStatsDelta(seconds: Int): String {
+    val prefix = if (seconds >= 0) "+" else "-"
+    return "$prefix${formatStatsDuration(kotlin.math.abs(seconds))}"
+}
+
+private fun mergeStatsRecords(
+    sessionRecords: List<StudySessionRecord>,
+    timerOverrideRecords: List<StudySessionRecord>
+): List<StudySessionRecord> {
+    val recordsByDateAndSubject = linkedMapOf<String, StudySessionRecord>()
+
+    (sessionRecords + timerOverrideRecords)
+        .groupBy { record -> "${record.sessionDate}|${record.subjectName}" }
+        .forEach { (key, records) ->
+            val sessionSeconds = records
+                .filter { it.startTimeMillis > 0L || it.endTimeMillis > 0L }
+                .sumOf { it.studiedSeconds }
+            val overrideSeconds = records
+                .filter { it.startTimeMillis == 0L && it.endTimeMillis == 0L }
+                .sumOf { it.studiedSeconds }
+            val baseRecord = records
+                .firstOrNull { it.startTimeMillis > 0L || it.endTimeMillis > 0L }
+                ?: records.first()
+            val studiedSeconds = maxOf(sessionSeconds, overrideSeconds)
+
+            if (studiedSeconds > 0) {
+                recordsByDateAndSubject[key] = baseRecord.copy(
+                    studiedSeconds = studiedSeconds
+                )
+            }
+        }
+
+    return recordsByDateAndSubject.values.toList()
 }
 
 private data class StudyHourRange(

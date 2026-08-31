@@ -67,8 +67,8 @@ fun StudyFocusLineChart(
                 .fillMaxWidth()
                 .height(chartHeight)
         ) {
-            val leftPadding = 20.dp.toPx()
-            val rightPadding = 20.dp.toPx()
+            val leftPadding = 10.dp.toPx()
+            val rightPadding = 14.dp.toPx()
             val topPadding = 20.dp.toPx()
             val bottomPadding = 28.dp.toPx()
 

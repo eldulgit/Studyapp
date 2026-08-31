@@ -4,15 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,53 +41,39 @@ fun TimerTaskRow(
     onEditClick: () -> Unit
 ) {
     val touchSize = 36.dp
-    val playWidth = containerWidth * 0.10f
-    val subjectNameWidth = containerWidth * 0.30f
-    val colorWidth = containerWidth * 0.10f
-    val timeWidth = containerWidth * 0.40f
-    val editWidth = containerWidth * 0.10f
-
-    Row(
+    Surface(
         modifier = Modifier
-            .width(containerWidth)
-            .height(48.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .fillMaxWidth()
+            .height(58.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Box(
-            modifier = Modifier.width(playWidth),
-            contentAlignment = Alignment.CenterStart
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(touchSize)
+                    .background(
+                        color = Color(subjectColorArgb).copy(alpha = 0.16f),
+                        shape = CircleShape
+                    )
                     .clickable { onToggle() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = if (isRunning) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    tint = Color(subjectColorArgb),
+                    modifier = Modifier.size(22.dp)
                 )
             }
-        }
 
-        Box(
-            modifier = Modifier.width(subjectNameWidth),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = subject,
-                fontSize = 16.sp,
-                maxLines = 1,
-                textAlign = TextAlign.Center,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+            Spacer(modifier = Modifier.width(10.dp))
 
-        Box(
-            modifier = Modifier.width(colorWidth),
-            contentAlignment = Alignment.Center
-        ) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
@@ -90,19 +82,26 @@ fun TimerTaskRow(
                         shape = CircleShape
                     )
             )
-        }
 
-        Box(
-            modifier = Modifier.width(timeWidth),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(time, fontSize = 14.sp)
-        }
+            Spacer(modifier = Modifier.width(10.dp))
 
-        Box(
-            modifier = Modifier.width(editWidth),
-            contentAlignment = Alignment.Center
-        ) {
+            Text(
+                text = subject,
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.weight(1f)
+            )
+
+            Text(
+                time,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
             Box(
                 modifier = Modifier
                     .size(touchSize)
@@ -112,6 +111,7 @@ fun TimerTaskRow(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }

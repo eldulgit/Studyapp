@@ -17,7 +17,7 @@ fun SubjectInput(
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },

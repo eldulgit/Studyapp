@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -64,13 +66,14 @@ fun NotificationSettingScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -83,48 +86,53 @@ fun NotificationSettingScreen(
 
             Text(
                 text = "알림",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleLarge
             )
 
             Spacer(modifier = Modifier.size(48.dp))
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 1.dp
         ) {
-            NotificationSwitchRow(
-                title = "졸음 알림",
-                checked = settingsViewModel.drowsinessAlertEnabled,
-                onCheckedChange = settingsViewModel::updateDrowsinessAlertEnabled
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                NotificationSwitchRow(
+                    title = "졸음 알림",
+                    checked = settingsViewModel.drowsinessAlertEnabled,
+                    onCheckedChange = settingsViewModel::updateDrowsinessAlertEnabled
+                )
 
-            Spacer(modifier = Modifier.padding(12.dp))
+                Spacer(modifier = Modifier.padding(8.dp))
 
-            NotificationSwitchRow(
-                title = "공부 알림",
-                checked = settingsViewModel.notificationEnabled,
-                onCheckedChange = settingsViewModel::updateNotificationEnabled
-            )
+                NotificationSwitchRow(
+                    title = "공부 알림",
+                    checked = settingsViewModel.notificationEnabled,
+                    onCheckedChange = settingsViewModel::updateNotificationEnabled
+                )
 
-            Spacer(modifier = Modifier.padding(12.dp))
+                Spacer(modifier = Modifier.padding(8.dp))
 
-            NotificationSwitchRow(
-                title = "목표 알림",
-                checked = settingsViewModel.goalAlertEnabled,
-                onCheckedChange = settingsViewModel::updateGoalAlertEnabled
-            )
+                NotificationSwitchRow(
+                    title = "목표 알림",
+                    checked = settingsViewModel.goalAlertEnabled,
+                    onCheckedChange = settingsViewModel::updateGoalAlertEnabled
+                )
 
-            Spacer(modifier = Modifier.padding(12.dp))
+                Spacer(modifier = Modifier.padding(8.dp))
 
-            NotificationTimePickerRow(
-                selectedHour = settingsViewModel.notificationHour,
-                selectedMinute = settingsViewModel.notificationMinute,
-                onTimeChanged = { hour, minute ->
-                    settingsViewModel.updateNotificationTime(hour, minute)
-                }
-            )
+                NotificationTimePickerRow(
+                    selectedHour = settingsViewModel.notificationHour,
+                    selectedMinute = settingsViewModel.notificationMinute,
+                    onTimeChanged = { hour, minute ->
+                        settingsViewModel.updateNotificationTime(hour, minute)
+                    }
+                )
+            }
         }
     }
 }

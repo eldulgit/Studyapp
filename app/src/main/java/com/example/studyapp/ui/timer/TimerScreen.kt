@@ -15,17 +15,22 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,9 +41,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -220,79 +228,129 @@ fun TimerScreen(
                     .padding(
                         start = 16.dp,
                         end = 16.dp,
-                        top = 16.dp,
-                        bottom = 0.dp
+                        top = 12.dp,
+                        bottom = 16.dp
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "집중 타이머",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .coachHelpTarget(CoachHelpTargets.TimerCamera),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 1.dp,
                         onClick = {
                             showCameraHint = false
                             openCamera()
-                        },
-
-                        modifier = Modifier.coachHelpTarget(CoachHelpTargets.TimerCamera)
+                        }
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.PhotoCamera,
-                            contentDescription = "Camera"
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoCamera,
+                                contentDescription = "Camera",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                Box(modifier = Modifier.size(270.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(244.dp)
+                        .clip(CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularTimer(
                         modifier = Modifier.fillMaxSize(),
                         segments = segments,
                         colorForIndex = { runningTaskColor }
                     )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = selectedTask?.let { formatCountdown(it.remainingSeconds) } ?: "00:00:00",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = selectedTask?.name ?: "과목을 선택해 주세요",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                LazyColumn(
+                Surface(
                     modifier = Modifier
-                        .width(timerWidth)
+                        .fillMaxWidth()
                         .weight(1f),
-                    contentPadding = PaddingValues(bottom = 0.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 1.dp
                 ) {
-                    items(
-                        items = timerSubjects,
-                        key = { it.id }
-                    ) { item ->
-                        val isRunningIcon = pauseIconTaskId == item.id
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        contentPadding = PaddingValues(bottom = 2.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(
+                            items = timerSubjects,
+                            key = { it.id }
+                        ) { item ->
+                            val isRunningIcon = pauseIconTaskId == item.id
 
-                        val subjectColorArgb = availableSubjects
-                            .firstOrNull { it.name == item.name }
-                            ?.colorArgb
-                            ?: item.colorArgb
+                            val subjectColorArgb = availableSubjects
+                                .firstOrNull { it.name == item.name }
+                                ?.colorArgb
+                                ?: item.colorArgb
 
-                        val subjectColor = subjectColorArgb
-                            ?.let { subjectColorForTheme(Color(it), isDarkTheme) }
-                            ?: MaterialTheme.colorScheme.primary
+                            val subjectColor = subjectColorArgb
+                                ?.let { subjectColorForTheme(Color(it), isDarkTheme) }
+                                ?: MaterialTheme.colorScheme.primary
 
-                        TimerTaskRow(
-                            subject = item.name,
-                            time = formatCountdown(item.remainingSeconds),
-                            subjectColorArgb = subjectColor.toArgb(),
-                            containerWidth = timerWidth,
-                            isRunning = isRunningIcon,
-                            onToggle = {
-                                if (pauseIconTaskId == item.id) {
+                            TimerTaskRow(
+                                subject = item.name,
+                                time = formatCountdown(item.remainingSeconds),
+                                subjectColorArgb = subjectColor.toArgb(),
+                                containerWidth = timerWidth,
+                                isRunning = isRunningIcon,
+                                onToggle = {
+                                    if (pauseIconTaskId == item.id) {
                                     /*
                                  * Ⅱ 아이콘 상태에서 다시 누르면 선택 해제
                                  */
-                                    timerViewModel.toggleTask(item.id)
-                                    pauseIconTaskId = null
-                                    showCameraHint = false
-                                } else {
+                                        timerViewModel.toggleTask(item.id)
+                                        pauseIconTaskId = null
+                                        showCameraHint = false
+                                    } else {
                                     /*
                                  * 세모 아이콘 상태에서 누르면 선택 상태로 만들고
                                  * 아이콘만 Ⅱ로 변경
@@ -300,19 +358,20 @@ fun TimerScreen(
                                  * 카메라에서 나온 직후에는 selectedTaskId가 이미 같은 과목일 수 있음.
                                  * 이때 toggleTask()를 호출하면 선택이 해제되므로 호출하지 않음.
                                  */
-                                    if (timerViewModel.selectedTaskId != item.id) {
-                                        timerViewModel.toggleTask(item.id)
-                                    }
+                                        if (timerViewModel.selectedTaskId != item.id) {
+                                            timerViewModel.toggleTask(item.id)
+                                        }
 
-                                    pauseIconTaskId = item.id
-                                    showCameraHint = true
+                                        pauseIconTaskId = item.id
+                                        showCameraHint = true
+                                    }
+                                },
+                                onEditClick = {
+                                    editTargetId = item.id
+                                    showTimeEditDialog = true
                                 }
-                            },
-                            onEditClick = {
-                                editTargetId = item.id
-                                showTimeEditDialog = true
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }

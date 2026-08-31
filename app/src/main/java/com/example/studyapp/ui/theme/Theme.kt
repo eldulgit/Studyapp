@@ -8,10 +8,10 @@ import androidx.compose.runtime.Composable
 
 private val LightColorScheme = lightColorScheme(
     primary = StudyBlue,
-    onPrimary = StudyText,
+    onPrimary = StudySurface,
 
     secondary = StudyBlueDark,
-    onSecondary = StudyText,
+    onSecondary = StudySurface,
 
     tertiary = StudyYellow,
     onTertiary = StudyText,
