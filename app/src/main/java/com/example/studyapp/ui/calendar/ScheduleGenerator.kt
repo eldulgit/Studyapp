@@ -133,20 +133,26 @@ fun generatePriorityStudySchedule(
     val fixedMinutes = allocations.filter { it.remainingMinutes > 0 }.sumOf { it.remainingMinutes }
     val remainingFreeMinutes = (totalFreeMinutes - fixedMinutes).coerceAtLeast(0)
 
-    val weightSum = allocations.filter { it.remainingMinutes == -1 }.sumOf { it.priorityScore }
-    allocations.filter { it.remainingMinutes == -1 }.forEach { alloc ->
-        val portion = if (weightSum > 0) (remainingFreeMinutes * alloc.priorityScore / weightSum / 10) * 10 else 0
+    val flexibleAllocations = allocations.filter { it.remainingMinutes == -1 }
+    val weightSum = flexibleAllocations.sumOf { it.priorityScore }
+    flexibleAllocations.forEach { alloc ->
+        val portion = if (weightSum > 0) {
+            (remainingFreeMinutes * alloc.priorityScore / weightSum / 10) * 10
+        } else {
+            0
+        }
         alloc.remainingMinutes = portion
     }
 
-    // 루프가 끝난 후, 최종 확정된 멤버들에게 시간 꽉 채워서 배정
-    val finalFixedMins = allocations.filter { it.remainingMinutes > 0 }.sumOf { it.remainingMinutes }
-    val finalFreeMins = (totalFreeMinutes - finalFixedMins).coerceAtLeast(0)
-    val finalWeightSum = allocations.filter { it.remainingMinutes == -1 }.sumOf { it.priorityScore }
-    allocations.filter { it.remainingMinutes == -1 }.forEach { alloc ->
-        // 남은 시간을 우선순위에 따라 배분 (10분 단위 절삭)
-        val portion = if (finalWeightSum > 0) (finalFreeMins * alloc.priorityScore / finalWeightSum / 10) * 10 else 0
-        alloc.remainingMinutes = portion
+    var leftoverMinutes = remainingFreeMinutes -
+            flexibleAllocations.sumOf { it.remainingMinutes }
+    val leftoverTargets = flexibleAllocations.sortedByDescending { it.priorityScore }
+    var leftoverTargetIndex = 0
+
+    while (leftoverMinutes >= 10 && leftoverTargets.isNotEmpty()) {
+        leftoverTargets[leftoverTargetIndex % leftoverTargets.size].remainingMinutes += 10
+        leftoverMinutes -= 10
+        leftoverTargetIndex++
     }
 
     allocations.sortByDescending { it.priorityScore.coerceAtLeast(it.subject.priority) }
@@ -247,6 +253,7 @@ private fun parseTimeToMinutes(time: String): Int? {
     val hour = parts[0].toIntOrNull() ?: return null
     val minute = parts[1].toIntOrNull() ?: return null
 
+    if (hour == 24 && minute == 0) return 24 * 60
     if (hour !in 0..23) return null
     if (minute !in 0..59) return null
 

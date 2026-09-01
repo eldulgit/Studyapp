@@ -163,7 +163,7 @@ private fun SkyOutlineSwitch(
     onCheckedChange: (Boolean) -> Unit
 ) {
     val accentColor = MaterialTheme.colorScheme.primary
-    val trackBorderColor = if (checked) accentColor else MaterialTheme.colorScheme.outlineVariant
+    val trackBorderColor = accentColor
     val thumbColor = if (checked) accentColor else MaterialTheme.colorScheme.outlineVariant
     val thumbOffset = animateDpAsState(
         targetValue = if (checked) 22.dp else 0.dp,

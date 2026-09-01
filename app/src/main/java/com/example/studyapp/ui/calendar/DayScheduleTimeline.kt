@@ -9,17 +9,18 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -79,13 +80,6 @@ fun DayScheduleTimeline(
             ) {
                 for (hour in startHour until endHour) {
                     val hourStartMinute = hour * 60
-                    val hourEndMinute = hourStartMinute + 60
-                    val rowSchedules = displayedSchedules.filter { schedule ->
-                        val scheduleStart = schedule.startMinuteFrom(baseStartMinute)
-                        val scheduleEnd = schedule.endMinuteFrom(baseStartMinute)
-
-                        hourStartMinute < scheduleEnd && hourEndMinute > scheduleStart
-                    }
 
                     Row(
                         modifier = Modifier
@@ -95,9 +89,8 @@ fun DayScheduleTimeline(
                         Box(
                             modifier = Modifier
                                 .width(timeLabelWidth)
-                                .fillMaxHeight()
-                                .padding(top = 2.dp),
-                            contentAlignment = Alignment.TopCenter
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = formatHourLabel(hour),
@@ -118,21 +111,77 @@ fun DayScheduleTimeline(
                                 )
                                 .padding(3.dp)
                         ) {
-                            if (rowSchedules.isEmpty()) {
-                                Box(modifier = Modifier.fillMaxWidth())
-                            } else {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    rowSchedules.take(2).forEach { schedule ->
-                                        TimelineScheduleChip(
-                                            schedule = schedule,
-                                            isDarkTheme = isDarkTheme,
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                val slotWidth = maxWidth / 6
+
+                                Row(modifier = Modifier.fillMaxSize()) {
+                                    repeat(6) {
+                                        Box(
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .fillMaxHeight()
+                                                .border(
+                                                    width = 0.5.dp,
+                                                    color = lineColor.copy(alpha = 0.28f)
+                                                )
                                         )
+                                    }
+                                }
+
+                                displayedSchedules.forEach { schedule ->
+                                    val hourEndMinute = hourStartMinute + 60
+                                    val scheduleStart = schedule.startMinuteFrom(baseStartMinute)
+                                    val scheduleEnd = schedule.endMinuteFrom(baseStartMinute)
+
+                                    if (hourStartMinute < scheduleEnd && hourEndMinute > scheduleStart) {
+                                        val segmentStart = maxOf(scheduleStart, hourStartMinute)
+                                        val segmentEnd = minOf(scheduleEnd, hourEndMinute)
+                                        val startSlot = ((segmentStart - hourStartMinute) / 10)
+                                            .coerceIn(0, 6)
+                                        val endSlot = ((segmentEnd - hourStartMinute + 9) / 10)
+                                            .coerceIn(startSlot, 6)
+                                        val slotCount = (endSlot - startSlot).coerceAtLeast(1)
+                                        val baseColor = subjectColorForTheme(schedule.color, isDarkTheme)
+                                        val chipColor = lerp(
+                                            baseColor,
+                                            MaterialTheme.colorScheme.surface,
+                                            0.28f
+                                        )
+                                        val textColor = if (isDarkTheme) {
+                                            MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                            lerp(baseColor, Color(0xFF0F172A), 0.64f)
+                                        }
+                                        val shouldShowLabel =
+                                            scheduleStart >= hourStartMinute &&
+                                                    scheduleStart < hourEndMinute ||
+                                                    scheduleStart < hourStartMinute &&
+                                                    scheduleEnd > hourStartMinute
+
+                                        Box(
+                                            modifier = Modifier
+                                                .offset(x = slotWidth * startSlot)
+                                                .width(slotWidth * slotCount)
+                                                .fillMaxHeight()
+                                                .padding(end = 6.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(chipColor)
+                                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                                            contentAlignment = Alignment.CenterStart
+                                        ) {
+                                            if (shouldShowLabel) {
+                                                Text(
+                                                    text = schedule.subject,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    color = textColor
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -140,40 +189,6 @@ fun DayScheduleTimeline(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun TimelineScheduleChip(
-    schedule: DayScheduleBlock,
-    isDarkTheme: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val baseColor = subjectColorForTheme(schedule.color, isDarkTheme)
-    val chipColor = lerp(baseColor, MaterialTheme.colorScheme.surface, 0.28f)
-    val textColor = if (isDarkTheme) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        lerp(baseColor, Color(0xFF0F172A), 0.64f)
-    }
-
-    Surface(
-        modifier = modifier.padding(end = 6.dp),
-        shape = RoundedCornerShape(10.dp),
-        color = chipColor
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = schedule.subject,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = textColor
-            )
         }
     }
 }

@@ -30,8 +30,8 @@ fun BottomNavigationBar(
 ) {
     val items = listOf(
         BottomNavItem.ScheduleSetting,
-        BottomNavItem.Timer,
         BottomNavItem.Calendar,
+        BottomNavItem.Timer,
         BottomNavItem.Stats,
         BottomNavItem.Setting
     )

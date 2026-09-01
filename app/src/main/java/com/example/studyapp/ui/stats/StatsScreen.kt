@@ -66,10 +66,6 @@ fun StatsScreen(
         period = selectedPeriod
     )
 
-    val previousSeconds = getPreviousPeriodStudySeconds(
-        records = records,
-        period = selectedPeriod
-    )
     val cumulativeTitle = when (selectedPeriod) {
         StatsPeriod.DAILY -> "일별 누적 공부시간"
         StatsPeriod.WEEKLY -> "주별 누적 공부시간"
@@ -139,11 +135,10 @@ fun StatsScreen(
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 1.dp
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column {
                             Text(
                                 text = cumulativeTitle,
                                 style = MaterialTheme.typography.bodySmall,
@@ -156,11 +151,6 @@ fun StatsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Text(
-                            text = formatStatsDelta(currentSeconds - previousSeconds),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
                     }
                 }
 
@@ -235,11 +225,6 @@ private fun formatStatsDuration(seconds: Int): String {
         hours > 0 -> "${hours}시간"
         else -> "${minutes}분"
     }
-}
-
-private fun formatStatsDelta(seconds: Int): String {
-    val prefix = if (seconds >= 0) "+" else "-"
-    return "$prefix${formatStatsDuration(kotlin.math.abs(seconds))}"
 }
 
 private fun mergeStatsRecords(

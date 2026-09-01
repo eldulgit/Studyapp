@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.studyapp.ui.theme.isAppInDarkTheme
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -237,6 +239,9 @@ private fun DayColumn(
                     val baseMinutes = startHour * 60
                     val topOffset = ((startMinutes - baseMinutes) / 60f) * hourHeight.value
                     val blockHeight = ((endMinutes - startMinutes) / 60f) * hourHeight.value
+                    val maxTextLines = floor((blockHeight - 12f) / 14f)
+                        .toInt()
+                        .coerceAtLeast(1)
 
                     val color = timetableColors[
                         colorIndexByTitle[item.normalizedTitle()]
@@ -256,6 +261,10 @@ private fun DayColumn(
                             Text(
                                 text = item.title,
                                 style = MaterialTheme.typography.bodySmall,
+                                fontSize = 11.sp,
+                                lineHeight = 14.sp,
+                                maxLines = maxTextLines,
+                                overflow = TextOverflow.Ellipsis,
                                 color = color.text
                             )
                         }

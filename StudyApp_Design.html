@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study One Track - UI Redesign Showcase</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for Stats charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Inter & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'SF Pro Display', 'Inter', 'Noto Sans KR', 'sans-serif'],
+                    },
+                    colors: {
+                        app: {
+                            bg: '#F7F8FA',
+                            card: '#FFFFFF',
+                            primary: '#2563EB',
+                            primaryHover: '#1D4ED8',
+                            primaryLight: '#EFF6FF',
+                            text: '#0F172A',
+                            subtext: '#64748B',
+                            border: '#F1F5F9',
+                        },
+                        subject: {
+                            ai: { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' },
+                            java: { bg: '#F3E8FF', text: '#6B21A8', border: '#DDD6FE' },
+                            db: { bg: '#FEF3C7', text: '#92400E', border: '#FDE68A' },
+                            iot: { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD' },
+                            project: { bg: '#EEF2FF', text: '#3730A3', border: '#C7D2FE' },
+                            career: { bg: '#FFE4E6', text: '#9F1239', border: '#FECDD3' },
+                        }
+                    },
+                    borderRadius: {
+                        'app': '16px',
+                        'app-lg': '20px',
+                    },
+                    boxShadow: {
+                        'subtle': '0 2px 10px rgba(15, 23, 42, 0.03)',
+                        'floating': '0 8px 24px rgba(37, 99, 235, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Pretendard', 'SF Pro Display', 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: #0F172A;
+            color: #0F172A;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .timer-pulse {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-900 flex flex-col items-center justify-start p-2 sm:p-6">
+
+    <header class="w-full max-w-6xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-800/80 backdrop-blur border border-slate-700/60 p-4 rounded-2xl text-white shadow-xl">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow-md">
+                ST
+            </div>
+            <div>
+                <h1 class="text-lg font-bold flex items-center gap-2">
+                    Study One Track <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-normal border border-blue-400/30">UI Redesign</span>
+                </h1>
+                <p class="text-xs text-slate-400">설정 상세 화면 및 타이머 연동 업데이트 완료</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/50">
+            <button id="view-mode-simulator" onclick="setViewMode('simulator')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-sm">
+                📱 인터랙티브 모바일 시뮬레이터
+            </button>
+            <button id="view-mode-grid" onclick="setViewMode('grid')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                📊 전체 화면 한눈에 보기
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl flex justify-center items-start">
+        
+        <!-- MODE 1: Interactive Mobile Simulator Shell -->
+        <div id="simulator-container" class="w-full max-w-[390px] h-[812px] bg-app-bg rounded-[44px] shadow-2xl border-[8px] border-slate-800 relative overflow-hidden flex flex-col transition-all">
+            
+            <!-- Mobile Status Bar -->
+            <div class="w-full h-11 px-6 pt-3 flex justify-between items-center bg-app-bg text-app-text select-none z-30 shrink-0">
+                <span class="text-xs font-semibold tracking-tight">1:53</span>
+                <div class="w-24 h-4 bg-slate-900 rounded-full flex items-center justify-center">
+                    <div class="w-2.5 h-2.5 rounded-full bg-slate-800 ml-auto mr-3"></div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="battery" class="w-4 h-4"></i>
+                </div>
+            </div>
+
+            <!-- Scrollable Content Screen Area -->
+            <div class="flex-1 overflow-y-auto no-scrollbar relative pb-20">
+                
+                <!-- SCREEN 1: SCHEDULE -->
+                <div id="screen-schedule" class="tab-content active p-4 space-y-4">
+                    <div class="flex items-center justify-between pt-1 pb-1">
+                        <div>
+                            <h2 class="text-xl font-bold text-app-text tracking-tight">시간표</h2>
+                        </div>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-3 shadow-subtle border border-app-border">
+                        <div class="grid grid-cols-6 gap-1 text-center text-xs mb-2">
+                            <div class="py-1 font-semibold text-app-subtext text-[11px]"></div>
+                            <div class="py-1 font-semibold text-app-primary">월</div>
+                            <div class="py-1 font-semibold text-app-primary">화</div>
+                            <div class="py-1 font-semibold text-app-primary">수</div>
+                            <div class="py-1 font-semibold text-app-primary">목</div>
+                            <div class="py-1 font-semibold text-app-primary">금</div>
+                        </div>
+
+                        <div class="grid grid-cols-6 gap-1.5 text-[10px] relative font-medium">
+                            <div class="space-y-4 text-center text-app-subtext text-[10px] py-1 font-semibold">
+                                <div class="h-10 flex items-center justify-center">09</div>
+                                <div class="h-10 flex items-center justify-center">10</div>
+                                <div class="h-10 flex items-center justify-center">11</div>
+                                <div class="h-10 flex items-center justify-center">12</div>
+                                <div class="h-10 flex items-center justify-center">13</div>
+                                <div class="h-10 flex items-center justify-center">14</div>
+                                <div class="h-10 flex items-center justify-center">15</div>
+                                <div class="h-10 flex items-center justify-center">16</div>
+                                <div class="h-10 flex items-center justify-center">17</div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="h-[136px] bg-subject-ai-bg text-subject-ai-text p-1.5 rounded-xl border border-subject-ai-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    ai프로그래밍
+                                </div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-[136px] bg-subject-project-bg text-subject-project-text p-1.5 rounded-xl border border-subject-project-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    융합프로젝트실습
+                                </div>
+                                <div class="h-10"></div>
+                                <div class="h-10"></div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="h-[136px] bg-subject-java-bg text-subject-java-text p-1.5 rounded-xl border border-subject-java-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    자바프로그래밍실습
+                                </div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10"></div>
+                                <div class="h-10"></div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-[88px] bg-subject-career-bg text-subject-career-text p-1.5 rounded-xl border border-subject-career-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    직업과 경력개발
+                                </div>
+                                <div class="h-[136px] bg-subject-java-bg text-subject-java-text p-1.5 rounded-xl border border-subject-java-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    네트워크운영실습
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="h-[88px] bg-subject-db-bg text-subject-db-text p-1.5 rounded-xl border border-subject-db-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    데이터베이스
+                                </div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-[88px] bg-subject-ai-bg text-subject-ai-text p-1.5 rounded-xl border border-subject-ai-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    데이터베이스 실무
+                                </div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-[88px] bg-subject-ai-bg text-subject-ai-text p-1.5 rounded-xl border border-subject-ai-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    데이터베이스 실무
+                                </div>
+                                <div class="h-10"></div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="h-[136px] bg-subject-iot-bg text-subject-iot-text p-1.5 rounded-xl border border-subject-iot-border/60 flex items-center justify-center text-center leading-tight shadow-sm font-bold">
+                                    IoT센서실습
+                                </div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10 border-b border-dashed border-slate-100"></div>
+                                <div class="h-10"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <div class="flex items-center justify-between mb-2 px-1">
+                            <h3 class="text-base font-bold text-app-text">목표</h3>
+                            <span class="text-xs text-app-primary font-semibold">진행중 2건</span>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle flex items-center justify-between hover:border-blue-200 transition-all group cursor-pointer" onclick="toggleCheck('goal1')">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h4 id="title-goal1" class="text-sm font-semibold text-app-text transition-colors">c#과제</h4>
+                                        <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-semibold border border-amber-200">D-3</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-app-subtext">
+                                        <i data-lucide="calendar" class="w-3 h-3"></i>
+                                        <span>2026-05-19 ~ 2026-06-01</span>
+                                    </div>
+                                </div>
+                                <div id="check-goal1" class="w-5 h-5 rounded-md border-2 border-slate-300 flex items-center justify-center transition-all bg-white group-hover:border-blue-500 shrink-0">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-white opacity-0 transition-opacity"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle flex items-center justify-between hover:border-blue-200 transition-all group cursor-pointer" onclick="toggleCheck('goal2')">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h4 id="title-goal2" class="text-sm font-semibold text-app-text transition-colors">졸작</h4>
+                                        <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold border border-blue-200">장기</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-app-subtext">
+                                        <i data-lucide="calendar" class="w-3 h-3"></i>
+                                        <span>2026-03-09 ~ 2026-06-22</span>
+                                    </div>
+                                </div>
+                                <div id="check-goal2" class="w-5 h-5 rounded-md border-2 border-slate-300 flex items-center justify-center transition-all bg-white group-hover:border-blue-500 shrink-0">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-white opacity-0 transition-opacity"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="fixed bottom-20 right-6 w-12 h-12 rounded-full bg-app-primary text-white flex items-center justify-center shadow-floating hover:bg-app-primaryHover transition-transform active:scale-95 z-20">
+                        <i data-lucide="plus" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- SCREEN 2: TIMER -->
+                <div id="screen-timer" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center justify-between pt-1">
+                        <div>
+                            <h2 class="text-xl font-bold text-app-text tracking-tight">집중 타이머</h2>
+                            <p class="text-xs text-app-subtext">오늘의 공부 과목을 선택하고 측정하세요</p>
+                        </div>
+                        <button class="w-9 h-9 rounded-full bg-white border border-app-border flex items-center justify-center text-app-subtext hover:text-app-primary shadow-subtle transition-colors">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-app-card rounded-app-lg p-5 shadow-subtle border border-app-border flex flex-col items-center justify-center relative">
+                        <div class="relative w-52 h-52 flex items-center justify-center my-1">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" stroke="#F1F5F9" stroke-width="8" fill="transparent" />
+                                <circle id="timer-progress" cx="50" cy="50" r="42" stroke="#2563EB" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="263.89" stroke-dashoffset="65" class="transition-all duration-1000" />
+                            </svg>
+                            <div class="absolute flex flex-col items-center justify-center text-center">
+                                <span class="text-3xl font-extrabold text-app-text font-mono tracking-tight" id="timer-display">10:00:00</span>
+                                <div class="flex items-center gap-1.5 mt-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-app-primary text-xs font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-app-primary timer-pulse"></span>
+                                    <span id="timer-status">Spring Boot 측정 중</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-full mt-3">
+                            <div class="flex items-center justify-between px-0.5 mb-2">
+                                <span class="text-[11px] font-semibold text-app-subtext">공부 과목 목록</span>
+                            </div>
+
+                            <div class="max-h-[220px] overflow-y-auto no-scrollbar space-y-2 pr-0.5" id="timer-subject-list">
+                                <!-- Dynamic subjects -->
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-center mt-4 w-full">
+                            <button id="btn-timer-toggle" onclick="toggleTimer()" class="w-full py-3.5 rounded-xl bg-app-primary text-white font-semibold shadow-floating flex items-center justify-center gap-2 active:scale-98 transition-all hover:bg-app-primaryHover">
+                                <i id="icon-timer-toggle" data-lucide="pause" class="w-5 h-5 fill-current"></i>
+                                <span id="text-timer-toggle">일시 정지</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN 3: PLAN -->
+                <div id="screen-plan" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center justify-between pt-1">
+                        <div>
+                            <h2 class="text-xl font-bold text-app-text tracking-tight">2026년 8월 28일 금</h2>
+                            <p class="text-xs text-app-subtext">타임라인 타임블록 계획</p>
+                        </div>
+                        <button class="w-9 h-9 rounded-full bg-white border border-app-border flex items-center justify-center text-app-subtext hover:text-app-primary shadow-subtle">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-4 px-1 text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                            <span class="text-app-subtext font-medium">고정스케줄</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                            <span class="text-app-subtext font-medium">공부 과목</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border space-y-2">
+                        <div class="flex items-start gap-3 min-h-[44px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-1 text-right font-mono">09</span>
+                            <div class="flex-1 border-t border-slate-100 pt-1">
+                                <div class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between border border-slate-200/50">
+                                    <span>IoT센서실습 (수업)</span>
+                                    <span class="text-[10px] text-slate-500">09:00 - 11:30</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 min-h-[28px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-0.5 text-right font-mono">10</span>
+                            <div class="flex-1 border-t border-slate-100"></div>
+                        </div>
+
+                        <div class="flex items-start gap-3 min-h-[28px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-0.5 text-right font-mono">11</span>
+                            <div class="flex-1 border-t border-slate-100"></div>
+                        </div>
+
+                        <div class="flex items-start gap-3 min-h-[36px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-1 text-right font-mono">12</span>
+                            <div class="flex-1 border-t border-slate-100 pt-1">
+                                <div class="text-[11px] text-slate-400 italic px-1">점심 식사 및 휴식</div>
+                            </div>
+                        </div>
+
+                        <!-- Plan Block 1: Spring Boot -->
+                        <div class="flex items-start gap-3 min-h-[90px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-1 text-right font-mono">13</span>
+                            <div class="flex-1 border-t border-slate-100 pt-1 h-full">
+                                <div class="bg-rose-50 border border-rose-200/80 text-rose-900 p-3 rounded-2xl h-full flex flex-col justify-between shadow-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                            Spring Boot
+                                        </span>
+                                        <span class="text-[10px] px-2 py-0.5 bg-rose-100 rounded-full font-semibold text-rose-700">공부 과목</span>
+                                    </div>
+                                    <div class="text-[10px] text-rose-600 font-medium mt-2">
+                                        <span>13:00 - 15:00 (2시간 예정)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 min-h-[28px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-0.5 text-right font-mono">15</span>
+                            <div class="flex-1 border-t border-slate-100"></div>
+                        </div>
+
+                        <!-- Plan Block 2: Java -->
+                        <div class="flex items-start gap-3 min-h-[90px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-1 text-right font-mono">15</span>
+                            <div class="flex-1 border-t border-slate-100 pt-1 h-full">
+                                <div class="bg-emerald-50 border border-emerald-200/80 text-emerald-900 p-3 rounded-2xl h-full flex flex-col justify-between shadow-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            Java
+                                        </span>
+                                        <span class="text-[10px] px-2 py-0.5 bg-emerald-100 rounded-full font-semibold text-emerald-700">공부 과목</span>
+                                    </div>
+                                    <div class="text-[10px] text-emerald-600 font-medium mt-2">
+                                        <span>15:00 - 17:00 (2시간 예정)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 min-h-[28px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-0.5 text-right font-mono">18</span>
+                            <div class="flex-1 border-t border-slate-100"></div>
+                        </div>
+
+                        <!-- Plan Block 3: 데이터베이스 -->
+                        <div class="flex items-start gap-3 min-h-[90px]">
+                            <span class="text-xs font-semibold text-app-subtext w-6 pt-1 text-right font-mono">19</span>
+                            <div class="flex-1 border-t border-slate-100 pt-1">
+                                <div class="bg-amber-50 border border-amber-200/80 text-amber-900 p-3 rounded-2xl flex flex-col justify-between shadow-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                            데이터베이스
+                                        </span>
+                                        <span class="text-[10px] px-2 py-0.5 bg-amber-100 rounded-full font-semibold text-amber-700">공부 과목</span>
+                                    </div>
+                                    <div class="text-[10px] text-amber-600 font-medium mt-2">
+                                        <span>19:00 - 21:00 (2시간 예정)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN 4: STATS -->
+                <div id="screen-stats" class="tab-content p-4 space-y-4">
+                    <div class="pt-1 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-bold text-app-text tracking-tight">공부 통계</h2>
+                            <span class="text-xs text-app-subtext">최근 업데이트 방금 전</span>
+                        </div>
+
+                        <div class="bg-slate-200/70 p-1 rounded-xl flex items-center text-xs font-semibold text-app-subtext">
+                            <button onclick="setStatsPeriod('daily')" id="btn-stats-daily" class="flex-1 py-1.5 rounded-lg bg-white text-app-text shadow-sm transition-all text-center">Daily</button>
+                            <button onclick="setStatsPeriod('weekly')" id="btn-stats-weekly" class="flex-1 py-1.5 rounded-lg hover:text-app-text transition-all text-center">Weekly</button>
+                            <button onclick="setStatsPeriod('monthly')" id="btn-stats-monthly" class="flex-1 py-1.5 rounded-lg hover:text-app-text transition-all text-center">Monthly</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border flex items-center justify-between py-5">
+                        <div>
+                            <span class="text-xs font-medium text-app-subtext">오늘 누적 공부시간</span>
+                            <div class="text-2xl font-extrabold text-app-text tracking-tight mt-0.5">4시간 35분</div>
+                            <div class="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mt-1">
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                                <span>어제보다 +42분 (18% 증가)</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-app-primary flex items-center justify-center">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-app-text">일별 누적 공부시간</h3>
+                            <span class="text-[11px] text-app-subtext">단위: 분</span>
+                        </div>
+                        <div class="h-44 relative">
+                            <canvas id="chartCumulative"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-app-text">시간대별 집중도</h3>
+                            <span class="text-[11px] text-emerald-600 font-semibold">오후 2시 peak</span>
+                        </div>
+                        <div class="h-40 relative">
+                            <canvas id="chartFocus"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN 5: SETTINGS MAIN -->
+                <div id="screen-settings" class="tab-content p-4 space-y-4">
+                    <div class="bg-app-card rounded-app p-4 border border-app-border shadow-subtle flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 text-app-primary flex items-center justify-center font-bold text-lg shrink-0">
+                            <i data-lucide="user" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-base font-bold text-app-text">Study One Track</h3>
+                            <p class="text-xs text-app-subtext">공부 진행중 · 오늘 4시간 35분</p>
+                        </div>
+                        <button class="p-1.5 rounded-lg text-slate-400 hover:text-app-primary transition-colors">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <span class="text-xs font-semibold text-app-subtext px-1">학습 & 스케줄</span>
+                        <div class="bg-app-card rounded-app border border-app-border shadow-subtle divide-y divide-slate-100 overflow-hidden">
+                            <div onclick="openSubSettings('subjects')" class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-50 text-app-primary flex items-center justify-center">
+                                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-app-text">과목 관리</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                            </div>
+
+                            <div onclick="openSubSettings('pattern')" class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                        <i data-lucide="clock" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-app-text">생활패턴 설정</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <span class="text-xs font-semibold text-app-subtext px-1">시스템 & 테마</span>
+                        <div class="bg-app-card rounded-app border border-app-border shadow-subtle divide-y divide-slate-100 overflow-hidden">
+                            <div onclick="openSubSettings('alarm')" class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                                        <i data-lucide="bell" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-app-text">알림 설정</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                            </div>
+
+                            <div onclick="openSubSettings('theme')" class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                        <i data-lucide="palette" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-app-text">테마 설정</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <span class="text-xs font-semibold text-app-subtext px-1">계정 및 지원</span>
+                        <div class="bg-app-card rounded-app border border-app-border shadow-subtle divide-y divide-slate-100 overflow-hidden">
+                            <div onclick="openSubSettings('account')" class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                        <i data-lucide="shield" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-app-text">계정 설정</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                            </div>
+
+                            <div onclick="openSubSettings('help')" class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                                        <i data-lucide="help-circle" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-app-text">도움말</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-SETTING 1: 과목 관리 (Subject Management) -->
+                <div id="sub-screen-subjects" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center justify-between pt-1">
+                        <div class="flex items-center gap-2">
+                            <button onclick="closeSubSettings()" class="w-8 h-8 rounded-full bg-white border border-app-border flex items-center justify-center text-app-text shadow-subtle hover:bg-slate-50">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            </button>
+                            <h2 class="text-lg font-bold text-app-text">과목 관리</h2>
+                        </div>
+                        <button class="w-8 h-8 rounded-lg bg-app-primary text-white flex items-center justify-center shadow-xs">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border space-y-3">
+                        <input type="text" placeholder="과목명" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-app-text focus:outline-none focus:border-app-primary" value="스프링 인강">
+                        
+                        <div>
+                            <span class="text-[11px] font-semibold text-app-subtext block mb-1.5">중요도</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button class="py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-app-subtext">상</button>
+                                <button class="py-2 rounded-xl text-xs font-semibold border border-app-primary bg-blue-50 text-app-primary shadow-xs">중</button>
+                                <button class="py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-app-subtext">하</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[11px] font-semibold text-app-subtext block mb-1.5">과목 색상</span>
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="w-8 h-8 rounded-full bg-rose-200 border-2 border-rose-400 cursor-pointer"></div>
+                                <div class="w-8 h-8 rounded-full bg-emerald-200 border border-slate-200 cursor-pointer"></div>
+                                <div class="w-8 h-8 rounded-full bg-amber-200 border border-slate-200 cursor-pointer"></div>
+                                <div class="w-8 h-8 rounded-full bg-indigo-200 border border-slate-200 cursor-pointer"></div>
+                                <div class="w-8 h-8 rounded-full bg-sky-200 border border-slate-200 cursor-pointer"></div>
+                                <div class="w-8 h-8 rounded-full bg-yellow-100 border border-slate-200 cursor-pointer"></div>
+                                <div class="w-8 h-8 rounded-full bg-green-100 border border-slate-200 cursor-pointer"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <span class="text-[11px] font-semibold text-app-subtext px-1">등록된 과목 목록</span>
+                        <div class="space-y-2">
+                            <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-app-text">스프링 인강</h4>
+                                        <span class="text-[10px] text-app-subtext">중요도: 중</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-app-primary"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-app-text">Java</h4>
+                                        <span class="text-[10px] text-app-subtext">중요도: 하</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-app-primary"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-app-text">데이터베이스</h4>
+                                        <span class="text-[10px] text-app-subtext">중요도: 상</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-app-primary"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                    <button class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-SETTING 2: 생활패턴 설정 (Lifestyle Pattern) -->
+                <div id="sub-screen-pattern" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center gap-2 pt-1 mb-2">
+                        <button onclick="closeSubSettings()" class="w-8 h-8 rounded-full bg-white border border-app-border flex items-center justify-center text-app-text shadow-subtle hover:bg-slate-50">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        </button>
+                        <h2 class="text-lg font-bold text-app-text">생활패턴 설정</h2>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[11px] font-semibold text-app-subtext block mb-1">기상 시간</label>
+                                <input type="time" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-app-text" value="09:00">
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-semibold text-app-subtext block mb-1">취침 시간</label>
+                                <input type="time" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-app-text" value="00:00">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-semibold text-app-subtext block mb-1">점심 시간</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="time" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-app-text" value="12:00">
+                                <input type="time" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-app-text" value="13:00">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-semibold text-app-subtext block mb-1">저녁 시간</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="time" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-app-text" value="18:00">
+                                <input type="time" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-app-text" value="19:00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="w-full py-3 rounded-xl bg-app-primary text-white font-semibold text-xs shadow-floating hover:bg-app-primaryHover transition-all">
+                        저장
+                    </button>
+                </div>
+
+                <!-- SUB-SETTING 3: 알림 설정 (Notifications) -->
+                <div id="sub-screen-alarm" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center gap-2 pt-1 mb-2">
+                        <button onclick="closeSubSettings()" class="w-8 h-8 rounded-full bg-white border border-app-border flex items-center justify-center text-app-text shadow-subtle hover:bg-slate-50">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        </button>
+                        <h2 class="text-lg font-bold text-app-text">알림</h2>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border divide-y divide-slate-100 space-y-3">
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-xs font-semibold text-app-text">졸음 알림</span>
+                            <input type="checkbox" checked class="w-4 h-4 accent-blue-600 rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center justify-between pt-3">
+                            <span class="text-xs font-semibold text-app-text">공부 알림</span>
+                            <input type="checkbox" checked class="w-4 h-4 accent-blue-600 rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center justify-between pt-3">
+                            <span class="text-xs font-semibold text-app-text">목표 알림</span>
+                            <input type="checkbox" class="w-4 h-4 accent-blue-600 rounded cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border flex items-center justify-between">
+                        <span class="text-xs font-semibold text-app-text">알람 시간 설정</span>
+                        <div class="flex items-center gap-2">
+                            <select class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                <option>08</option>
+                                <option>09</option>
+                            </select>
+                            <span>:</span>
+                            <select class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                <option>00</option>
+                                <option>30</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-SETTING 4: 테마 설정 (Theme) -->
+                <div id="sub-screen-theme" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center gap-2 pt-1 mb-2">
+                        <button onclick="closeSubSettings()" class="w-8 h-8 rounded-full bg-white border border-app-border flex items-center justify-center text-app-text shadow-subtle hover:bg-slate-50">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        </button>
+                        <h2 class="text-lg font-bold text-app-text">테마</h2>
+                    </div>
+
+                    <div class="bg-app-card rounded-app p-4 shadow-subtle border border-app-border space-y-3">
+                        <span class="text-[11px] font-semibold text-app-subtext block">테마 선택</span>
+                        
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50/50 cursor-pointer">
+                                <input type="radio" name="theme" checked class="accent-blue-600">
+                                <span class="text-xs font-semibold text-app-text">라이트 모드</span>
+                            </label>
+
+                            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <input type="radio" name="theme" class="accent-blue-600">
+                                <span class="text-xs font-semibold text-app-text">다크 모드</span>
+                            </label>
+
+                            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <input type="radio" name="theme" class="accent-blue-600">
+                                <span class="text-xs font-semibold text-app-text">시스템 설정 따르기</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-SETTING 5: 계정 설정 (Account) -->
+                <div id="sub-screen-account" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center gap-2 pt-1 mb-2">
+                        <button onclick="closeSubSettings()" class="w-8 h-8 rounded-full bg-white border border-app-border flex items-center justify-center text-app-text shadow-subtle hover:bg-slate-50">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        </button>
+                        <h2 class="text-lg font-bold text-app-text">계정</h2>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <button class="w-full py-3.5 rounded-xl bg-app-primary text-white font-semibold text-xs shadow-floating flex items-center justify-center gap-2 hover:bg-app-primaryHover transition-all">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                            Google로 로그인
+                        </button>
+
+                        <button class="w-full py-3.5 rounded-xl bg-white border border-slate-200 text-app-text font-semibold text-xs shadow-subtle hover:bg-slate-50 transition-all">
+                            로그아웃
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SUB-SETTING 6: 도움말 (Help) -->
+                <div id="sub-screen-help" class="tab-content p-4 space-y-4">
+                    <div class="flex items-center gap-2 pt-1 mb-2">
+                        <button onclick="closeSubSettings()" class="w-8 h-8 rounded-full bg-white border border-app-border flex items-center justify-center text-app-text shadow-subtle hover:bg-slate-50">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        </button>
+                        <h2 class="text-lg font-bold text-app-text">도움말</h2>
+                    </div>
+
+                    <p class="text-[11px] text-app-subtext px-1">궁금한 키워드를 검색하거나 카드를 눌러 자세한 가이드를 확인해요.</p>
+
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                        <input type="text" placeholder="키워드 검색" class="w-full bg-app-card border border-app-border rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-medium text-app-text shadow-subtle focus:outline-none focus:border-app-primary">
+                    </div>
+
+                    <div class="space-y-2 max-h-[360px] overflow-y-auto no-scrollbar pr-0.5">
+                        <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle space-y-1">
+                            <h4 class="text-xs font-bold text-app-primary">스케줄</h4>
+                            <p class="text-[11px] text-app-subtext">고정 스케줄을 입력해요</p>
+                        </div>
+                        <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle space-y-1">
+                            <h4 class="text-xs font-bold text-app-primary">목표</h4>
+                            <p class="text-[11px] text-app-subtext">목표 기간과 우선순위 체크를 설정해요</p>
+                        </div>
+                        <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle space-y-1">
+                            <h4 class="text-xs font-bold text-app-primary">타이머</h4>
+                            <p class="text-[11px] text-app-subtext">재생 버튼과 카메라 버튼을 함께 사용해요</p>
+                        </div>
+                        <div class="bg-app-card rounded-app p-3.5 border border-app-border shadow-subtle space-y-1">
+                            <h4 class="text-xs font-bold text-app-primary">누적 시간</h4>
+                            <p class="text-[11px] text-app-subtext">기간별 누적 공부 시간을 확인해요</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Mobile Navigation Bar -->
+            <nav class="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200/80 px-2 flex items-center justify-around z-30 shadow-lg">
+                <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center justify-center w-14 h-12 text-app-primary font-bold transition-all">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                    <span class="text-[11px] font-semibold mt-1">Schedule</span>
+                </button>
+
+                <button onclick="switchTab('timer')" id="nav-timer" class="flex flex-col items-center justify-center w-14 h-12 text-app-subtext hover:text-app-primary font-medium transition-all">
+                    <i data-lucide="timer" class="w-5 h-5"></i>
+                    <span class="text-[11px] font-semibold mt-1">Timer</span>
+                </button>
+
+                <button onclick="switchTab('plan')" id="nav-plan" class="flex flex-col items-center justify-center w-14 h-12 text-app-subtext hover:text-app-primary font-medium transition-all">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                    <span class="text-[11px] font-semibold mt-1">Plan</span>
+                </button>
+
+                <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center justify-center w-14 h-12 text-app-subtext hover:text-app-primary font-medium transition-all">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                    <span class="text-[11px] font-semibold mt-1">Stats</span>
+                </button>
+
+                <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center w-14 h-12 text-app-subtext hover:text-app-primary font-medium transition-all">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-[11px] font-semibold mt-1">Settings</span>
+                </button>
+            </nav>
+
+        </div>
+
+        <!-- MODE 2: All Screens Grid View Container -->
+        <div id="grid-container" class="hidden w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamically cloned preview targets via JS -->
+        </div>
+
+    </main>
+
+    <script>
+        const sharedStudySubjects = [
+            { id: 'spring', name: 'Spring Boot', color: 'bg-rose-400', time: '02:00:00' },
+            { id: 'java', name: 'Java', color: 'bg-emerald-400', time: '01:45:00' },
+            { id: 'db', name: '데이터베이스', color: 'bg-amber-400', time: '01:30:00' },
+            { id: 'network', name: '네트워크', color: 'bg-indigo-400', time: '01:00:00' }
+        ];
+
+        let currentTab = 'schedule';
+        let currentSubject = 'Spring Boot';
+        let timerRunning = true;
+        let timerSeconds = 7200;
+        let timerInterval = null;
+
+        let cumulativeChartInstance = null;
+        let focusChartInstance = null;
+
+        window.onload = function() {
+            lucide.createIcons();
+            renderTimerSubjects();
+            startTimerLogic();
+            initCharts();
+        };
+
+        function renderTimerSubjects() {
+            const listContainer = document.getElementById('timer-subject-list');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = '';
+            sharedStudySubjects.forEach(subj => {
+                const isSelected = subj.name === currentSubject;
+                const card = document.createElement('div');
+                card.id = `subject-card-${subj.id}`;
+                card.className = isSelected 
+                    ? "subject-card w-full flex items-center justify-between bg-blue-50/80 border-2 border-app-primary px-3.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
+                    : "subject-card w-full flex items-center justify-between bg-app-bg border border-slate-200/60 px-3.5 py-2.5 rounded-xl hover:border-slate-300 transition-all cursor-pointer";
+                
+                card.onclick = () => selectTimerSubject(subj.name, subj.time);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-3 h-3 rounded-full ${subj.color}"></span>
+                        <span class="text-xs font-bold text-app-text">${subj.name}</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-mono">${subj.time}</span>
+                `;
+                listContainer.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            const targetScreen = document.getElementById(`screen-${tabName}`);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+
+            ['schedule', 'timer', 'plan', 'stats', 'settings'].forEach(nav => {
+                const navBtn = document.getElementById(`nav-${nav}`);
+                if (navBtn) {
+                    if (nav === tabName) {
+                        navBtn.className = "flex flex-col items-center justify-center w-14 h-12 text-app-primary font-bold transition-all";
+                    } else {
+                        navBtn.className = "flex flex-col items-center justify-center w-14 h-12 text-app-subtext hover:text-app-primary font-medium transition-all";
+                    }
+                }
+            });
+
+            lucide.createIcons();
+        }
+
+        function openSubSettings(subName) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            const target = document.getElementById(`sub-screen-${subName}`);
+            if (target) {
+                target.classList.add('active');
+            }
+            lucide.createIcons();
+        }
+
+        function closeSubSettings() {
+            switchTab('settings');
+        }
+
+        function setViewMode(mode) {
+            const simContainer = document.getElementById('simulator-container');
+            const gridContainer = document.getElementById('grid-container');
+            const btnSim = document.getElementById('view-mode-simulator');
+            const btnGrid = document.getElementById('view-mode-grid');
+
+            if (mode === 'simulator') {
+                simContainer.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
+                btnSim.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-sm";
+                btnGrid.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all";
+            } else {
+                simContainer.classList.add('hidden');
+                gridContainer.classList.remove('hidden');
+                btnGrid.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-sm";
+                btnSim.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all";
+                renderGridView();
+            }
+        }
+
+        function renderGridView() {
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+
+            const screens = [
+                { id: 'screen-schedule', name: '1. Schedule (시간표)' },
+                { id: 'screen-timer', name: '2. Timer (타이머)' },
+                { id: 'screen-plan', name: '3. Plan (계획 타)' },
+                { id: 'screen-stats', name: '4. Stats (공부 통계)' },
+                { id: 'screen-settings', name: '5. Settings (설정 메인)' },
+                { id: 'sub-screen-subjects', name: '6. 과목 관리 설정' },
+                { id: 'sub-screen-pattern', name: '7. 생활패턴 설정' },
+                { id: 'sub-screen-alarm', name: '8. 알림 설정' },
+                { id: 'sub-screen-theme', name: '9. 테마 설정' },
+                { id: 'sub-screen-account', name: '10. 계정 설정' },
+                { id: 'sub-screen-help', name: '11. 도움말' }
+            ];
+
+            screens.forEach(s => {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = "bg-slate-800 rounded-3xl p-4 border border-slate-700/80 shadow-xl flex flex-col";
+                
+                const title = document.createElement('h3');
+                title.className = "text-sm font-bold text-slate-200 mb-3 flex items-center gap-2";
+                title.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-500"></span>${s.name}`;
+                cardWrapper.appendChild(title);
+
+                const frame = document.createElement('div');
+                frame.className = "w-full h-[540px] bg-app-bg rounded-2xl overflow-y-auto border border-slate-700/50 p-2 relative no-scrollbar";
+                
+                const screenOriginal = document.getElementById(s.id);
+                if (screenOriginal) {
+                    const clone = screenOriginal.cloneNode(true);
+                    clone.style.display = 'block';
+                    clone.style.opacity = '1';
+                    frame.appendChild(clone);
+                }
+
+                cardWrapper.appendChild(frame);
+                gridContainer.appendChild(cardWrapper);
+            });
+
+            lucide.createIcons();
+        }
+
+        function toggleCheck(goalId) {
+            const box = document.getElementById(`check-${goalId}`);
+            const title = document.getElementById(`title-${goalId}`);
+            if (!box || !title) return;
+
+            const icon = box.querySelector('i');
+
+            if (box.classList.contains('bg-app-primary')) {
+                box.classList.remove('bg-app-primary', 'border-app-primary');
+                box.classList.add('bg-white', 'border-slate-300');
+                if (icon) icon.classList.add('opacity-0');
+                title.classList.remove('line-through', 'text-slate-400');
+            } else {
+                box.classList.add('bg-app-primary', 'border-app-primary');
+                box.classList.remove('bg-white', 'border-slate-300');
+                if (icon) icon.classList.remove('opacity-0');
+                title.classList.add('line-through', 'text-slate-400');
+            }
+        }
+
+        function startTimerLogic() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timerRunning && timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerUI();
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const display = document.getElementById('timer-display');
+            if (!display) return;
+
+            const hours = Math.floor(timerSeconds / 3600);
+            const minutes = Math.floor((timerSeconds % 3600) / 60);
+            const seconds = timerSeconds % 60;
+
+            const format = (num) => String(num).padStart(2, '0');
+            display.innerText = `${format(hours)}:${format(minutes)}:${format(seconds)}`;
+
+            const circle = document.getElementById('timer-progress');
+            if (circle) {
+                const total = 7200;
+                const offset = 263.89 * (1 - timerSeconds / total);
+                circle.style.strokeDashoffset = offset;
+            }
+        }
+
+        function toggleTimer() {
+            timerRunning = !timerRunning;
+            const btnText = document.getElementById('text-timer-toggle');
+            const btnIcon = document.getElementById('icon-timer-toggle');
+            const statusText = document.getElementById('timer-status');
+
+            if (timerRunning) {
+                if (btnText) btnText.innerText = '일시 정지';
+                if (btnIcon) btnIcon.setAttribute('data-lucide', 'pause');
+                if (statusText) statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-600 timer-pulse"></span> ${currentSubject} 측정 중`;
+            } else {
+                if (btnText) btnText.innerText = '다시 시작';
+                if (btnIcon) btnIcon.setAttribute('data-lucide', 'play');
+                if (statusText) statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> ${currentSubject} 일시정지됨`;
+            }
+            lucide.createIcons();
+        }
+
+        function selectTimerSubject(subjectName, timeStr) {
+            currentSubject = subjectName;
+            renderTimerSubjects();
+
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 3) {
+                timerSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                updateTimerUI();
+            }
+
+            const statusText = document.getElementById('timer-status');
+            if (statusText) {
+                statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-600 timer-pulse"></span> ${subjectName} 측정 중`;
+            }
+        }
+
+        function setStatsPeriod(period) {
+            ['daily', 'weekly', 'monthly'].forEach(p => {
+                const btn = document.getElementById(`btn-stats-${p}`);
+                if (btn) {
+                    if (p === period) {
+                        btn.className = "flex-1 py-1.5 rounded-lg bg-white text-app-text shadow-sm transition-all text-center font-bold";
+                    } else {
+                        btn.className = "flex-1 py-1.5 rounded-lg text-app-subtext hover:text-app-text transition-all text-center";
+                    }
+                }
+            });
+        }
+
+        function initCharts() {
+            const ctx1El = document.getElementById('chartCumulative');
+            if (ctx1El) {
+                const ctx1 = ctx1El.getContext('2d');
+                cumulativeChartInstance = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['25일', '26일', '27일', '28일'],
+                        datasets: [{
+                            data: [180, 210, 233, 275],
+                            backgroundColor: ['#E2E8F0', '#E2E8F0', '#E2E8F0', '#2563EB'],
+                            borderRadius: 8,
+                            barThickness: 24,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Pretendard' }, color: '#64748B' } },
+                            y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10, family: 'Pretendard' }, color: '#94A3B8' } }
+                        }
+                    }
+                });
+            }
+
+            const ctx2El = document.getElementById('chartFocus');
+            if (ctx2El) {
+                const ctx2 = ctx2El.getContext('2d');
+                focusChartInstance = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: ['09', '11', '13', '15', '17', '19', '21', '23'],
+                        datasets: [{
+                            data: [40, 65, 85, 95, 70, 88, 90, 60],
+                            borderColor: '#2563EB',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#2563EB',
+                            pointRadius: 3,
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(37, 99, 235, 0.08)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 10, family: 'Pretendard' }, color: '#64748B' } },
+                            y: { display: false }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
